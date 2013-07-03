@@ -1,0 +1,13 @@
+# Python byte comde #
+#####################
+*.pyc
+# VIM #
+*.swp
+# Emacs generated files #
+*~
+src/dist/*
+src/build/*
+src/*.egg*
+
+#ignore screen file
+.screenrc
