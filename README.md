@@ -16,6 +16,7 @@ Installs the package concoct in default python path, and adds script concoct to 
 Execute concoct
 -------
 ```
+TODO! Not correct flags !!!!!!!!!!!!!!!!!!!!!!!!!
 - f               contains the fasta formatted contigs
 - k               the kmer size
 - c               number of clusters
@@ -29,6 +30,7 @@ Dependencies
 -----------
 Developed under python 2.7 and following packages installed through pip:
 ```
+TODO! Not correct dependencies!!!!!!!!!!!!!!
 Jinja2==2.6
 Pygments==1.6
 argparse==1.2.1
