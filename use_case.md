@@ -38,7 +38,7 @@ will classify them after clustering on > 1000 contigs.
 Note, we will not assumer the same order, rather both composition and coverage
 should use contigs id as an indes to a Pandas DataFrame or Pandas Series. Makes
 filtering data based on contig id simple and efficient.
-####!TODO Do we need to transform the data?
+####!TODO Do we need to do pseudo count or something for the coverage?
 
 4. Run PCA on composition for all the contigs
 
