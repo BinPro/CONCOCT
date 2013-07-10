@@ -13,7 +13,7 @@ tmp_dir_path = test_dir_path + '/nose_tmp_output'
 CWD = os.getcwd()
 
 CONCOCT_CALL = """
-CONCOCT -h
+CONCOCT test_data/coverage -o nose_tmp_output -c 3
 """
 class TestCMD(object):
     def setUp(self):
