@@ -20,8 +20,12 @@ class TestCMD(object):
         """If tmp dir already exists, delete it"""
         self.tearDown()
         os.chdir(test_dir_path)
-        self.c = subprocess.call(CONCOCT_CALL,shell=True)
-
+        self.c = 0 # Exit code
+        try:
+            self.op = subprocess.check_output(
+                CONCOCT_CALL,shell=True)
+        except subprocess.CalledProcessError as exc:
+            self.c = exc.returncode
     def tearDown(self):
         """remove temporary output files"""
         if isdir(tmp_dir_path):
@@ -36,6 +40,4 @@ class TestCMD(object):
     def test_directory_creation(self):
         assert_true(isdir(tmp_dir_path),
                     msg = "Temporary directory not created")
-
-
 
