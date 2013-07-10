@@ -5,9 +5,9 @@
 *.swp
 # Emacs generated files #
 *~
-src/dist/*
-src/build/*
-src/*.egg*
+dist/*
+build/*
+*.egg*
 
 #ignore screen file
 .screenrc
