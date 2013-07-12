@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from nose.tools import assert_almost_equal, assert_equal, assert_true
-from os.path import isdir
+from os.path import isdir,isfile
 import os
 import sys
 import subprocess
@@ -41,3 +41,42 @@ class TestCMD(object):
         assert_true(isdir(tmp_dir_path),
                     msg = "Temporary directory not created")
 
+    def test_output_files_creation(self):
+        assert_true(
+            isfile(tmp_dir_path + '/bic'),
+            msg='Bic file is not created'
+            )
+        assert_true(
+            isfile(tmp_dir_path+ '/large_contigs_clustering.csv'),
+            msg='Large contigs clustering file is not created'
+            )
+        assert_true(
+            isfile(tmp_dir_path+ '/large_contigs_cluster_means.csv'),
+            msg='Large contigs cluster means file is not created'
+            )
+
+        assert_true(
+            isfile(tmp_dir_path+ '/large_contigs_cluster_variance.csv'),
+            msg='Large contigs cluster variance file is not created'
+            )
+        assert_true(
+            isfile(tmp_dir_path+ '/large_contigs_clustering.csv'),
+            msg='Large contigs clustering file is not created'
+            )
+        assert_true(
+            isfile(tmp_dir_path+ '/large_contigs_responsibilities.csv'),
+            msg='Large contigs responsibilities file is not created'
+            )
+        assert_true(
+            isfile(tmp_dir_path+ '/clustering.csv'),
+            msg='Clustering file is not created'
+            )
+        assert_true(
+            isfile(tmp_dir_path+ '/pca_data.csv'),
+            msg='PCA file is not created'
+            )
+        assert_true(
+            isfile(tmp_dir_path+ '/original_data.csv'),
+            msg='Original data file is not created'
+            )
+                
