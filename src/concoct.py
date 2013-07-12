@@ -112,29 +112,24 @@ def cluster(comp_file, cov_file, kmer_len, read_length, clusters_range, cov_rang
         raise NotImplementedError("Not implemented yet to run seperate PCA")
     else:
         joined = composition.join(cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
-        pca = PCA(n_components=0.9)
-        transform = pca.fit_transform(joined[threshold_filter])
-        Output.write_pca(joined[threshold_filter],transform,"joined")
+        #PCA on the contigs that have kmer count greater than threshold
+        pca = PCA(n_components=0.9).fit(joined[threshold_filter])
+        Output.write_pca(joined[threshold_filter],pca.transform(joined[threshold_filter]),"joined")
     
     cv_type='full'
     for c in clusters_range:
         # Fit a mixture of gaussians with EM
         gmm = GMM(n_components=c, covariance_type=cv_type, n_init=inits,n_iter=iters)
-        gmm.fit(transform)
+        #Run GMM on the pca transform of contigs with kmer count greater than threshold
+        gmm.fit(pca.transfom(joined[threshold_filter]))
         print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(c,gmm.converged_)
-        
-        joined["clustering"] = gmm.predict(joined)
+        #Classify all datapoints based on the clustering of filtered contigs
+        joined["clustering"] = gmm.predict(pca.transform(joined))
         Output.write_clustering(joined,threshold_filter,c)
-        Output.write_bic(gmm.bic(transform),c)
+        Output.write_bic(gmm.bic(pca.transform(joined[threshold_filter])),c)
         Output.write_cluster_means(pca.inverse_transform(gmm.means_),c)
         Output.write_cluster_variance(pca.inverse_transform(gmm.covars_))
-        convergence = gmm.converged_
-        sys.stderr.write('Convergence: ' + str(convergence) +'\n')
-        class_series = p.Series(labels,index=df.index)
-        setting = str(c)+"_" + str(cv_type)
         
-        class_series.to_csv(outdir+"_" +setting+str(gmm.bic(X))+ '.csv')
-
 def window(seq,n):
     els = tee(seq,n)
     for i,el in enumerate(els):
