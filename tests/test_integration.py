@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 from nose.tools import assert_almost_equal, assert_equal, assert_true
 from os.path import isdir,isfile
+from os import listdir
 import os
 import sys
 import subprocess
+import re
 
 file_path = os.path.realpath(__file__)
 data_path = os.path.abspath(os.path.join(file_path,"..","..","data/"))
@@ -38,8 +40,26 @@ class TestCMD(object):
                      msg = "Command exited with nonzero status")
 
     def test_directory_creation(self):
+        reg_o = re.compile(tmp_dir_path)
+        L = listdir(test_dir_path)
+        tmp_dirs_before = filter(reg_o.match,L)
+
         assert_true(isdir(tmp_dir_path),
                     msg = "Temporary directory not created")
+        assert_true(len(tmp_dirs_before)==1,
+                    msg = "Other files starting with nose_tmp_output exists in test directory, please remove them and restart tests")
+
+        # Rerun the concoct and see that new directory with unique
+        # name is created
+        self.op = subprocess.check_output(
+            CONCOCT_CALL,shell=True)
+        L = listdir(test_dir_path)
+        tmp_dirs_after = filter(reg_o.match,L)
+        assert_true(len(tmp_dirs_after) > 1,
+                    msg = "No unique output directory was created")
+
+        assert_true(len(tmp_dirs_after) == 2,
+                    msg = "Multiple output directories or files was created")
 
     def test_output_files_creation(self):
         assert_true(
