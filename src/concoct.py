@@ -12,11 +12,14 @@ import numpy as np
 
 from itertools import tee, izip
 from argparse import ArgumentParser,ArgumentTypeError
+from datetime import datetime
+
+from Bio import SeqIO
+
 from sklearn.preprocessing import scale
 from sklearn.mixture import GMM
 from sklearn.decomposition import PCA
-from datetime import datetime
-from Bio import SeqIO
+
 
 
 class Output(object):
@@ -27,7 +30,9 @@ class Output(object):
     DT = None
     BIC_FILE = None
     ARGS_FILE = None
-    
+    PCA_FILE_BASE = None
+    CLUSTERING_FILE_BASE = None
+    MEANS_FILE_BASE = None
     @classmethod
     def __init__(self,args):
         """
@@ -39,6 +44,9 @@ class Output(object):
         print >> sys.stderr, "Results created in folder {0}".format(self.CONCOCT_PATH)
         self.BIC_FILE = os.path.join(self.CONCOCT_PATH,"bic.csv")
         self.ARGS_FILE = os.path.join(self.CONCOCT_PATH,"args.txt")
+        self.PCA_FILE_BASE = os.path.join(self.CONCOCT_PATH,"PCA_{0}.csv")
+        self.CLUSTERING_FILE_BASE = os.path.join(self.CONCOCT_PATH,"clustering_{0}.csv")
+        self.MEANS_FILE_BASE = os.path.join(self.CONCOCT_PATH,"means_{0}.csv")
         #Write header to bic.csv
         with open(self.BIC_FILE,"a+") as fh:
             print >> fh, "cluster_count,bic_value"
@@ -46,10 +54,25 @@ class Output(object):
             print >> fh, args
     
     @classmethod
-    def write_cluster_method(self,c):
-        print self.CONCOCT_PATH
-
+    def write_pca(self,original,transform,prefix):
+        original.to_csv(self.PCA_FILE_BASE.format("original_{0}".format(prefix)))
+        np.savetxt(self.PCA_FILE_BASE.format("transform_{0}".format(prefix)),transform)
+            
+    @classmethod
+    def write_clustering(self,dataframe,threshold_filter,c):
+        dataframe.clustering.to_csv(self.CLUSTERING_FILE_BASE.format("{0}_full".format(c)))
+        dataframe[threshold_filter].clustering.to_csv(self.CLUSTERING_FILE_BASE.format("{0}_filtered".format(c)))
         
+    @classmethod
+    def write_bic(self,bic,c):
+        with open(self.BIC_FILE,"a+") as fh:
+            print >> fh, "{0},{1}".format(bic,c)
+    
+    @classmethod
+    def write_cluster_means(self,means,c):
+        np.savetxt(self.MEANS_FILE_BASE.format(c),means)
+            
+
 def cluster(comp_file, cov_file, kmer_len, read_length, clusters_range, cov_range, split_pca, inits, iters, outdir, args):
     Output(args)
     #Composition
@@ -63,8 +86,8 @@ def cluster(comp_file, cov_file, kmer_len, read_length, clusters_range, cov_rang
             if re.match(count_re,line):
                 seq_count += 1
 
-    #Initialize with ones since we do pseudo count
-    composition = np.ones(seq_count,nr_features)
+    #Initialize with ones since we do pseudo count, we have i contigs as rows and j features as columns
+    composition = np.ones((seq_count,nr_features))
     
     
     contigs_id = []
@@ -73,24 +96,38 @@ def cluster(comp_file, cov_file, kmer_len, read_length, clusters_range, cov_rang
         for kmer_tuple in window(seq.seq.tostring().upper(),kmer_len):
             composition[i,feature_mapping["".join(kmer_tuple)]] += 1
     composition = p.DataFrame(composition,index=contigs_id,dtype=float)
+    #Select contigs to cluster on
     threshold_filter = composition.sum(axis=1) > 1000
-    #log(p_ij) = log((X_ij +1) / rowSum(X_ij+1))
+    
+    #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
     composition = np.log(composition.divide(composition.sum(axis=1),axis=0))
     
     #Coverage import, file has header and contig ids as index
     cov = p.read_table(cov_file,header=0,index_col=0)
-        
-    
+    #log(q_ij) = log[(Y_ij + 1).R/L_i]) where L_i is the length of contig i and R is the read length.
+    cov.ix[:,cov_range[0]:cov_range[1]] = np.log((cov.ix[:,cov_range[0]:cov_range[1]] + 1).mul((read_length/cov.length)))
     #cov = scale(cov.ix[:,cov_range[0]:cov_range[1]])
+
+    if split_pca:
+        raise NotImplementedError("Not implemented yet to run seperate PCA")
+    else:
+        joined = composition.join(cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
+        pca = PCA(n_components=0.9)
+        transform = pca.fit_transform(joined[threshold_filter])
+        Output.write_pca(joined[threshold_filter],transform,"joined")
+    
     cv_type='full'
-    
-    
     for c in clusters_range:
         # Fit a mixture of gaussians with EM
-        gmm = GMM(n_components=c, covariance_type=cv_type)
-        gmm.fit(X)
-        labels = gmm.predict(X)
-        bic = gmm.bic(X)
+        gmm = GMM(n_components=c, covariance_type=cv_type, n_init=inits,n_iter=iters)
+        gmm.fit(transform)
+        print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(c,gmm.converged_)
+        
+        joined["clustering"] = gmm.predict(joined)
+        Output.write_clustering(joined,threshold_filter,c)
+        Output.write_bic(gmm.bic(transform),c)
+        Output.write_cluster_means(pca.inverse_transform(gmm.means_),c)
+        Output.write_cluster_variance(pca.inverse_transform(gmm.covars_))
         convergence = gmm.converged_
         sys.stderr.write('Convergence: ' + str(convergence) +'\n')
         class_series = p.Series(labels,index=df.index)
