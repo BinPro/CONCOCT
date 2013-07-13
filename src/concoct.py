@@ -6,11 +6,9 @@ import os
 import re
 
 import pandas as p
-import pylab as pl
-import matplotlib as mpl
 import numpy as np
 
-from itertools import tee, izip
+from itertools import tee, izip, product
 from argparse import ArgumentParser,ArgumentTypeError
 from datetime import datetime
 
@@ -33,6 +31,8 @@ class Output(object):
     PCA_FILE_BASE = None
     CLUSTERING_FILE_BASE = None
     MEANS_FILE_BASE = None
+    VARIANCE_FILE_BASE = None
+    RESPONSIBILITY_FILE_BASE = None
     @classmethod
     def __init__(self,args):
         """
@@ -44,9 +44,12 @@ class Output(object):
         print >> sys.stderr, "Results created in folder {0}".format(self.CONCOCT_PATH)
         self.BIC_FILE = os.path.join(self.CONCOCT_PATH,"bic.csv")
         self.ARGS_FILE = os.path.join(self.CONCOCT_PATH,"args.txt")
-        self.PCA_FILE_BASE = os.path.join(self.CONCOCT_PATH,"PCA_{0}.csv")
+        self.ORIGINAL_FILE_BASE = os.path.join(self.CONCOCT_PATH,"original_data_gt{0}_{1}")
+        self.PCA_FILE_BASE = os.path.join(self.CONCOCT_PATH,"PCA_gt{0}_{1}.csv")
         self.CLUSTERING_FILE_BASE = os.path.join(self.CONCOCT_PATH,"clustering_{0}.csv")
-        self.MEANS_FILE_BASE = os.path.join(self.CONCOCT_PATH,"means_{0}.csv")
+        self.MEANS_FILE_BASE = os.path.join(self.CONCOCT_PATH,"means_{0}_gt{1}.csv")
+        self.VARIANCE_FILE_BASE = os.path.join(self.CONCOCT_PATH,"variance_{0}_gt{1}.csv")
+        self.RESPONSIBILITY_FILE_BASE = os.path.join(self.CONCOCT_PATH,"responsibility_{0}_gt{1}.csv")
         #Write header to bic.csv
         with open(self.BIC_FILE,"a+") as fh:
             print >> fh, "cluster_count,bic_value"
@@ -54,14 +57,18 @@ class Output(object):
             print >> fh, args
     
     @classmethod
-    def write_pca(self,original,transform,prefix):
-        original.to_csv(self.PCA_FILE_BASE.format("original_{0}".format(prefix)))
-        np.savetxt(self.PCA_FILE_BASE.format("transform_{0}".format(prefix)),transform)
-            
+    def write_pca(self,transform,threshold,prefix):
+        np.savetxt(self.PCA_FILE_BASE.format(threshold,prefix),transform)
+    
     @classmethod
-    def write_clustering(self,dataframe,threshold_filter,c):
+    def write_original_data(self,original,threshold,prefix):
+        original.to_csv(self.ORIGINAL_FILE_BASE.format(threshold,prefix))
+
+    
+    @classmethod
+    def write_clustering(self,dataframe,threshold_filter,threshold,c):
         dataframe.clustering.to_csv(self.CLUSTERING_FILE_BASE.format("{0}_full".format(c)))
-        dataframe[threshold_filter].clustering.to_csv(self.CLUSTERING_FILE_BASE.format("{0}_filtered".format(c)))
+        dataframe[threshold_filter].clustering.to_csv(self.CLUSTERING_FILE_BASE.format("{0}_gt{1}_filtered".format(c,threshold)))
         
     @classmethod
     def write_bic(self,bic,c):
@@ -69,11 +76,18 @@ class Output(object):
             print >> fh, "{0},{1}".format(bic,c)
     
     @classmethod
-    def write_cluster_means(self,means,c):
-        np.savetxt(self.MEANS_FILE_BASE.format(c),means)
+    def write_cluster_means(self,means,threshold,c):
+        np.savetxt(self.MEANS_FILE_BASE.format(c,threshold),means)
             
+    @classmethod
+    def write_cluster_variance(self,means,threshold,c):
+        np.savetxt(self.VARIANCE_FILE_BASE.format(c,threshold),means)
 
-def cluster(comp_file, cov_file, kmer_len, read_length, clusters_range, cov_range, split_pca, inits, iters, outdir, args):
+    @classmethod
+    def write_cluster_responsibilities(self,res,threshold,c):
+        np.savetxt(self.RESPONSIBILITY_FILE_BASE.format(c,threshold),res)        
+
+def cluster(comp_file, cov_file, kmer_len, threshold, read_length, clusters_range, cov_range, split_pca, inits, iters, outdir, args):
     Output(args)
     #Composition
     #Generate kmer dictionary
@@ -97,7 +111,7 @@ def cluster(comp_file, cov_file, kmer_len, read_length, clusters_range, cov_rang
             composition[i,feature_mapping["".join(kmer_tuple)]] += 1
     composition = p.DataFrame(composition,index=contigs_id,dtype=float)
     #Select contigs to cluster on
-    threshold_filter = composition.sum(axis=1) > 1000
+    threshold_filter = composition.sum(axis=1) > threshold
     
     #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
     composition = np.log(composition.divide(composition.sum(axis=1),axis=0))
@@ -112,23 +126,24 @@ def cluster(comp_file, cov_file, kmer_len, read_length, clusters_range, cov_rang
         raise NotImplementedError("Not implemented yet to run seperate PCA")
     else:
         joined = composition.join(cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
+        Output.write_original_data(joined,threshold,"joined")
         #PCA on the contigs that have kmer count greater than threshold
         pca = PCA(n_components=0.9).fit(joined[threshold_filter])
-        Output.write_pca(joined[threshold_filter],pca.transform(joined[threshold_filter]),"joined")
+        transform_filter = pca.transform(joined[threshold_filter])
+        Output.write_pca(pca.transform(transform_filter),threshold,"joined_filtered")
     
     cv_type='full'
     for c in clusters_range:
-        # Fit a mixture of gaussians with EM
-        gmm = GMM(n_components=c, covariance_type=cv_type, n_init=inits,n_iter=iters)
         #Run GMM on the pca transform of contigs with kmer count greater than threshold
-        gmm.fit(pca.transfom(joined[threshold_filter]))
+        gmm = GMM(n_components=c, covariance_type=cv_type, n_init=inits,n_iter=iters).fit(transform_filter)
         print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(c,gmm.converged_)
         #Classify all datapoints based on the clustering of filtered contigs
         joined["clustering"] = gmm.predict(pca.transform(joined))
-        Output.write_clustering(joined,threshold_filter,c)
-        Output.write_bic(gmm.bic(pca.transform(joined[threshold_filter])),c)
-        Output.write_cluster_means(pca.inverse_transform(gmm.means_),c)
-        Output.write_cluster_variance(pca.inverse_transform(gmm.covars_))
+        Output.write_clustering(joined,threshold_filter,threshold,c)
+        Output.write_bic(gmm.bic(pca.transform(transform_filter)),c)
+        Output.write_cluster_means(pca.inverse_transform(gmm.means_),threshold,c)
+        Output.write_cluster_variance(pca.inverse_transform(gmm.covars_),threshold,c)
+        Output.write_cluster_responsibilities(pca.inverse_transform(gmm.predict_proba(transform_filter)),threshold,c)
         
 def window(seq,n):
     els = tee(seq,n)
@@ -197,7 +212,9 @@ def arguments():
         help='specify this flag to first do PCA for the composition and using that component number\
               that explaines 90% of variance for the coverage as well. Default join composition and\
               coverage before PCA.')
-    
+    parser.add_argument('-t', type=int, default=1000,
+        help='specify the kmer count for threshold in running PCA on composition contigs, default 1000')
+        
     parser.add_argument('-e', type=int, default=5,
         help='How often to initialize each cluster count. default 5 times')
     parser.add_argument('-i', type=int, default=100,
@@ -213,6 +230,6 @@ def arguments():
         
 if __name__=="__main__":
     args = arguments()
-    results = cluster(args.composition_file, args.coverage_file, args.k, args.r, args.c, args.n, \
+    results = cluster(args.composition_file, args.coverage_file, args.k, args.t, args.r, args.c, args.n, \
                       args.s, args.e, args.i, args.o, args)
     
