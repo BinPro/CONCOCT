@@ -34,12 +34,12 @@ class Output(object):
     VARIANCE_FILE_BASE = None
     RESPONSIBILITY_FILE_BASE = None
     @classmethod
-    def __init__(self,args):
+    def __init__(self,outdir,args):
         """
         Set output parameters and create output folders and bic.csv and args.txt
         """
         self.DT = datetime.now().strftime("%y%m%d_%H%M")
-        self.CONCOCT_PATH = os.path.join(args.o,"concoct_{0}".format(self.DT))
+        self.CONCOCT_PATH = os.path.join(outdir,"concoct_{0}".format(self.DT))
         os.makedirs(self.CONCOCT_PATH)
         print >> sys.stderr, "Results created in folder {0}".format(self.CONCOCT_PATH)
         self.BIC_FILE = os.path.join(self.CONCOCT_PATH,"bic.csv")
@@ -87,8 +87,8 @@ class Output(object):
     def write_cluster_responsibilities(self,res,threshold,c):
         np.savetxt(self.RESPONSIBILITY_FILE_BASE.format(c,threshold),res)        
 
-def cluster(comp_file, cov_file, kmer_len, threshold, read_length, clusters_range, cov_range, split_pca, inits, iters, outdir, args):
-    Output(args)
+def cluster(comp_file, cov_file, kmer_len, threshold, read_length, clusters_range, cov_range, split_pca, inits, iters, outdir, args=None):
+    Output(outdir,args)
     #Composition
     #Generate kmer dictionary
     feature_mapping, nr_features = generate_feature_mapping(kmer_len)
@@ -209,9 +209,7 @@ def arguments():
     parser.add_argument('-n', type=parse_coverage_columns, default=None,
         help='specify the first and last column names for continuous coverage range of read counts as first,last')
     parser.add_argument('-s', type=bool, default=False, action="store_true",
-        help='specify this flag to first do PCA for the composition and using that component number\
-              that explaines 90% of variance for the coverage as well. Default join composition and\
-              coverage before PCA.')
+        help='specify this flag to first do PCA for the composition and using that component number that explaines 90% of variance for the coverage as well. Default join composition and coverage before PCA.')
     parser.add_argument('-t', type=int, default=1000,
         help='specify the kmer count for threshold in running PCA on composition contigs, default 1000')
         
