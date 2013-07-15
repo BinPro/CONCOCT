@@ -208,9 +208,10 @@ def arguments():
         help='specify read length for coverage, default 100')
     parser.add_argument('-n', type=parse_coverage_columns, default=None,
         help='specify the first and last column names for continuous coverage range of read counts as first,last')
-    parser.add_argument('-s', type=bool, default=False, action="store_true",
-        help='specify this flag to first do PCA for the composition and using that component number that explaines 90% of variance for the coverage as well. Default join composition and coverage before PCA.')
-    parser.add_argument('-t', type=int, default=1000,
+    parser.add_argument('-s', default=False, action="store_true",
+        help='specify this flag to first do PCA for the composition and using that component number that explaines 90 percent of variance for the coverage as well. Default join composition and coverage before PCA.')
+    
+    parser.add_argument('-l', type=int, default=1000,
         help='specify the kmer count for threshold in running PCA on composition contigs, default 1000')
         
     parser.add_argument('-e', type=int, default=5,
