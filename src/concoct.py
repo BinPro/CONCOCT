@@ -194,34 +194,45 @@ def arguments():
     #Handle cluster number parsing
     cluster_count = parser.add_mutually_exclusive_group()
     cluster_count.add_argument('-c', nargs="+", default=range(20,101,2), type=parse_cluster_list,
-        help='specify range of clusters to try out on format first,last,step. default 20,100,2.')
+        help='specify range of clusters to try out on format first,last,step. \
+              default 20,100,2.')
     cluster_count.add_argument('-t', type=parse_taxonomy_cluster_list,
-        help='specify a taxonomy file to estimate species number from (X). Will use range X*0.5,X*1.5,2')
-        
+        help='specify a taxonomy file to estimate species number from (X). \
+              Will use range X*0.5,X*1.5,2')
+    #Input files
     parser.add_argument('coverage_file',
         help='specify the coverage file')
     parser.add_argument('composition_file',
         help='specify the composition file')
+    #Columns in coverage file to use
+    parser.add_argument('n', type=parse_coverage_columns, default=None,
+        help='specify the first and last column names for continuous coverage \
+              range of read counts as first,last')   
+
+    #Kmer length, kmer count threshold and read length
     parser.add_argument('-k', type=int, default=4,
         help='specify kmer length, defaults to tetramer')
+    parser.add_argument('-l', type=int, default=1000,
+        help='specify the kmer count for threshold in running PCA on \
+              composition contigs, default 1000')
     parser.add_argument('-r', type=int, default=100,
         help='specify read length for coverage, default 100')
-    parser.add_argument('-n', type=parse_coverage_columns, default=None,
-        help='specify the first and last column names for continuous coverage range of read counts as first,last')
+    #Joined PCA or seperate PCA
     parser.add_argument('-s', default=False, action="store_true",
-        help='specify this flag to first do PCA for the composition and using that component number that explaines 90 percent of variance for the coverage as well. Default join composition and coverage before PCA.')
-    
-    parser.add_argument('-l', type=int, default=1000,
-        help='specify the kmer count for threshold in running PCA on composition contigs, default 1000')
-        
+        help='specify this flag to first do PCA for the composition \
+              and using that component number that explaines 90 percent \
+              of variance for the coverage as well. Default join composition \
+              and coverage before PCA.')
+    #Clustering Parameters
     parser.add_argument('-e', type=int, default=5,
         help='How often to initialize each cluster count. default 5 times')
     parser.add_argument('-i', type=int, default=100,
         help='Maximum number of iterations if convergance not achieved')
-
+    #Output
     parser.add_argument('-o', default=os.curdir,
-        help='specify the output directory, if not provided current directory used. All files will\
-              be created in the folder/CONCOCT_YYMMDD_HHMM folder')
+        help='specify the output directory, if not provided current directory \
+              used. All files will be created in:\
+              folder/CONCOCT_YYMMDD_HHMM')
     
     
     return parser.parse_args()
