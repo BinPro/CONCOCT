@@ -15,8 +15,11 @@ import sklearn.mixture as mixture
 from sklearn import preprocessing
 import numpy as np
 
+from concoct.output import Output
 
-def main(coverage_file,output_base,n_components,header=None):
+def main(coverage_file,output_dir,n_components,header=None):
+    sys.stderr.write(str(output_dir))
+    Output.create_dir(output_dir)
     df = p.read_csv(coverage_file,header=header,index_col=0)
     X = df.values
     X = preprocessing.scale(X)
@@ -32,7 +35,7 @@ def main(coverage_file,output_base,n_components,header=None):
     class_series = p.Series(labels,index=df.index)
     setting = str(n_components)+"_" + str(cv_type)
     
-    class_series.to_csv(output_base+"_" +setting+str(gmm.bic(X))+ '.csv')
+    class_series.to_csv(setting+str(gmm.bic(X))+ '.csv')
     
 if __name__=="__main__":
     parser = ArgumentParser()
