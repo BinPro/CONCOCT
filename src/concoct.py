@@ -41,15 +41,22 @@ class Output(object):
         self.DT = datetime.now().strftime("%y%m%d_%H%M")
         self.CONCOCT_PATH = os.path.join(outdir,"concoct_{0}".format(self.DT))
         os.makedirs(self.CONCOCT_PATH)
-        print >> sys.stderr, "Results created in folder {0}".format(self.CONCOCT_PATH)
+        print >> sys.stderr, "Results created in folder {0}".format(
+            self.CONCOCT_PATH)
         self.BIC_FILE = os.path.join(self.CONCOCT_PATH,"bic.csv")
         self.ARGS_FILE = os.path.join(self.CONCOCT_PATH,"args.txt")
-        self.ORIGINAL_FILE_BASE = os.path.join(self.CONCOCT_PATH,"original_data_gt{0}_{1}")
-        self.PCA_FILE_BASE = os.path.join(self.CONCOCT_PATH,"PCA_gt{0}_{1}.csv")
-        self.CLUSTERING_FILE_BASE = os.path.join(self.CONCOCT_PATH,"clustering_{0}.csv")
-        self.MEANS_FILE_BASE = os.path.join(self.CONCOCT_PATH,"means_{0}_gt{1}.csv")
-        self.VARIANCE_FILE_BASE = os.path.join(self.CONCOCT_PATH,"variance_{0}_gt{1}.csv")
-        self.RESPONSIBILITY_FILE_BASE = os.path.join(self.CONCOCT_PATH,"responsibility_{0}_gt{1}.csv")
+        self.ORIGINAL_FILE_BASE = os.path.join(
+            self.CONCOCT_PATH,"original_data_gt{0}_{1}")
+        self.PCA_FILE_BASE = os.path.join(
+            self.CONCOCT_PATH,"PCA_gt{0}_{1}.csv")
+        self.CLUSTERING_FILE_BASE = os.path.join(
+            self.CONCOCT_PATH,"clustering_{0}.csv")
+        self.MEANS_FILE_BASE = os.path.join(
+            self.CONCOCT_PATH,"means_{0}_gt{1}.csv")
+        self.VARIANCE_FILE_BASE = os.path.join(
+            self.CONCOCT_PATH,"variance_{0}_gt{1}.csv")
+        self.RESPONSIBILITY_FILE_BASE = os.path.join(
+            self.CONCOCT_PATH,"responsibility_{0}_gt{1}.csv")
         #Write header to bic.csv
         with open(self.BIC_FILE,"a+") as fh:
             print >> fh, "cluster_count,bic_value"
@@ -67,8 +74,11 @@ class Output(object):
     
     @classmethod
     def write_clustering(self,dataframe,threshold_filter,threshold,c):
-        dataframe.clustering.to_csv(self.CLUSTERING_FILE_BASE.format("{0}_full".format(c)))
-        dataframe[threshold_filter].clustering.to_csv(self.CLUSTERING_FILE_BASE.format("{0}_gt{1}_filtered".format(c,threshold)))
+        dataframe.clustering.to_csv(
+            self.CLUSTERING_FILE_BASE.format("{0}_full".format(c)))
+        dataframe[threshold_filter].clustering.to_csv(
+            self.CLUSTERING_FILE_BASE.format(
+                "{0}_gt{1}_filtered".format(c,threshold)))
         
     @classmethod
     def write_bic(self,bic,c):
@@ -85,9 +95,11 @@ class Output(object):
 
     @classmethod
     def write_cluster_responsibilities(self,res,threshold,c):
-        np.savetxt(self.RESPONSIBILITY_FILE_BASE.format(c,threshold),res)        
+        np.savetxt(self.RESPONSIBILITY_FILE_BASE.format(c,threshold),res)
 
-def cluster(comp_file, cov_file, kmer_len, threshold, read_length, clusters_range, cov_range, split_pca, inits, iters, outdir, args=None):
+def cluster(comp_file, cov_file, kmer_len, threshold, 
+            read_length, clusters_range, cov_range, 
+            split_pca, inits, iters, outdir, args=None):
     Output(outdir,args)
     #Composition
     #Generate kmer dictionary
@@ -100,7 +112,8 @@ def cluster(comp_file, cov_file, kmer_len, threshold, read_length, clusters_rang
             if re.match(count_re,line):
                 seq_count += 1
 
-    #Initialize with ones since we do pseudo count, we have i contigs as rows and j features as columns
+    #Initialize with ones since we do pseudo count, we have i contigs as rows
+    #and j features as columns
     composition = np.ones((seq_count,nr_features))
     
     
@@ -118,32 +131,44 @@ def cluster(comp_file, cov_file, kmer_len, threshold, read_length, clusters_rang
     
     #Coverage import, file has header and contig ids as index
     cov = p.read_table(cov_file,header=0,index_col=0)
-    #log(q_ij) = log[(Y_ij + 1).R/L_i]) where L_i is the length of contig i and R is the read length.
-    cov.ix[:,cov_range[0]:cov_range[1]] = np.log((cov.ix[:,cov_range[0]:cov_range[1]] + 1).mul((read_length/cov.length)))
+    #log(q_ij) = log[(Y_ij + 1).R/L_i]) where L_i is the length of 
+    #contig i and R is the read length.
+    cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
+            cov.ix[:,cov_range[0]:cov_range[1]]+1
+            ).mul(read_length/cov.length))
     #cov = scale(cov.ix[:,cov_range[0]:cov_range[1]])
 
     if split_pca:
         raise NotImplementedError("Not implemented yet to run seperate PCA")
     else:
-        joined = composition.join(cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
+        joined = composition.join(
+            cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
         Output.write_original_data(joined,threshold,"joined")
         #PCA on the contigs that have kmer count greater than threshold
         pca = PCA(n_components=0.9).fit(joined[threshold_filter])
         transform_filter = pca.transform(joined[threshold_filter])
-        Output.write_pca(pca.transform(transform_filter),threshold,"joined_filtered")
+        Output.write_pca(pca.transform(transform_filter),
+                         threshold,"joined_filtered")
     
     cv_type='full'
     for c in clusters_range:
-        #Run GMM on the pca transform of contigs with kmer count greater than threshold
-        gmm = GMM(n_components=c, covariance_type=cv_type, n_init=inits,n_iter=iters).fit(transform_filter)
-        print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(c,gmm.converged_)
+        #Run GMM on the pca transform of contigs with kmer count greater
+        #than threshold
+        gmm = GMM(n_components=c, covariance_type=cv_type, n_init=inits,
+                  n_iter=iters).fit(transform_filter)
+        print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(
+            c,gmm.converged_)
         #Classify all datapoints based on the clustering of filtered contigs
         joined["clustering"] = gmm.predict(pca.transform(joined))
         Output.write_clustering(joined,threshold_filter,threshold,c)
         Output.write_bic(gmm.bic(pca.transform(transform_filter)),c)
-        Output.write_cluster_means(pca.inverse_transform(gmm.means_),threshold,c)
-        Output.write_cluster_variance(pca.inverse_transform(gmm.covars_),threshold,c)
-        Output.write_cluster_responsibilities(pca.inverse_transform(gmm.predict_proba(transform_filter)),threshold,c)
+        Output.write_cluster_means(pca.inverse_transform(gmm.means_),
+                                   threshold,c)
+        Output.write_cluster_variance(pca.inverse_transform(gmm.covars_),
+                                      threshold,c)
+        Output.write_cluster_responsibilities(
+            pca.inverse_transform(gmm.predict_proba(transform_filter)),
+            threshold,c)
         
 def window(seq,n):
     els = tee(seq,n)
@@ -166,7 +191,8 @@ def generate_feature_mapping(kmer_len):
     return kmer_hash, counter+1
 
 def parse_cluster_list(cc_string):
-    ERROR="'" + cc_string + "' is not a valid range of number. Expected forms like '20,100,2'."
+    ERROR="'" + cc_string + ("' is not a valid range of number. Expected "
+                             "forms like '20,100,2'.")
     try:
         cc=map(int,cc_string.split(","))
     except ValueError as e:
@@ -177,7 +203,8 @@ def parse_cluster_list(cc_string):
     return xrange(first, last+1, step)
     
 def parse_coverage_columns(cov_string):
-    ERROR="'" + cov_string + "' is not valid. Expected 'first_column_name,last_column_name'."
+    ERROR="'" + cov_string + ("' is not valid. Expected 'first_column_name,"
+                              "last_column_name'.")
     try:
         cov = cov_string.split(",")
     except ValueError as e:
@@ -187,15 +214,18 @@ def parse_coverage_columns(cov_string):
     return cov
 
 def parse_taxonomy_cluster_list(tax_file):
-    raise NotImplementedError("This functionality has not been added yet. Please use -c and specify range")
+    raise NotImplementedError(("This functionality has not been added yet. "
+                               "Please use -c and specify range"))
 
 def arguments():
     parser = ArgumentParser()
     #Handle cluster number parsing
     cluster_count = parser.add_mutually_exclusive_group()
-    cluster_count.add_argument('-c', nargs="+", default=range(20,101,2), type=parse_cluster_list,
-        help='specify range of clusters to try out on format first,last,step. \
-              default 20,100,2.')
+    cluster_count.add_argument('-c', nargs="+", default=range(20,101,2), 
+                               type=parse_cluster_list,
+                               help=('specify range of clusters to try out'
+                                     ' on format first,last,step.'
+                                     ' default 20,100,2.'))
     cluster_count.add_argument('-t', type=parse_taxonomy_cluster_list,
         help='specify a taxonomy file to estimate species number from (X). \
               Will use range X*0.5,X*1.5,2')
@@ -240,6 +270,7 @@ def arguments():
         
 if __name__=="__main__":
     args = arguments()
-    results = cluster(args.composition_file, args.coverage_file, args.k, args.t, args.r, args.c, args.n, \
+    results = cluster(args.composition_file, args.coverage_file,
+                      args.k, args.t, args.r, args.c, args.n, 
                       args.s, args.e, args.i, args.o, args)
     
