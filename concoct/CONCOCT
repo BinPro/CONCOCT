@@ -142,7 +142,8 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     if split_pca:
         raise NotImplementedError("Not implemented yet to run seperate PCA")
     else:
-        joined = p.concat(composition,cov.ix[:,cov_range[0]:cov_range[1]])
+        joined = composition.join(
+            cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
         Output.write_original_data(joined,threshold,"joined")
         #PCA on the contigs that have kmer count greater than threshold
         pca = PCA(n_components=0.9).fit(joined[threshold_filter])
