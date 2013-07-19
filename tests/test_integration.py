@@ -15,7 +15,7 @@ tmp_dir_path = test_dir_path + '/nose_tmp_output'
 CWD = os.getcwd()
 
 CONCOCT_CALL = """
-CONCOCT test_data/coverage test_data/composition '2012-03-25','2012-01-18' -o nose_tmp_output -c 3,5,1
+CONCOCT test_data/coverage test_data/composition.fa '2012-03-25','2012-01-18' -o nose_tmp_output -c 3,5,1
 """
 class TestCMD(object):
     def setUp(self):
@@ -30,10 +30,12 @@ class TestCMD(object):
             self.c = exc.returncode
     def tearDown(self):
         """remove temporary output files"""
-        if isdir(tmp_dir_path):
-            for f in os.listdir(tmp_dir_path):
-                os.remove(f)
-            os.rmdir(tmp_dir_path)
+        for d in os.listdir(tmp_dir_path):
+            d_path = os.path.join(tmp_dir_path,d)
+            for f in os.listdir(d_path):
+                f_path = os.path.join(d_path,f)
+                os.remove(f_path)
+            os.rmdir(d_path)
 
     def test_no_errors(self):
         assert_equal(self.c,0,
