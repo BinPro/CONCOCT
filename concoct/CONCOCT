@@ -130,19 +130,19 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     composition = np.log(composition.divide(composition.sum(axis=1),axis=0))
     
     #Coverage import, file has header and contig ids as index
+    #Assume datafile is in log coverage format with pseudo counts
     cov = p.read_table(cov_file,header=0,index_col=0)
     #log(q_ij) = log[(Y_ij + 1).R/L_i]) where L_i is the length of 
     #contig i and R is the read length.
-    cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
-            cov.ix[:,cov_range[0]:cov_range[1]]+1
-            ).mul(read_length/cov.length))
+    #cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
+    #       cov.ix[:,cov_range[0]:cov_range[1]]+1
+    #       ).mul(read_length/cov.length))
     #cov = scale(cov.ix[:,cov_range[0]:cov_range[1]])
 
     if split_pca:
         raise NotImplementedError("Not implemented yet to run seperate PCA")
     else:
-        joined = composition.join(
-            cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
+        joined = p.concat(composition,cov.ix[:,cov_range[0]:cov_range[1]])
         Output.write_original_data(joined,threshold,"joined")
         #PCA on the contigs that have kmer count greater than threshold
         pca = PCA(n_components=0.9).fit(joined[threshold_filter])
