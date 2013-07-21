@@ -38,7 +38,7 @@ class Output(object):
         """
         Set output parameters and create output folders and bic.csv and args.txt
         """
-        self.DT = datetime.now().strftime("%y%m%d_%H%M")
+        self.DT = datetime.now().strftime("%y%m%d_%H%M_%S%f")
         self.CONCOCT_PATH = os.path.join(outdir,"concoct_{0}".format(self.DT))
         os.makedirs(self.CONCOCT_PATH)
         print >> sys.stderr, "Results created in folder {0}".format(
