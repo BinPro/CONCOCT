@@ -46,7 +46,7 @@ class Output(object):
         self.BIC_FILE = os.path.join(self.CONCOCT_PATH,"bic.csv")
         self.ARGS_FILE = os.path.join(self.CONCOCT_PATH,"args.txt")
         self.ORIGINAL_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"original_data_gt{0}")
+            self.CONCOCT_PATH,"original_data_gt{0}.csv")
         self.PCA_FILE_BASE = os.path.join(
             self.CONCOCT_PATH,"PCA_transformed_data_gt{0}.csv")
         self.CLUSTERING_FILE_BASE = os.path.join(
