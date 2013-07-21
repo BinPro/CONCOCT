@@ -37,7 +37,7 @@ class TestCMD(object):
         self.c = 0 # Exit code
         try:
             self.op = subprocess.check_output(
-                "CONCOCT test_data/{0} test_data/{1} '1','16' -o nose_tmp_output -c 3,5,1".format(cov_file,comp_file),
+                "CONCOCT test_data/{0} test_data/{1} -o nose_tmp_output -c 3,5,1".format(cov_file,comp_file),
                 shell=True)
         except subprocess.CalledProcessError as exc:
             self.c = exc.returncode
