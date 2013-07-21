@@ -8,10 +8,10 @@ Install
 -------
 Clone the repository and execute
 ```
-cd CONCOCT/src
+cd CONCOCT
 python setup.py install
 ```
-Installs the package concoct in default python path, and adds script concoct to bin
+Installs the package concoct in default python path, and adds script CONCOCT to bin
 
 Execute concoct
 -------
