@@ -6,6 +6,7 @@ import os
 import sys
 import subprocess
 import re
+import numpy as np
 
 file_path = os.path.realpath(__file__)
 data_path = os.path.abspath(os.path.join(file_path,"..","..","data/"))
@@ -14,9 +15,6 @@ tmp_dir_path = test_dir_path + '/nose_tmp_output'
 
 CWD = os.getcwd()
 
-CONCOCT_CALL = """
-
-"""
 class TestCMD(object):
     def setUp(self):
         """If tmp dir already exists, delete it"""
@@ -126,11 +124,13 @@ class TestCMD(object):
             var_1 = d_p+'/variance_gt1000_dim1.csv'
             means_1 = d_p+'/means_gt1000.csv'
             clust_gt_1 = d_p+'/clustering_gt1000.csv'
+            clust_1 = d_p+'/clustering.csv'
             odl_1 = self.file_len(od_1)
-            pcal_1 = self.file_len(pca_1)
             varl_1= self.file_len(var_1)
             meansl_1= self.file_len(means_1)
             clust_gtl_1= self.file_len(clust_gt_1)
+            clustl_1 = self.file_len(clust_1)
+            pca_m1 = np.loadtxt(pca_1)
 
         self.run_command(comp_file='composition_some_shortened.fa')
         for d in os.listdir(tmp_dir_path):
@@ -143,20 +143,25 @@ class TestCMD(object):
             var_2 = d_p2+'/variance_gt1000_dim1.csv'
             means_2 = d_p2+'/means_gt1000.csv'
             clust_gt_2 = d_p2+'/clustering_gt1000.csv'
+            clust_2 = d_p2+'/clustering.csv'
             odl_2 = self.file_len(od_2)
-            pcal_2 = self.file_len(pca_2)
             varl_2= self.file_len(var_2)
             meansl_2= self.file_len(means_2)
             clust_gtl_2= self.file_len(clust_gt_2)
-            
-        assert_true(odl_1==odl_2,
-                    msg='Original data does not have the same lengths')
-        assert_true(pcal_1==pcal_2,
-                    msg='PCA files does not have the same lengths')
+            clustl_2 = self.file_len(clust_2)
+            pca_m2 = np.loadtxt(pca_2)
+
+        assert_true(odl_1!=odl_2,
+                    msg='Original data have the same lengths')
         assert_true(varl_1==varl_2,
                     msg='Variance files does not have the same lengths')
         assert_true(meansl_1==meansl_2,
                     msg='Means files does not have the same lengths')
-        assert_true(clust_gtl_1==clust_gtl_2,
+        assert_true(clust_gtl_1!=clust_gtl_2,
+                    msg='Filtered clustering files have the same lengths')
+        assert_true(pca_m1.shape!=pca_m2.shape,
+                    msg='PCA transformed data has the same shapes')
+        assert_true(clustl_1==clustl_2,
                     msg='Clustering files does not have the same lengths')
-
+        assert_true(clust_gtl_2!=clustl_2,
+                    msg='Filtered clustering file and full have the same lengths')
