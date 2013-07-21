@@ -16,14 +16,30 @@ Installs the package concoct in default python path, and adds script concoct to 
 Execute concoct
 -------
 ```
-TODO! Not correct flags !!!!!!!!!!!!!!!!!!!!!!!!!
-- f               contains the fasta formatted contigs
-- k               the kmer size
-- c               number of clusters
-- r               the number of runs to execute clustering
-- i               the number of maximum iterations per run of clustering
-- cf              file with the coverage data
-- o               The directory where result files should be stored, otherwise current dir used
+positional arguments:
+  coverage_file   specify the coverage file
+  composition_file  specify the composition file
+  n                 specify the first and last column names for continuous
+                    coverage range of read counts as first,last
+optional arguments:
+  -h, --help        show help message and exit
+  -c C              specify range of clusters to try out on format
+                    first,last,step. default 20,100,2.
+  -k K              specify kmer length, defaults to tetramer
+  -l L              specify the kmer count for threshold in running PCA on
+                    composition contigs, default 1000
+  -r R              specify read length for coverage, default 100
+  -s                specify this flag to first do PCA for the composition and
+                    using that component number that explaines 90 percent of
+                    variance for the coverage as well. Default join
+                    composition and coverage before PCA. ***NOT IMPLEMENTED***
+  -e E              How often to initialize each cluster count. default 5
+                    times
+  -i I              Maximum number of iterations if convergance not achieved
+  -o O              specify where output directory will be placed.
+     		    If not provided, current directory will be used.
+		    All files will be created in:
+                    folder/CONCOCT_YYMMDD_HHMM_SSXXXXXX
 ```
 
 Dependencies
