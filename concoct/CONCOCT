@@ -46,17 +46,17 @@ class Output(object):
         self.BIC_FILE = os.path.join(self.CONCOCT_PATH,"bic.csv")
         self.ARGS_FILE = os.path.join(self.CONCOCT_PATH,"args.txt")
         self.ORIGINAL_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"original_data_gt{0}_{1}")
+            self.CONCOCT_PATH,"original_data_gt{0}")
         self.PCA_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"PCA_gt{0}_{1}.csv")
+            self.CONCOCT_PATH,"PCA_transformed_data_gt{0}.csv")
         self.CLUSTERING_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"clustering_{0}.csv")
+            self.CONCOCT_PATH,"clustering{0}.csv")
         self.MEANS_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"means_{0}_gt{1}.csv")
+            self.CONCOCT_PATH,"means{0}.csv")
         self.VARIANCE_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"variance_{0}_gt{1}_dim{2}.csv")
+            self.CONCOCT_PATH,"variance_gt{0}_dim{1}.csv")
         self.RESPONSIBILITY_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"responsibility_{0}_gt{1}.csv")
+            self.CONCOCT_PATH,"responsibilities.csv")
         #Write header to bic.csv
         with open(self.BIC_FILE,"a+") as fh:
             print >> fh, "cluster_count,bic_value"
@@ -64,21 +64,21 @@ class Output(object):
             print >> fh, args
     
     @classmethod
-    def write_pca(self,transform,threshold,prefix):
-        np.savetxt(self.PCA_FILE_BASE.format(threshold,prefix),transform)
+    def write_pca(self,transform,threshold):
+        np.savetxt(self.PCA_FILE_BASE.format(threshold),transform)
     
     @classmethod
-    def write_original_data(self,original,threshold,prefix):
-        original.to_csv(self.ORIGINAL_FILE_BASE.format(threshold,prefix))
+    def write_original_data(self,original,threshold):
+        original.to_csv(self.ORIGINAL_FILE_BASE.format(threshold))
 
     
     @classmethod
     def write_clustering(self,dataframe,threshold_filter,threshold,c):
         dataframe.clustering.to_csv(
-            self.CLUSTERING_FILE_BASE.format("{0}_full".format(c)))
+            self.CLUSTERING_FILE_BASE.format(""))
         dataframe[threshold_filter].clustering.to_csv(
             self.CLUSTERING_FILE_BASE.format(
-                "{0}_gt{1}_filtered".format(c,threshold)))
+                "_gt{0}".format(threshold)))
         
     @classmethod
     def write_bic(self,bic,c):
@@ -87,15 +87,15 @@ class Output(object):
     
     @classmethod
     def write_cluster_means(self,means,threshold,c):
-        np.savetxt(self.MEANS_FILE_BASE.format(c,threshold),means)
+        np.savetxt(self.MEANS_FILE_BASE.format("_gt{0}".format(threshold)),means)
             
     @classmethod
-    def write_cluster_variance(self,var,threshold,c,i):
-        np.savetxt(self.VARIANCE_FILE_BASE.format(c,threshold,i),var)
+    def write_cluster_variance(self,var,threshold,i):
+        np.savetxt(self.VARIANCE_FILE_BASE.format(threshold,i),var)
 
     @classmethod
     def write_cluster_responsibilities(self,res,threshold,c):
-        np.savetxt(self.RESPONSIBILITY_FILE_BASE.format(c,threshold),res)
+        np.savetxt(self.RESPONSIBILITY_FILE_BASE,res)
 
 def cluster(comp_file, cov_file, kmer_len, threshold, 
             read_length, clusters_range, cov_range, 
@@ -144,12 +144,12 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     else:
         joined = composition.join(
             cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
-        Output.write_original_data(joined,threshold,"joined")
+        Output.write_original_data(joined,threshold)
         #PCA on the contigs that have kmer count greater than threshold
         pca = PCA(n_components=0.9).fit(joined[threshold_filter])
         transform_filter = pca.transform(joined[threshold_filter])
         Output.write_pca(transform_filter,
-                         threshold,"joined_filtered")
+                         threshold)
     
     cv_type='full'
     min_bic = np.inf
@@ -177,10 +177,10 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     if cv_type == 'full':
         for i,v in enumerate(gmm.covars_):
             Output.write_cluster_variance(pca.inverse_transform(v),
-                                          threshold,c,i)
+                                          threshold,i)
     else:
         Output.write_cluster_variance(pca.inverse_transform(v),
-                                      threshold,c,1)
+                                      threshold,1)
         
     pp = gmm.predict_proba(transform_filter)
     Output.write_cluster_responsibilities(
@@ -243,9 +243,9 @@ def arguments():
                                help=('specify range of clusters to try out'
                                      ' on format first,last,step.'
                                      ' default 20,100,2.'))
-    cluster_count.add_argument('-t', type=parse_taxonomy_cluster_list,
-        help='specify a taxonomy file to estimate species number from (X). \
-              Will use range X*0.5,X*1.5,2')
+    #cluster_count.add_argument('-t', type=parse_taxonomy_cluster_list,
+    #help='specify a taxonomy file to estimate species number from (X). \
+        #      Will use range X*0.5,X*1.5,2')
     #Input files
     parser.add_argument('coverage_file',
         help='specify the coverage file')
@@ -269,7 +269,7 @@ def arguments():
         help='specify this flag to first do PCA for the composition \
               and using that component number that explaines 90 percent \
               of variance for the coverage as well. Default join composition \
-              and coverage before PCA.')
+              and coverage before PCA. ***NOT IMPLEMENTED***')
     #Clustering Parameters
     parser.add_argument('-e', type=int, default=5,
         help='How often to initialize each cluster count. default 5 times')
@@ -287,7 +287,7 @@ def arguments():
         
 if __name__=="__main__":
     args = arguments()
-    results = cluster(args.composition_file, args.coverage_file,
-                      args.k, args.t, args.r, args.c, args.n, 
-                      args.s, args.e, args.i, args.o, args)
     
+    results = cluster(args.composition_file, args.coverage_file,
+                      args.k, args.l, args.r, args.c, args.n, 
+                      args.s, args.e, args.i, args.o, args)
