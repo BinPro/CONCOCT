@@ -132,6 +132,8 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     #Coverage import, file has header and contig ids as index
     #Assume datafile is in log coverage format with pseudo counts
     cov = p.read_table(cov_file,header=0,index_col=0)
+    if cov_range is None:
+        cov_range = (cov.columns[0],cov.columns[-1])
     #log(q_ij) = log[(Y_ij + 1).R/L_i]) where L_i is the length of 
     #contig i and R is the read length.
     #cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
@@ -252,7 +254,7 @@ def arguments():
     parser.add_argument('composition_file',
         help='specify the composition file')
     #Columns in coverage file to use
-    parser.add_argument('n', type=parse_coverage_columns, default=None,
+    parser.add_argument('-n', type=parse_coverage_columns, default=None,
         help='specify the first and last column names for continuous coverage \
               range of read counts as first,last')   
 

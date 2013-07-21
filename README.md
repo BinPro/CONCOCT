@@ -19,12 +19,12 @@ Execute concoct
 positional arguments:
   coverage_file   specify the coverage file
   composition_file  specify the composition file
-  n                 specify the first and last column names for continuous
-                    coverage range of read counts as first,last
 optional arguments:
   -h, --help        show help message and exit
   -c C              specify range of clusters to try out on format
                     first,last,step. default 20,100,2.
+  -n                specify the first and last column names for continuous
+                    coverage range of read counts as first,last
   -k K              specify kmer length, defaults to tetramer
   -l L              specify the kmer count for threshold in running PCA on
                     composition contigs, default 1000
