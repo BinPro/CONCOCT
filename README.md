@@ -30,10 +30,11 @@ Dependencies
 -----------
 Developed under python 2.7 and following packages installed through pip:
 ```
+argparse==1.2.1
+biopython==1.62b
+nose==1.3.0
 numpy==1.7.1
 pandas==0.11.0
-biopython==1.61
-scikit-learn
+scikit-learn==0.13.1
 scipy==0.12.0
-argparse==1.2.1
 ```
