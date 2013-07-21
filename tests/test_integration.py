@@ -15,19 +15,18 @@ tmp_dir_path = test_dir_path + '/nose_tmp_output'
 CWD = os.getcwd()
 
 CONCOCT_CALL = """
-CONCOCT test_data/coverage test_data/composition.fa '2012-03-25','2012-01-18' -o nose_tmp_output -c 3,5,1
+CONCOCT test_data/coverage test_data/composition.fa '1','16' -o nose_tmp_output -c 3,5,1
 """
 class TestCMD(object):
     def setUp(self):
         """If tmp dir already exists, delete it"""
-        self.tearDown()
+        if isdir(tmp_dir_path):
+            self.tearDown()
+        else:
+            os.mkdir(tmp_dir_path)
         os.chdir(test_dir_path)
-        self.c = 0 # Exit code
-        try:
-            self.op = subprocess.check_output(
-                CONCOCT_CALL,shell=True)
-        except subprocess.CalledProcessError as exc:
-            self.c = exc.returncode
+        self.run_command()
+
     def tearDown(self):
         """remove temporary output files"""
         for d in os.listdir(tmp_dir_path):
@@ -37,24 +36,35 @@ class TestCMD(object):
                 os.remove(f_path)
             os.rmdir(d_path)
 
+    def run_command(self):
+        self.c = 0 # Exit code
+        try:
+            self.op = subprocess.check_output(
+                CONCOCT_CALL,
+                shell=True)
+        except subprocess.CalledProcessError as exc:
+            self.c = exc.returncode
+
     def test_no_errors(self):
         assert_equal(self.c,0,
                      msg = "Command exited with nonzero status")
 
     def test_directory_creation(self):
-        reg_o = re.compile(tmp_dir_path)
-        L = listdir(test_dir_path)
+        reg_o = re.compile('concoct_*')
+        L = listdir(tmp_dir_path)
         tmp_dirs_before = filter(reg_o.match,L)
-
-        assert_true(isdir(tmp_dir_path),
+        sys.stderr.write(str(tmp_dirs_before) + '\n')
+        assert_true(tmp_dirs_before!=0,
                     msg = "Temporary directory not created")
         assert_true(len(tmp_dirs_before)==1,
                     msg = "Other files starting with nose_tmp_output exists in test directory, please remove them and restart tests")
 
         # Rerun the concoct and see that new directory with unique
         # name is created
-        self.op = subprocess.check_output(
-            CONCOCT_CALL,shell=True)
+        self.run_command()
+
+        assert_equal(self.c,0,
+                     msg = "Error while running command a second time")
         L = listdir(test_dir_path)
         tmp_dirs_after = filter(reg_o.match,L)
         assert_true(len(tmp_dirs_after) > 1,
@@ -64,41 +74,40 @@ class TestCMD(object):
                     msg = "Multiple output directories or files was created")
 
     def test_output_files_creation(self):
-        assert_true(
-            isfile(tmp_dir_path + '/bic'),
-            msg='Bic file is not created'
-            )
-        assert_true(
-            isfile(tmp_dir_path+ '/large_contigs_clustering.csv'),
-            msg='Large contigs clustering file is not created'
-            )
-        assert_true(
-            isfile(tmp_dir_path+ '/large_contigs_cluster_means.csv'),
-            msg='Large contigs cluster means file is not created'
-            )
+        for d in os.listdir(tmp_dir_path):
+            d_p = os.path.join(tmp_dir_path,d)
+            sys.stderr.write(d_p+'\n')
+            assert_true(
+                isfile(d_p+ '/bic.csv'),
+                msg='Bic file is not created'
+                )
+            assert_true(
+                isfile(d_p+ '/clustering_gt1000.csv'),
+                msg='Large contigs clustering file is not created'
+                )
+            assert_true(
+                isfile(d_p+ '/means_gt1000.csv'),
+                msg='Large contigs cluster means file is not created'
+                )
 
-        assert_true(
-            isfile(tmp_dir_path+ '/large_contigs_cluster_variance.csv'),
-            msg='Large contigs cluster variance file is not created'
-            )
-        assert_true(
-            isfile(tmp_dir_path+ '/large_contigs_clustering.csv'),
-            msg='Large contigs clustering file is not created'
-            )
-        assert_true(
-            isfile(tmp_dir_path+ '/large_contigs_responsibilities.csv'),
-            msg='Large contigs responsibilities file is not created'
-            )
-        assert_true(
-            isfile(tmp_dir_path+ '/clustering.csv'),
-            msg='Clustering file is not created'
-            )
-        assert_true(
-            isfile(tmp_dir_path+ '/pca_data.csv'),
-            msg='PCA file is not created'
-            )
-        assert_true(
-            isfile(tmp_dir_path+ '/original_data.csv'),
-            msg='Original data file is not created'
-            )
+            assert_true(
+                isfile(d_p+ '/variance_gt1000_dim1.csv'),
+                msg='Large contigs cluster variance file is not created'
+                )
+            assert_true(
+                isfile(d_p+ '/responsibilities.csv'),
+                msg='Large contigs responsibilities file is not created'
+                )
+            assert_true(
+                isfile(d_p+ '/clustering.csv'),
+                msg='Clustering file is not created'
+                )
+            assert_true(
+                isfile(d_p+ '/PCA_transformed_data_gt1000.csv'),
+                msg='PCA file is not created'
+                )
+            assert_true(
+                isfile(d_p+ '/original_data_gt1000.csv'),
+                msg='Original data file is not created'
+                )
                 
