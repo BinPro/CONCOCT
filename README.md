@@ -37,8 +37,8 @@ optional arguments:
                     times
   -i I              Maximum number of iterations if convergance not achieved
   -o O              specify where output directory will be placed.
-     		    If not provided, current directory will be used.
-		    All files will be created in:
+     		    	    If not provided, current directory will be used.
+		    	    All files will be created in:
                     folder/CONCOCT_YYMMDD_HHMM_SSXXXXXX
 ```
 
