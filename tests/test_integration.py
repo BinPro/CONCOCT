@@ -65,7 +65,7 @@ class TestCMD(object):
 
         assert_equal(self.c,0,
                      msg = "Error while running command a second time")
-        L = listdir(test_dir_path)
+        L = listdir(tmp_dir_path)
         tmp_dirs_after = filter(reg_o.match,L)
         assert_true(len(tmp_dirs_after) > 1,
                     msg = "No unique output directory was created")
