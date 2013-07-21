@@ -148,7 +148,7 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
         #PCA on the contigs that have kmer count greater than threshold
         pca = PCA(n_components=0.9).fit(joined[threshold_filter])
         transform_filter = pca.transform(joined[threshold_filter])
-        Output.write_pca(pca.transform(transform_filter),
+        Output.write_pca(transform_filter,
                          threshold,"joined_filtered")
     
     cv_type='full'
@@ -222,7 +222,7 @@ def arguments():
     parser = ArgumentParser()
     #Handle cluster number parsing
     cluster_count = parser.add_mutually_exclusive_group()
-    cluster_count.add_argument('-c', nargs="+", default=range(20,101,2), 
+    cluster_count.add_argument('-c', default=range(20,101,2), 
                                type=parse_cluster_list,
                                help=('specify range of clusters to try out'
                                      ' on format first,last,step.'
