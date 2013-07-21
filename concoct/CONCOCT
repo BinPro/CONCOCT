@@ -54,7 +54,7 @@ class Output(object):
         self.MEANS_FILE_BASE = os.path.join(
             self.CONCOCT_PATH,"means_{0}_gt{1}.csv")
         self.VARIANCE_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"variance_{0}_gt{1}.csv")
+            self.CONCOCT_PATH,"variance_{0}_gt{1}_dim{2}.csv")
         self.RESPONSIBILITY_FILE_BASE = os.path.join(
             self.CONCOCT_PATH,"responsibility_{0}_gt{1}.csv")
         #Write header to bic.csv
@@ -90,8 +90,8 @@ class Output(object):
         np.savetxt(self.MEANS_FILE_BASE.format(c,threshold),means)
             
     @classmethod
-    def write_cluster_variance(self,means,threshold,c):
-        np.savetxt(self.VARIANCE_FILE_BASE.format(c,threshold),means)
+    def write_cluster_variance(self,var,threshold,c,i):
+        np.savetxt(self.VARIANCE_FILE_BASE.format(c,threshold,i),var)
 
     @classmethod
     def write_cluster_responsibilities(self,res,threshold,c):
@@ -152,6 +152,8 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
                          threshold,"joined_filtered")
     
     cv_type='full'
+    min_bic = np.inf
+    optimal_c = None
     for c in clusters_range:
         #Run GMM on the pca transform of contigs with kmer count greater
         #than threshold
@@ -159,17 +161,31 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
                   n_iter=iters).fit(transform_filter)
         print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(
             c,gmm.converged_)
-        #Classify all datapoints based on the clustering of filtered contigs
-        joined["clustering"] = gmm.predict(pca.transform(joined))
-        Output.write_clustering(joined,threshold_filter,threshold,c)
-        Output.write_bic(gmm.bic(pca.transform(transform_filter)),c)
-        Output.write_cluster_means(pca.inverse_transform(gmm.means_),
+        bic = gmm.bic(transform_filter)
+        Output.write_bic(bic,c)
+        if bic < min_bic:
+            min_bic = bic
+            optimal_c = c
+    gmm = GMM(n_components=optimal_c,covariance_type=cv_type,n_init=inits,
+              n_iter=iters).fit(transform_filter)
+    
+    joined["clustering"] = gmm.predict(pca.transform(joined))
+    Output.write_clustering(joined,threshold_filter,threshold,c)
+    Output.write_cluster_means(pca.inverse_transform(gmm.means_),
                                    threshold,c)
-        Output.write_cluster_variance(pca.inverse_transform(gmm.covars_),
-                                      threshold,c)
-        Output.write_cluster_responsibilities(
-            pca.inverse_transform(gmm.predict_proba(transform_filter)),
-            threshold,c)
+    # Covariance matrix is three dimensional if full
+    if cv_type == 'full':
+        for i,v in enumerate(gmm.covars_):
+            Output.write_cluster_variance(pca.inverse_transform(v),
+                                          threshold,c,i)
+    else:
+        Output.write_cluster_variance(pca.inverse_transform(v),
+                                      threshold,c,1)
+        
+    pp = gmm.predict_proba(transform_filter)
+    Output.write_cluster_responsibilities(
+        pp,
+        threshold,c)
         
 def window(seq,n):
     els = tee(seq,n)
