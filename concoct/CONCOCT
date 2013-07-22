@@ -57,6 +57,8 @@ class Output(object):
             self.CONCOCT_PATH,"variance_gt{0}_dim{1}.csv")
         self.RESPONSIBILITY_FILE_BASE = os.path.join(
             self.CONCOCT_PATH,"responsibilities.csv")
+        self.pipe = args.pipe
+
         #Write header to bic.csv
         with open(self.BIC_FILE,"a+") as fh:
             print >> fh, "cluster_count,bic_value"
@@ -74,6 +76,8 @@ class Output(object):
     
     @classmethod
     def write_clustering(self,dataframe,threshold_filter,threshold,c):
+        if pipe:
+            dataframe.clustering.to_csv(sys.stdout)
         dataframe.clustering.to_csv(
             self.CLUSTERING_FILE_BASE.format(""))
         dataframe[threshold_filter].clustering.to_csv(
@@ -100,7 +104,7 @@ class Output(object):
 
 def cluster(comp_file, cov_file, kmer_len, threshold, 
             read_length, clusters_range, cov_range, 
-            split_pca, inits, iters, outdir, args=None):
+            split_pca, inits, iters, outdir, pipe, args=None):
     Output(outdir,args)
     #Composition
     #Generate kmer dictionary
@@ -295,7 +299,9 @@ def arguments():
         help='specify the output directory, if not provided current directory \
               used. All files will be created in:\
               folder/CONCOCT_YYMMDD_HHMM')
-    
+    parser.add_argument('-p', '--pipe', default=False, action="store_true",
+                        help=('Add this tag if the main result file should be'
+                              'printed to stdout. Useful for pipeline use'))
     
     return parser.parse_args()
 
@@ -313,4 +319,5 @@ if __name__=="__main__":
                       args.executions, 
                       args.iterations, 
                       args.outdir, 
+                      args.pipe,
                       args)
