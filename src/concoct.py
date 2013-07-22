@@ -118,8 +118,10 @@ def cluster(comp_file, cov_file, kmer_len, threshold, read_length, clusters_rang
     
     #Coverage import, file has header and contig ids as index
     cov = p.read_table(cov_file,header=0,index_col=0)
-    #log(q_ij) = log[(Y_ij + 1).R/L_i]) where L_i is the length of contig i and R is the read length.
-    cov.ix[:,cov_range[0]:cov_range[1]] = np.log((cov.ix[:,cov_range[0]:cov_range[1]] + 1).mul((read_length/cov.length)))
+    #TODO: Here we expect the data to be coverage not read counts. The commented section calculates log coverage from read counts.
+    ###log(q_ij) = log[(Y_ij + 1).R/L_i]) where L_i is the length of contig i and R is the read length.
+    ##cov.ix[:,cov_range[0]:cov_range[1]] = np.log((cov.ix[:,cov_range[0]:cov_range[1]] + 1).mul((read_length/cov.length)))
+    cov.ix[:,cov_range[0]:cov_range[1]] = np.log((cov.ix[:,cov_range[0]:cov_range[1]] + 0.01))
     #cov = scale(cov.ix[:,cov_range[0]:cov_range[1]])
 
     if split_pca:
@@ -165,15 +167,14 @@ def generate_feature_mapping(kmer_len):
             counter += 1
     return kmer_hash, counter+1
 
-def parse_cluster_list(cc_string):
-    ERROR="'" + cc_string + "' is not a valid range of number. Expected forms like '20,100,2'."
+def parse_cluster_list(cc):
+    ERROR="'" + cc + "' is not a valid range of number. Expected forms like '20,100,2'."
     try:
-        cc=map(int,cc_string.split(","))
+        first, last, step = map(int,cc.split(","))
     except ValueError as e:
-        raise ArgumentTypeError(ERROR)    
-    if not len(cc) == 3:
         raise ArgumentTypeError(ERROR)
-    first,last,step = cc
+    except Exception as e:
+        raise ArgumentTypeError(ERROR)
     return xrange(first, last+1, step)
     
 def parse_coverage_columns(cov_string):
@@ -191,45 +192,47 @@ def parse_taxonomy_cluster_list(tax_file):
 
 def arguments():
     parser = ArgumentParser()
-    #Handle cluster number parsing
-    cluster_count = parser.add_mutually_exclusive_group()
-    cluster_count.add_argument('-c', nargs="+", default=range(20,101,2), type=parse_cluster_list,
-        help='specify range of clusters to try out on format first,last,step. \
-              default 20,100,2.')
-    cluster_count.add_argument('-t', type=parse_taxonomy_cluster_list,
-        help='specify a taxonomy file to estimate species number from (X). \
-              Will use range X*0.5,X*1.5,2')
+
     #Input files
     parser.add_argument('coverage_file',
         help='specify the coverage file')
     parser.add_argument('composition_file',
         help='specify the composition file')
+
+    #Handle cluster number parsing
+    cluster_count = parser.add_mutually_exclusive_group()
+    cluster_count.add_argument('-c', '--clusters', default=range(20,101,2), type=parse_cluster_list,
+        help='specify range of clusters to try out on format first,last,step. \
+              default 20,100,2.')
+    cluster_count.add_argument('-t', '--taxonomy_file', type=parse_taxonomy_cluster_list,
+        help='specify a taxonomy file to estimate species number from (X). \
+              Will use range X*0.5,X*1.5,2')
     #Columns in coverage file to use
-    parser.add_argument('n', type=parse_coverage_columns, default=None,
+    parser.add_argument('-n','--coverage_file_column_names', type=parse_coverage_columns, default=None,
         help='specify the first and last column names for continuous coverage \
               range of read counts as first,last')   
 
     #Kmer length, kmer count threshold and read length
-    parser.add_argument('-k', type=int, default=4,
+    parser.add_argument('-k','--kmer_length', type=int, default=4,
         help='specify kmer length, defaults to tetramer')
-    parser.add_argument('-l', type=int, default=1000,
+    parser.add_argument('-l','--limit_kmer_count', type=int, default=1000,
         help='specify the kmer count for threshold in running PCA on \
               composition contigs, default 1000')
-    parser.add_argument('-r', type=int, default=100,
+    parser.add_argument('-r','--read_length', type=int, default=100,
         help='specify read length for coverage, default 100')
     #Joined PCA or seperate PCA
-    parser.add_argument('-s', default=False, action="store_true",
+    parser.add_argument('-s','--split_pca', default=False, action="store_true",
         help='specify this flag to first do PCA for the composition \
               and using that component number that explaines 90 percent \
               of variance for the coverage as well. Default join composition \
               and coverage before PCA.')
     #Clustering Parameters
-    parser.add_argument('-e', type=int, default=5,
+    parser.add_argument('-e', '--executions',type=int, default=5,
         help='How often to initialize each cluster count. default 5 times')
-    parser.add_argument('-i', type=int, default=100,
+    parser.add_argument('-i', '--iterations',type=int, default=100,
         help='Maximum number of iterations if convergance not achieved')
     #Output
-    parser.add_argument('-o', default=os.curdir,
+    parser.add_argument('-o', '--outdir', default=os.curdir,
         help='specify the output directory, if not provided current directory \
               used. All files will be created in:\
               folder/CONCOCT_YYMMDD_HHMM')
@@ -240,6 +243,15 @@ def arguments():
         
 if __name__=="__main__":
     args = arguments()
-    results = cluster(args.composition_file, args.coverage_file, args.k, args.t, args.r, args.c, args.n, \
-                      args.s, args.e, args.i, args.o, args)
-    
+    results = cluster(args.composition_file, 
+                      args.coverage_file,
+                      args.kmer_length, 
+                      args.limit_kmer_count, 
+                      args.read_length, 
+                      args.clusters, 
+                      args.coverage_file_column_names, 
+                      args.split_pca, 
+                      args.executions, 
+                      args.iterations, 
+                      args.outdir, 
+                      args)
