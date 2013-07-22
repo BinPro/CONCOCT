@@ -8,51 +8,49 @@ Install
 -------
 Clone the repository and execute
 ```
-cd CONCOCT/src
+cd CONCOCT
 python setup.py install
 ```
-Installs the package concoct in default python path, and adds script concoct to bin
+Installs the package concoct in default python path, and adds script CONCOCT to bin
 
 Execute concoct
 -------
 ```
-TODO! Not correct flags !!!!!!!!!!!!!!!!!!!!!!!!!
-- f               contains the fasta formatted contigs
-- k               the kmer size
-- c               number of clusters
-- r               the number of runs to execute clustering
-- i               the number of maximum iterations per run of clustering
-- cf              file with the coverage data
-- o               The directory where result files should be stored, otherwise current dir used
+positional arguments:
+  coverage_file   specify the coverage file
+  composition_file  specify the composition file
+optional arguments:
+  -h, --help        show help message and exit
+  -c C              specify range of clusters to try out on format
+                    first,last,step. default 20,100,2.
+  -n                specify the first and last column names for continuous
+                    coverage range of read counts as first,last
+  -k K              specify kmer length, defaults to tetramer
+  -l L              specify the kmer count for threshold in running PCA on
+                    composition contigs, default 1000
+  -r R              specify read length for coverage, default 100
+  -s                specify this flag to first do PCA for the composition and
+                    using that component number that explaines 90 percent of
+                    variance for the coverage as well. Default join
+                    composition and coverage before PCA. ***NOT IMPLEMENTED***
+  -e E              How often to initialize each cluster count. default 5
+                    times
+  -i I              Maximum number of iterations if convergance not achieved
+  -o O              specify where output directory will be placed.
+     		        If not provided, current directory will be used.
+		    	    All files will be created in:
+                    folder/CONCOCT_YYMMDD_HHMM_SSXXXXXX
 ```
 
 Dependencies
 -----------
 Developed under python 2.7 and following packages installed through pip:
 ```
-TODO! Not correct dependencies!!!!!!!!!!!!!!
-Jinja2==2.6
-Pygments==1.6
 argparse==1.2.1
-biopython==1.61
-distribute==0.6.35
-docutils==0.10
-ipython==0.13.2
-line-profiler==1.0b3
-matplotlib==1.2.1
+biopython==1.62b
 nose==1.3.0
 numpy==1.7.1
-openpyxl==1.6.2
 pandas==0.11.0
-python-dateutil==2.1
-pytz==2013b
-pyzmq==13.1.0
+scikit-learn==0.13.1
 scipy==0.12.0
-six==1.3.0
-stevedore==0.8
-tornado==3.0.1
-virtualenv==1.9.1
-virtualenv-clone==0.2.4
-virtualenvwrapper==3.7
-wsgiref==0.1.2
 ```
