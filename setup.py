@@ -12,7 +12,7 @@ To be done""",
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='Python Scilifelab Metagenomics Binning Clustering Contig',
       author='Brynjar Smari Bjarnason, Johannes Alneberg',
-      author_email='brynjar.bjarnason@scilifelab.se',
+      author_email='binni@binnisb.com',
       url='www.github.com/BinPro/CONCOCT',
       license='',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),

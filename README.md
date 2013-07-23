@@ -8,10 +8,10 @@ Install
 -------
 Clone the repository and execute
 ```
-cd CONCOCT/src
+cd CONCOCT
 python setup.py install
 ```
-Installs the package concoct in default python path, and adds script concoct to bin
+Installs the package concoct in default python path, and adds script CONCOCT to bin
 
 Execute concoct
 -------
@@ -37,7 +37,7 @@ optional arguments:
                     times
   -i I              Maximum number of iterations if convergance not achieved
   -o O              specify where output directory will be placed.
-     		    	    If not provided, current directory will be used.
+     		        If not provided, current directory will be used.
 		    	    All files will be created in:
                     folder/CONCOCT_YYMMDD_HHMM_SSXXXXXX
 ```
