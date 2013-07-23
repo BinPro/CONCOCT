@@ -75,7 +75,7 @@ class Output(object):
 
     
     @classmethod
-    def write_clustering(self,dataframe,threshold_filter,threshold,c):
+    def write_clustering(self,dataframe,threshold_filter,threshold,c,pipe):
         if pipe:
             dataframe.clustering.to_csv(sys.stdout)
         dataframe.clustering.to_csv(
@@ -184,7 +184,7 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
               n_iter=iters).fit(transform_filter)
     
     joined["clustering"] = gmm.predict(pca.transform(joined))
-    Output.write_clustering(joined,threshold_filter,threshold,c)
+    Output.write_clustering(joined,threshold_filter,threshold,c,pipe)
     Output.write_cluster_means(pca.inverse_transform(gmm.means_),
                                    threshold,c)
     # Covariance matrix is three dimensional if full
@@ -225,7 +225,7 @@ def parse_cluster_list(cc_string):
     ERROR="'" + cc_string + ("' is not a valid range of number. Expected "
                              "forms like '20,100,2'.")
     try:
-        first, last, step = map(int,cc.split(","))
+        first, last, step = map(int,cc_string.split(","))
     except ValueError as e:
         raise ArgumentTypeError(ERROR)
     except Exception as e:
