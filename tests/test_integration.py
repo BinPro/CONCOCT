@@ -26,6 +26,8 @@ class TestCMD(object):
 
     def tearDown(self):
         """remove temporary output files"""
+        if isfile(os.path.join(tmp_dir_path,'stdout_clustering')):
+            os.remove(os.path.join(tmp_dir_path,'stdout_clustering'))
         for d in os.listdir(tmp_dir_path):
             d_path = os.path.join(tmp_dir_path,d)
             for f in os.listdir(d_path):
@@ -33,16 +35,20 @@ class TestCMD(object):
                 os.remove(f_path)
             os.rmdir(d_path)
 
-    def run_command(self,cov_file='coverage',comp_file='composition.fa'):
+    def run_command(self,cov_file='coverage',comp_file='composition.fa',tags=[]):
+        call_string = "CONCOCT test_data/{0} test_data/{1} -o nose_tmp_output -c 3,5,1".format(cov_file,comp_file)
+        for tag in tags:
+            call_string += " " + tag
         self.c = 0 # Exit code
         try:
             self.op = subprocess.check_output(
-                "CONCOCT test_data/{0} test_data/{1} -o nose_tmp_output -c 3,5,1".format(cov_file,comp_file),
+                call_string,
                 shell=True)
         except subprocess.CalledProcessError as exc:
             self.c = exc.returncode
 
     def file_len(self,fh):
+        i=0
         with open(fh) as f:
             for i, l in enumerate(f):
                 pass
@@ -165,3 +171,26 @@ class TestCMD(object):
                     msg='Clustering files does not have the same lengths')
         assert_true(clust_gtl_2!=clustl_2,
                     msg='Filtered clustering file and full have the same lengths')
+        
+    def test_piping_functionality(self):
+        saved_stdout = sys.stdout
+        stdout_clustering = os.path.join(tmp_dir_path,'stdout_clustering')
+        sys.stdout = open(stdout_clustering,'w')
+        self.run_command(tags=['--pipe'])
+        sys.stdout.close()
+        sys.stdout = saved_stdout
+
+        stdout_l = self.file_len(stdout_clustering)
+        assert_true(len(os.listdir(tmp_dir_path))>1,
+                    msg='Piped output call was not successful')
+        for d in os.listdir(tmp_dir_path):
+            if d == 'stdout_clustering':
+                continue
+            d_p = os.path.join(tmp_dir_path,d)
+            clust_1 = d_p+'/clustering.csv'
+            clustl_1 = self.file_len(clust_1)
+        
+        assert_true(stdout_l == clustl_1,
+                    msg='piped output is not of same length as clustering.csv')
+        
+        os.remove(stdout_clustering)
