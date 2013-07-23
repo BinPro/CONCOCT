@@ -35,8 +35,8 @@ class TestCMD(object):
                 os.remove(f_path)
             os.rmdir(d_path)
 
-    def run_command(self,cov_file='coverage',comp_file='composition.fa',tags=[]):
-        call_string = "CONCOCT test_data/{0} test_data/{1} -o nose_tmp_output -c 3,5,1".format(cov_file,comp_file)
+    def run_command(self,cov_file='coverage',comp_file='composition.fa',tags=[],output='nose_tmp_output'):
+        call_string = "CONCOCT test_data/{0} test_data/{1} -o {2} -c 3,5,1".format(cov_file,comp_file,output)
         for tag in tags:
             call_string += " " + tag
         self.c = 0 # Exit code
@@ -172,25 +172,3 @@ class TestCMD(object):
         assert_true(clust_gtl_2!=clustl_2,
                     msg='Filtered clustering file and full have the same lengths')
         
-    def test_piping_functionality(self):
-        saved_stdout = sys.stdout
-        stdout_clustering = os.path.join(tmp_dir_path,'stdout_clustering')
-        sys.stdout = open(stdout_clustering,'w')
-        self.run_command(tags=['--pipe'])
-        sys.stdout.close()
-        sys.stdout = saved_stdout
-
-        stdout_l = self.file_len(stdout_clustering)
-        assert_true(len(os.listdir(tmp_dir_path))>1,
-                    msg='Piped output call was not successful')
-        for d in os.listdir(tmp_dir_path):
-            if d == 'stdout_clustering':
-                continue
-            d_p = os.path.join(tmp_dir_path,d)
-            clust_1 = d_p+'/clustering.csv'
-            clustl_1 = self.file_len(clust_1)
-        
-        assert_true(stdout_l == clustl_1,
-                    msg='piped output is not of same length as clustering.csv')
-        
-        os.remove(stdout_clustering)
