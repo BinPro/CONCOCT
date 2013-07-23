@@ -7,6 +7,8 @@ import sys
 import subprocess
 import re
 import numpy as np
+import pandas as p
+
 
 file_path = os.path.realpath(__file__)
 data_path = os.path.abspath(os.path.join(file_path,"..","..","data/"))
@@ -136,7 +138,9 @@ class TestCMD(object):
             meansl_1= self.file_len(means_1)
             clust_gtl_1= self.file_len(clust_gt_1)
             clustl_1 = self.file_len(clust_1)
-            pca_m1 = np.loadtxt(pca_1)
+
+            pca_df1 = p.io.parsers.read_table(pca_1)
+            pca_m1 = pca_df1.to_records()
 
         self.run_command(comp_file='composition_some_shortened.fa')
         for d in os.listdir(tmp_dir_path):
@@ -155,7 +159,8 @@ class TestCMD(object):
             meansl_2= self.file_len(means_2)
             clust_gtl_2= self.file_len(clust_gt_2)
             clustl_2 = self.file_len(clust_2)
-            pca_m2 = np.loadtxt(pca_2)
+            pca_df2 = p.io.parsers.read_table(pca_2)
+            pca_m2 = pca_df2.to_records()
 
         assert_true(odl_1!=odl_2,
                     msg='Original data have the same lengths')
