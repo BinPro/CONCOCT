@@ -6,7 +6,7 @@ version = '0.1'
 
 setup(name='concoct',
       version=version,
-      description="Clustering contigs with composition and coverage",
+      description="Clustering cONtigs with COverage and ComposiTion",
       long_description="""\
 To be done""",
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
