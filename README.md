@@ -36,10 +36,10 @@ optional arguments:
   -e --executions                   How often to initialize each cluster count. default 5
                                     times
   -i --iterations                   Maximum number of iterations if convergance not achieved
-  -o --outdir                       specify where output directory will be placed.
+  -b --basename                     Specify the basename for files or directory where output
+                                    will be placed. Path to existing directory or basename
+                                    with a trailing '/' will be interpreted as a directory.
                                     If not provided, current directory will be used.
-                                    All files will be created in:
-                                    outdir/CONCOCT_YYMMDD_HHMM_SSXXXXXX
   -p --pipe                         Add this tag if the main result file should be
                                     printed to stdout. Useful for pipeline use.
 ```
