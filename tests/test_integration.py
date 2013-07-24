@@ -14,31 +14,33 @@ file_path = os.path.realpath(__file__)
 data_path = os.path.abspath(os.path.join(file_path,"..","..","data/"))
 test_dir_path = os.path.dirname(file_path)
 tmp_dir_path = test_dir_path + '/nose_tmp_output'
+tmp_basename_dir = tmp_dir_path + '/1'
+tmp_basename_dir2 = tmp_dir_path + '/2'
+tmp_basename_file = tmp_dir_path + '/file'
+
 
 CWD = os.getcwd()
 
 class TestCMD(object):
     def setUp(self):
         """If tmp dir already exists, delete it"""
-        if isdir(tmp_dir_path):
-            self.tearDown()
-        else:
-            os.mkdir(tmp_dir_path)
+        self.tearDown()
+        os.mkdir(tmp_basename_dir)
         os.chdir(test_dir_path)
 
     def tearDown(self):
         """remove temporary output files"""
-        if isfile(os.path.join(tmp_dir_path,'stdout_clustering')):
-            os.remove(os.path.join(tmp_dir_path,'stdout_clustering'))
         for d in os.listdir(tmp_dir_path):
             d_path = os.path.join(tmp_dir_path,d)
-            for f in os.listdir(d_path):
-                f_path = os.path.join(d_path,f)
-                os.remove(f_path)
-            os.rmdir(d_path)
+            try:
+                os.remove(d_path)
+            except:
+                os.rmdir(d_path)
+        assert os.listdir(tmp_dir_path) == []
 
-    def run_command(self,cov_file='coverage',comp_file='composition.fa',tags=[],output='nose_tmp_output'):
-        call_string = "CONCOCT test_data/{0} test_data/{1} -o {2} -c 3,5,1".format(cov_file,comp_file,output)
+
+    def run_command(self,cov_file='coverage',comp_file='composition.fa',tags=[],basename='nose_tmp_output/1'):
+        call_string = "CONCOCT test_data/{0} test_data/{1} --basename {2} -c 3,5,1".format(cov_file,comp_file,basename)
         for tag in tags:
             call_string += " " + tag
         self.c = 0 # Exit code
@@ -56,6 +58,14 @@ class TestCMD(object):
                 pass
         return i + 1
 
+    def md5sum(self,fh):
+        infile = open("filename", 'rb')
+        content = infile.read()
+        infile.close()
+        m = hashlib.md5() 
+        m.update(content)
+        return m.hexdigest()
+ 
     def test_no_errors(self):
         self.run_command()
         assert_equal(self.c,0,
@@ -63,105 +73,137 @@ class TestCMD(object):
 
     def test_directory_creation(self):
         self.run_command()
-        reg_o = re.compile('concoct_*')
-        L = listdir(tmp_dir_path)
-        tmp_dirs_before = filter(reg_o.match,L)
-        assert_true(tmp_dirs_before!=0,
+        assert_true(isdir(tmp_basename_dir),
                     msg = "Temporary directory not created")
-        assert_true(len(tmp_dirs_before)==1,
-                    msg = "Other files starting with nose_tmp_output exists in test directory, please remove them and restart tests")
-
-        # Rerun the concoct and see that new directory with unique
-        # name is created
+        m_time_first = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
+        
+        # Rerun the concoct and see that the directory is overwritten
         self.run_command()
-
-        assert_equal(self.c,0,
-                     msg = "Error while running command a second time")
+        m_time_second = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
+        assert_true(m_time_first != m_time_second,
+                     msg = "basename dir is not overwritten")
         L = listdir(tmp_dir_path)
-        tmp_dirs_after = filter(reg_o.match,L)
-        assert_true(len(tmp_dirs_after) > 1,
-                    msg = "No unique output directory was created")
-
-        assert_true(len(tmp_dirs_after) == 2,
+        assert_true(len(L) == 1,
                     msg = "Multiple output directories or files was created")
 
-    def test_output_files_creation(self):
-        self.run_command()
-        for d in os.listdir(tmp_dir_path):
-            d_p = os.path.join(tmp_dir_path,d)
-            assert_true(
-                isfile(d_p+ '/bic.csv'),
-                msg='Bic file is not created'
-                )
-            assert_true(
-                isfile(d_p+ '/clustering_gt1000.csv'),
-                msg='Large contigs clustering file is not created'
-                )
-            assert_true(
-                isfile(d_p+ '/means_gt1000.csv'),
-                msg='Large contigs cluster means file is not created'
-                )
+        # File creation
+        self.run_command(basename=tmp_basename_file)
+        assert_true(isfile(tmp_basename_file+'clustering.csv'),
+                    msg = "Clustering file is not created, when file is used as basename")
+        L = listdir(L)
+        assert_true(len(L) == 6,
+                    msg = "Wrong number of output files")
 
-            assert_true(
-                isfile(d_p+ '/variance_gt1000_dim1.csv'),
-                msg='Large contigs cluster variance file is not created'
-                )
-            assert_true(
-                isfile(d_p+ '/responsibilities.csv'),
-                msg='Large contigs responsibilities file is not created'
-                )
-            assert_true(
-                isfile(d_p+ '/clustering.csv'),
-                msg='Clustering file is not created'
-                )
-            assert_true(
-                isfile(d_p+ '/PCA_transformed_data_gt1000.csv'),
-                msg='PCA file is not created'
-                )
-            assert_true(
-                isfile(d_p+ '/original_data_gt1000.csv'),
-                msg='Original data file is not created'
-                )
+    def test_output_files_creation(self):
+        # dir as basename
+        self.run_command()
+        d_p = os.path.join(tmp_basename_dir)
+        assert_true(
+            isfile(d_p+ '/bic.csv'),
+            msg='Bic file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/clustering_gt1000.csv'),
+            msg='Large contigs clustering file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/means_gt1000.csv'),
+            msg='Large contigs cluster means file is not created'
+            )
+        
+        assert_true(
+            isfile(d_p+ '/variance_gt1000_dim1.csv'),
+            msg='Large contigs cluster variance file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/responsibilities.csv'),
+            msg='Large contigs responsibilities file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/clustering.csv'),
+            msg='Clustering file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/PCA_transformed_data_gt1000.csv'),
+            msg='PCA file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/original_data_gt1000.csv'),
+            msg='Original data file is not created'
+            )
+        
+        # dir as file
+        self.run_command(basename=tmp_basename_file)
+        d_p = tmp_basename_file
+        assert_true(
+            isfile(d_p +'bic.csv'),
+            msg='Bic file is not created'
+            )
+        assert_true(
+            isfile(d_p+ 'clustering_gt1000.csv'),
+            msg='Large contigs clustering file is not created'
+            )
+        assert_true(
+            isfile(d_p+ 'means_gt1000.csv'),
+            msg='Large contigs cluster means file is not created'
+            )
+
+        assert_true(
+            isfile(d_p+ 'variance_gt1000_dim1.csv'),
+            msg='Large contigs cluster variance file is not created'
+            )
+        assert_true(
+            isfile(d_p+ 'responsibilities.csv'),
+            msg='Large contigs responsibilities file is not created'
+            )
+        assert_true(
+            isfile(d_p+ 'clustering.csv'),
+            msg='Clustering file is not created'
+            )
+        assert_true(
+            isfile(d_p+ 'PCA_transformed_data_gt1000.csv'),
+            msg='PCA file is not created'
+            )
+        assert_true(
+            isfile(d_p+ 'original_data_gt1000.csv'),
+            msg='Original data file is not created'
+            )
                 
     def test_threshold_functionality(self):
         self.run_command()
-        for d in os.listdir(tmp_dir_path):
-            d_p = os.path.join(tmp_dir_path,d)
-            od_1 = d_p+'/original_data_gt1000.csv'
-            pca_1 = d_p+'/PCA_transformed_data_gt1000.csv'
-            var_1 = d_p+'/variance_gt1000_dim1.csv'
-            means_1 = d_p+'/means_gt1000.csv'
-            clust_gt_1 = d_p+'/clustering_gt1000.csv'
-            clust_1 = d_p+'/clustering.csv'
-            odl_1 = self.file_len(od_1)
-            varl_1= self.file_len(var_1)
-            meansl_1= self.file_len(means_1)
-            clust_gtl_1= self.file_len(clust_gt_1)
-            clustl_1 = self.file_len(clust_1)
+        d_p = tmp_basename_dir
+        od_1 = d_p+'/original_data_gt1000.csv'
+        pca_1 = d_p+'/PCA_transformed_data_gt1000.csv'
+        var_1 = d_p+'/variance_gt1000_dim1.csv'
+        means_1 = d_p+'/means_gt1000.csv'
+        clust_gt_1 = d_p+'/clustering_gt1000.csv'
+        clust_1 = d_p+'/clustering.csv'
+        odl_1 = self.file_len(od_1)
+        varl_1= self.file_len(var_1)
+        meansl_1= self.file_len(means_1)
+        clust_gtl_1= self.file_len(clust_gt_1)
+        clustl_1 = self.file_len(clust_1)
+        
+        pca_df1 = p.io.parsers.read_table(pca_1)
+        pca_m1 = pca_df1.to_records()
 
-            pca_df1 = p.io.parsers.read_table(pca_1)
-            pca_m1 = pca_df1.to_records()
-
-        self.run_command(comp_file='composition_some_shortened.fa')
-        for d in os.listdir(tmp_dir_path):
-            d_temp = os.path.join(tmp_dir_path,d)
-            if d_temp == d_p:
-                continue
-            d_p2 = d_temp
-            od_2 = d_p2+'/original_data_gt1000.csv'
-            pca_2 = d_p2+'/PCA_transformed_data_gt1000.csv'
-            var_2 = d_p2+'/variance_gt1000_dim1.csv'
-            means_2 = d_p2+'/means_gt1000.csv'
-            clust_gt_2 = d_p2+'/clustering_gt1000.csv'
-            clust_2 = d_p2+'/clustering.csv'
-            odl_2 = self.file_len(od_2)
-            varl_2= self.file_len(var_2)
-            meansl_2= self.file_len(means_2)
-            clust_gtl_2= self.file_len(clust_gt_2)
-            clustl_2 = self.file_len(clust_2)
-            pca_df2 = p.io.parsers.read_table(pca_2)
-            pca_m2 = pca_df2.to_records()
-
+        self.run_command(comp_file='composition_some_shortened.fa',
+                         basename=tmp_basename_dir2)
+        d_p2 = tmp_basename_dir2
+        od_2 = d_p2+'/original_data_gt1000.csv'
+        pca_2 = d_p2+'/PCA_transformed_data_gt1000.csv'
+        var_2 = d_p2+'/variance_gt1000_dim1.csv'
+        means_2 = d_p2+'/means_gt1000.csv'
+        clust_gt_2 = d_p2+'/clustering_gt1000.csv'
+        clust_2 = d_p2+'/clustering.csv'
+        odl_2 = self.file_len(od_2)
+        varl_2= self.file_len(var_2)
+        meansl_2= self.file_len(means_2)
+        clust_gtl_2= self.file_len(clust_gt_2)
+        clustl_2 = self.file_len(clust_2)
+        pca_df2 = p.io.parsers.read_table(pca_2)
+        pca_m2 = pca_df2.to_records()
+        
         assert_true(odl_1!=odl_2,
                     msg='Original data have the same lengths')
         assert_true(varl_1==varl_2,
@@ -177,3 +219,14 @@ class TestCMD(object):
         assert_true(clust_gtl_2!=clustl_2,
                     msg='Filtered clustering file and full have the same lengths')
         
+    def test_piping_functionality(self):
+        f1 = tmp_basename_dir+'/stdout_capture'
+        saved_stdout = sys.stdout
+        sys.stdout = open(f1,'w+')
+        self.run_command(tags=['--pipe'])
+        close(sys.stdout)
+        sys.stdout = saved_stdout
+        f2 = tmp_basename_dir + '/clustering.csv'
+        import filecmp
+        assert_true(filecmp.cmp(f1,f2),
+                    msg='stdout and clustering file is not equal')
