@@ -35,6 +35,9 @@ class TestCMD(object):
             try:
                 os.remove(d_path)
             except:
+                for f in os.listdir(d_path):
+                    f_path = os.path.join(d_path,f)
+                    os.remove(f_path)
                 os.rmdir(d_path)
         assert os.listdir(tmp_dir_path) == []
 
@@ -88,10 +91,10 @@ class TestCMD(object):
 
         # File creation
         self.run_command(basename=tmp_basename_file)
-        assert_true(isfile(tmp_basename_file+'clustering.csv'),
+        assert_true(isfile(tmp_basename_file+'_clustering.csv'),
                     msg = "Clustering file is not created, when file is used as basename")
-        L = listdir(L)
-        assert_true(len(L) == 6,
+        L = listdir(tmp_dir_path)
+        assert_true(len(L) == 12,
                     msg = "Wrong number of output files")
 
     def test_output_files_creation(self):
@@ -134,7 +137,7 @@ class TestCMD(object):
         
         # dir as file
         self.run_command(basename=tmp_basename_file)
-        d_p = tmp_basename_file
+        d_p = tmp_basename_file +'_'
         assert_true(
             isfile(d_p +'bic.csv'),
             msg='Bic file is not created'
@@ -188,7 +191,7 @@ class TestCMD(object):
         pca_m1 = pca_df1.to_records()
 
         self.run_command(comp_file='composition_some_shortened.fa',
-                         basename=tmp_basename_dir2)
+                         basename=tmp_basename_dir2+'/')
         d_p2 = tmp_basename_dir2
         od_2 = d_p2+'/original_data_gt1000.csv'
         pca_2 = d_p2+'/PCA_transformed_data_gt1000.csv'
@@ -218,15 +221,22 @@ class TestCMD(object):
                     msg='Clustering files does not have the same lengths')
         assert_true(clust_gtl_2!=clustl_2,
                     msg='Filtered clustering file and full have the same lengths')
-        
+
     def test_piping_functionality(self):
         f1 = tmp_basename_dir+'/stdout_capture'
-        saved_stdout = sys.stdout
-        sys.stdout = open(f1,'w+')
-        self.run_command(tags=['--pipe'])
-        close(sys.stdout)
-        sys.stdout = saved_stdout
-        f2 = tmp_basename_dir + '/clustering.csv'
+        self.run_command(tags=['--pipe','> {0}/stdout_capture'.format(tmp_basename_dir)])
+
+        f1 = open(tmp_basename_dir+'/stdout_capture','rb')
+        f1_content = f1.read()
+        f1.close()
+        f2 = open(tmp_basename_dir + '/clustering.csv','rb')
+        f2_content = f2.read()
+        f2.close()
         import filecmp
-        assert_true(filecmp.cmp(f1,f2),
+        f1_out = open('f1_content','w+')
+        f2_out = open('f2_content','w+')
+
+        f1_out.write(f1_content)
+        f2_out.write(f2_content)
+        assert_true(len(f1_content)==len(f2_content),
                     msg='stdout and clustering file is not equal')
