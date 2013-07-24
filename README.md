@@ -20,26 +20,28 @@ positional arguments:
   coverage_file   specify the coverage file
   composition_file  specify the composition file
 optional arguments:
-  -h, --help        show help message and exit
-  -c C              specify range of clusters to try out on format
-                    first,last,step. default 20,100,2.
-  -n                specify the first and last column names for continuous
-                    coverage range of read counts as first,last
-  -k K              specify kmer length, defaults to tetramer
-  -l L              specify the kmer count for threshold in running PCA on
-                    composition contigs, default 1000
-  -r R              specify read length for coverage, default 100
-  -s                specify this flag to first do PCA for the composition and
-                    using that component number that explaines 90 percent of
-                    variance for the coverage as well. Default join
-                    composition and coverage before PCA. ***NOT IMPLEMENTED***
-  -e E              How often to initialize each cluster count. default 5
-                    times
-  -i I              Maximum number of iterations if convergance not achieved
-  -o O              specify where output directory will be placed.
-     		        If not provided, current directory will be used.
-		    	    All files will be created in:
-                    folder/CONCOCT_YYMMDD_HHMM_SSXXXXXX
+  -h, --help                        show help message and exit
+  -c --clusters                     specify range of clusters to try out on format
+                                    first,last,step. default 20,100,2.
+  -n --coverage_file_column_names   specify the first and last column names for continuous
+                                    coverage range of read counts as first,last
+  -k --kmer_length                  specify kmer length, defaults to tetramer
+  -l --limit_kmer_count             specify the kmer count for threshold in running PCA on
+                                    composition contigs, default 1000
+  -r --read_length                  specify read length for coverage, default 100
+  -s --split_pca                    specify this flag to first do PCA for the composition and
+                                    using that component number that explaines 90 percent of
+                                    variance for the coverage as well. Default join
+                                    composition and coverage before PCA. ***NOT IMPLEMENTED***
+  -e --executions                   How often to initialize each cluster count. default 5
+                                    times
+  -i --iterations                   Maximum number of iterations if convergance not achieved
+  -o --outdir                       specify where output directory will be placed.
+                                    If not provided, current directory will be used.
+                                    All files will be created in:
+                                    outdir/CONCOCT_YYMMDD_HHMM_SSXXXXXX
+  -p --pipe                         Add this tag if the main result file should be
+                                    printed to stdout. Useful for pipeline use.
 ```
 
 Dependencies
