@@ -34,29 +34,34 @@ class Output(object):
     VARIANCE_FILE_BASE = None
     RESPONSIBILITY_FILE_BASE = None
     @classmethod
-    def __init__(self,outdir,args):
+    def __init__(self,basename,args):
         """
         Set output params and create output folders and bic.csv and args.txt
         """
-        self.DT = datetime.now().strftime("%y%m%d_%H%M_%S%f")
-        self.CONCOCT_PATH = os.path.join(outdir,"concoct_{0}".format(self.DT))
-        os.makedirs(self.CONCOCT_PATH)
-        print >> sys.stderr, "Results created in folder {0}".format(
+        if os.path.isdir(basename):
+            if basename[-1] == '/':
+                self.CONCOCT_PATH = basename
+            else:
+                self.CONCOCT_PATH = basename + '/'
+        elif basename[-1] == '/':
+            basename_path = os.path.abspath(basename)
+            os.mkdir(basename_path)
+            self.CONCOCT_PATH = basename_path +'/'
+        else:
+            basename_path = os.path.abspath(basename)
+            self.CONCOCT_PATH = basename+'_'
+
+        print >> sys.stderr, "Results created at {0}".format(
             self.CONCOCT_PATH)
-        self.BIC_FILE = os.path.join(self.CONCOCT_PATH,"bic.csv")
-        self.ARGS_FILE = os.path.join(self.CONCOCT_PATH,"args.txt")
-        self.ORIGINAL_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"original_data_gt{0}.csv")
-        self.PCA_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"PCA_transformed_data_gt{0}.csv")
-        self.CLUSTERING_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"clustering{0}.csv")
-        self.MEANS_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"means{0}.csv")
-        self.VARIANCE_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"variance_gt{0}_dim{1}.csv")
-        self.RESPONSIBILITY_FILE_BASE = os.path.join(
-            self.CONCOCT_PATH,"responsibilities.csv")
+        self.BIC_FILE = self.CONCOCT_PATH + "bic.csv"
+        self.ARGS_FILE = self.CONCOCT_PATH + "args.txt"
+        self.ORIGINAL_FILE_BASE = self.CONCOCT_PATH + "original_data_gt{0}.csv"
+        self.PCA_FILE_BASE = self.CONCOCT_PATH + \
+            "PCA_transformed_data_gt{0}.csv"
+        self.CLUSTERING_FILE_BASE = self.CONCOCT_PATH + "clustering{0}.csv"
+        self.MEANS_FILE_BASE = self.CONCOCT_PATH + "means{0}.csv"
+        self.VARIANCE_FILE_BASE = self.CONCOCT_PATH + "variance_gt{0}_dim{1}.csv"
+        self.RESPONSIBILITY_FILE_BASE = self.CONCOCT_PATH + "responsibilities.csv"
         self.pipe = args.pipe
 
         #Write header to bic.csv
@@ -296,7 +301,7 @@ def arguments():
     parser.add_argument('-i', '--iterations',type=int, default=100,
         help='Maximum number of iterations if convergance not achieved')
     #Output
-    parser.add_argument('-o', '--outdir', default=os.curdir,
+    parser.add_argument('-b', '--basename', default=os.curdir,
         help='specify the output directory, if not provided current directory \
               used. All files will be created in:\
               folder/CONCOCT_YYMMDD_HHMM')
@@ -319,6 +324,6 @@ if __name__=="__main__":
                       args.split_pca, 
                       args.executions, 
                       args.iterations, 
-                      args.outdir, 
+                      args.basename, 
                       args.pipe,
                       args)
