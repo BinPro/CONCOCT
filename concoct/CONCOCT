@@ -125,7 +125,8 @@ def parallelized_cluster(args):
 
 def cluster(comp_file, cov_file, kmer_len, threshold, 
             read_length, clusters_range, cov_range, 
-            split_pca, inits, iters, outdir, pipe, args=None):
+            split_pca, inits, iters, outdir, pipe,
+            max_n_processors,args=None):
     Output(outdir,args)
     #Composition
     #Generate kmer dictionary
@@ -190,7 +191,8 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     cluster_args = []
     for c in clusters_range:
         cluster_args.append((c,cv_type,inits,iters,transform_filter))
-    pool = multiprocessing.Pool(processes=2)
+    n_processes = min(multiprocessing.cpu_count(),max_n_processors)
+    pool = multiprocessing.Pool(processes=n_processes)
     bics = pool.map(parallelized_cluster,cluster_args)
 
     Output.write_bic(bics)
@@ -319,7 +321,8 @@ def arguments():
     parser.add_argument('-p', '--pipe', default=False, action="store_true",
                         help=('Add this tag if the main result file should be'
                               'printed to stdout. Useful for pipeline use'))
-
+    parser.add_argument('-m','--max_n_processors',type=int,
+                       help='Specify the maximum number of processors CONCOCT is allowed to use, if absent, all present processors will be used.')
     
     return parser.parse_args()
 
@@ -338,4 +341,5 @@ if __name__=="__main__":
                       args.iterations, 
                       args.basename, 
                       args.pipe,
+                      args.max_n_processors,
                       args)
