@@ -91,9 +91,11 @@ class Output(object):
                 "_gt{0}".format(threshold)))
         
     @classmethod
-    def write_bic(self,bic,c):
-        with open(self.BIC_FILE,"a+") as fh:
-            print >> fh, "{0},{1}".format(bic,c)
+    def write_bic(self,bics):
+        bics.sort(key=lambda x: x[1])
+        with open(self.BIC_FILE,"w+") as fh:
+            for bic,c in bics:
+                print >> fh, "{0},{1}".format(c,bic)
     
     @classmethod
     def write_cluster_means(self,means,threshold,c):
@@ -117,7 +119,6 @@ def parallelized_cluster(args):
     print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(
         c,gmm.converged_)
     bic = gmm.bic(transform_filter)
-    Output.write_bic(bic,c)
     return bic,c
 
 
@@ -191,6 +192,8 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
         cluster_args.append((c,cv_type,inits,iters,transform_filter))
     pool = multiprocessing.Pool(processes=2)
     bics = pool.map(parallelized_cluster,cluster_args)
+
+    Output.write_bic(bics)
 
     min_bic,optimal_c = min(bics,key=lambda x: x[0])
     gmm = GMM(n_components=optimal_c,covariance_type=cv_type,n_init=inits,
