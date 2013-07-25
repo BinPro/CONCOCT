@@ -236,7 +236,16 @@ class TestCMD(object):
         f1_out = open('f1_content','w+')
         f2_out = open('f2_content','w+')
 
-        f1_out.write(f1_content)
-        f2_out.write(f2_content)
         assert_true(len(f1_content)==len(f2_content),
                     msg='stdout and clustering file is not equal')
+
+    def test_bic_sorted(self):
+        self.run_command()
+        bic = p.io.parsers.read_table(tmp_basename_dir+'/bic.csv',sep=',',index_col=0)
+        assert_true(max(bic.index) == 5,
+                    msg='BIC columns are probably mixed up')
+        index_l = list(bic.index)
+        assert_true(index_l==[3,4,5],
+                    msg='BIC file is not sorted')
+        
+        
