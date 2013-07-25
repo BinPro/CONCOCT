@@ -42,6 +42,9 @@ optional arguments:
                                     If not provided, current directory will be used.
   -p --pipe                         Add this tag if the main result file should be
                                     printed to stdout. Useful for pipeline use.
+  -m --max_n_processors             Specify the maximum number of processors CONCOCT is
+                                    allowed to use, if absent, all present processors will
+                                    be used.
 ```
 
 Dependencies
