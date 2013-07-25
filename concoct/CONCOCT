@@ -18,7 +18,7 @@ from sklearn.preprocessing import scale
 from sklearn.mixture import GMM
 from sklearn.decomposition import PCA
 
-
+import multiprocessing
 
 class Output(object):
     """
@@ -108,6 +108,20 @@ class Output(object):
     def write_cluster_responsibilities(self,res,threshold,c):
         np.savetxt(self.RESPONSIBILITY_FILE_BASE,res)
 
+def parallelized_cluster(args):
+    c, cv_type,inits,iters,transform_filter = args
+    #Run GMM on the pca transform of contigs with kmer count greater
+    #than threshold
+    gmm = GMM(n_components=c, covariance_type=cv_type, n_init=inits,
+              n_iter=iters).fit(transform_filter)
+    print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(
+        c,gmm.converged_)
+    bic = gmm.bic(transform_filter)
+    Output.write_bic(bic,c)
+    return bic,c
+
+
+
 def cluster(comp_file, cov_file, kmer_len, threshold, 
             read_length, clusters_range, cov_range, 
             split_pca, inits, iters, outdir, pipe, args=None):
@@ -172,20 +186,13 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
                          threshold,cov[threshold_filter].index)
     
     cv_type='full'
-    min_bic = np.inf
-    optimal_c = None
+    cluster_args = []
     for c in clusters_range:
-        #Run GMM on the pca transform of contigs with kmer count greater
-        #than threshold
-        gmm = GMM(n_components=c, covariance_type=cv_type, n_init=inits,
-                  n_iter=iters).fit(transform_filter)
-        print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(
-            c,gmm.converged_)
-        bic = gmm.bic(transform_filter)
-        Output.write_bic(bic,c)
-        if bic < min_bic:
-            min_bic = bic
-            optimal_c = c
+        cluster_args.append((c,cv_type,inits,iters,transform_filter))
+    pool = multiprocessing.Pool(processes=2)
+    bics = pool.map(parallelized_cluster,cluster_args)
+
+    min_bic,optimal_c = min(bics,key=lambda x: x[0])
     gmm = GMM(n_components=optimal_c,covariance_type=cv_type,n_init=inits,
               n_iter=iters).fit(transform_filter)
     
