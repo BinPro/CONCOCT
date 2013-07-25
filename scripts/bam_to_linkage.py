@@ -128,18 +128,22 @@ def print_linkage_info(fastafile, bamfiles, samplenames, regionlength):
             samplenames[i], linkdict)
 
     # Header
-    print ("%s\t%s" + "\t%s" * 2 * len(bamfiles)) % (("contig1", "contig2") +
-        tuple(["nr_links_inward_%s" % s for s in samplenames]) +
-        tuple(["nr_links_outward_%s" % s for s in samplenames])) 
+    print ("%s\t%s" + "\t%s" * len(bamfiles)) % (("contig1", "contig2") +
+        tuple(["nr_links_inward_%s\tnr_links_outward_%s" % (s,s) for s in samplenames]))
 
     # Content
     for contig in linkdict:
         for contig2 in linkdict[contig]:
-            inward_tuple = tuple([linkdict[contig][contig2][s]["inward"]  if s in linkdict[contig][contig2] else 0 for s in samplenames])
-            outward_tuple = tuple([linkdict[contig][contig2][s]["outward"] if s in linkdict[contig][contig2] else 0 for s in samplenames])
+            nrlinksl = []
 
-            if sum(inward_tuple + outward_tuple) > 0:
-                print ("%s\t%s" + "\t%i" * 2 * len(bamfiles)) % ((contig,contig2) + inward_tuple + outward_tuple)
+            for s in samplenames:
+                if s in linkdict[contig][contig2]:
+                    nrlinksl = nrlinksl + [linkdict[contig][contig2][s]["inward"],linkdict[contig][contig2][s]["outward"]]
+                else:
+                    nrlinksl = nrlinksl + [0,0]
+                    
+            if sum(nrlinksl) > 0:
+                print ("%s\t%s" + "\t%i" * 2 * len(bamfiles)) % ((contig,contig2) + tuple(nrlinksl))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
