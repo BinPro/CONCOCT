@@ -2,7 +2,6 @@
 """
 @author: inodb
 """
-import sys
 import os
 import argparse
 
@@ -10,10 +9,6 @@ from Bio import SeqIO
 from Bio.SeqUtils import GC
 import pysam
 
-from Bio import SeqIO
-from Bio.SeqUtils import GC
-
-import ipdb
 
 #TODO: same function as in gen_input_table.py
 def get_gc_and_len_dict(fastafile):
@@ -28,32 +23,38 @@ def get_gc_and_len_dict(fastafile):
 
     return out_dict
 
+
 def read_is_inward(read, regionlength):
     """Determine if read is pointing inward"""
     return (read.pos >= regionlength and not read.is_reverse) or \
            (read.pos <= regionlength and read.is_reverse)
+
 
 def mate_is_inward(read, regionlength):
     """Determine if mate is pointing inward"""
     return (read.mpos >= regionlength and not read.mate_is_reverse) or \
            (read.mpos <= regionlength and read.mate_is_reverse)
 
+
 def pair_is_inward(read, regionlength):
     """Determine if pair is pointing inward"""
     return read_is_inward(read, regionlength) and mate_is_inward(read, regionlength)
 
+
 def pair_is_outward(read, regionlength):
     """Determine if pair is pointing outward"""
-    return not read_is_inward(read,regionlength) and not mate_is_inward(read, regionlength)
+    return not read_is_inward(read, regionlength) and not mate_is_inward(read, regionlength)
+
 
 def get_orientation(read, regionlength):
     """Determine orientation of pair."""
-    if pair_is_inward(read,regionlength):
+    if pair_is_inward(read, regionlength):
         return "inward"
-    elif pair_is_outward(read,regionlength):
+    elif pair_is_outward(read, regionlength):
         return "outward"
     else:
         return "inline"
+
 
 def get_linkage_info_dict_at_loc(bamh, chromosome, start, end, regionlength, samplename, out_dict={}):
     """Returns a linkage information dictionary given a specific location on a
@@ -73,11 +74,11 @@ def get_linkage_info_dict_at_loc(bamh, chromosome, start, end, regionlength, sam
 
             # Init with empty dic if contig is not in there yet
             if ref not in out_dict:
-                out_dict[ref] = {refm:{}}
+                out_dict[ref] = {refm : {}}
             # Also check if refm is in the dict, because it could already have
             # links to another contig.
             if refm not in out_dict:
-                out_dict[refm] = {ref:{}}
+                out_dict[refm] = {ref : {}}
 
             # Add one link
             ori = get_orientation(read, regionlength)
@@ -85,12 +86,56 @@ def get_linkage_info_dict_at_loc(bamh, chromosome, start, end, regionlength, sam
                 d = out_dict[ref][refm][samplename]
             except KeyError:
                 # Sample hasn't been added yet
-                out_dict[ref][refm][samplename] = {"inward":0,"outward":0,"inline":0}
-                out_dict[refm][ref][samplename] = {"inward":0,"outward":0,"inline":0}
+                out_dict[ref][refm][samplename] = {"inward" : 0, "outward" : 0, "inline" : 0}
+                out_dict[refm][ref][samplename] = {"inward" : 0, "outward" : 0, "inline" : 0}
 
-            out_dict[ref][refm][samplename][ori] += 1 
-            out_dict[refm][ref][samplename][ori] += 1 
-    
+            out_dict[ref][refm][samplename][ori] += 1
+            out_dict[refm][ref][samplename][ori] += 1
+
+    return out_dict
+
+
+def get_linkage_info_dict_one_fetch(bamfile, regionlength, samplename, out_dict={}):
+    """Creates a two-dimensional dictionary of linkage information between
+    contigs."""
+    bamh = pysam.Samfile(bamfile)
+
+    for read in bamh.fetch():
+        # check if pair links to another contig
+        # only look at pair1, to prevent counting links twice
+        # check if both contigs are bigger than twice the regionlength
+        # (arbitrary contig length cut-off)
+        # check if pairs are both at one end of the contig
+        if read.is_paired \
+          and read.tid != read.mrnm \
+          and read.is_read1 \
+          and bamh.lengths[read.tid] > 2 * regionlength \
+          and bamh.lengths[read.mrnm] > 2 * regionlength \
+          and (read.pos <= regionlength or read.pos >= bamh.lengths[read.tid] - regionlength) \
+          and (read.mpos <= regionlength or read.mpos >= bamh.lengths[read.mrnm] - regionlength):
+            ref = bamh.getrname(read.tid)
+            refm = bamh.getrname(read.mrnm)
+
+            # Init with empty dic if contig is not in there yet
+            if ref not in out_dict:
+                out_dict[ref] = {refm : {}}
+            # Also check if refm is in the dict, because it could already have
+            # links to another contig.
+            if refm not in out_dict:
+                out_dict[refm] = {ref : {}}
+
+            # Add one link
+            ori = get_orientation(read, regionlength)
+            try:
+                d = out_dict[ref][refm][samplename]
+            except KeyError:
+                # Sample hasn't been added yet
+                out_dict[ref][refm][samplename] = {"inward" : 0, "outward" : 0, "inline" : 0}
+                out_dict[refm][ref][samplename] = {"inward" : 0, "outward" : 0, "inline" : 0}
+
+            out_dict[ref][refm][samplename][ori] += 1
+            out_dict[refm][ref][samplename][ori] += 1
+
     return out_dict
 
 
@@ -108,9 +153,10 @@ def get_linkage_info_dict(fdict, bamfile, regionlength, samplename, out_dict={})
             out_dict = get_linkage_info_dict_at_loc(bamh, contig,
                 fdict[contig]["length"] - regionlength - 1, fdict[contig]["length"], regionlength,
                 samplename, out_dict)
-         
+
     return out_dict
-    
+
+
 def print_linkage_info(fastafile, bamfiles, samplenames, regionlength):
     """Prints a linkage information table. Format as
 
@@ -118,18 +164,19 @@ def print_linkage_info(fastafile, bamfiles, samplenames, regionlength):
 
     where n represents sample name. Number of columns is thus 2 + 2 * n.
     """
-    fdict = get_gc_and_len_dict(fastafile)
+    # With one fetch determining length beforehand is no longer necessary
+    #fdict = get_gc_and_len_dict(fastafile)
 
     assert(len(bamfiles) == len(samplenames))
 
     linkdict = {}
     for i in range(len(bamfiles)):
-        linkdict = get_linkage_info_dict(fdict, bamfiles[i], regionlength,
+        linkdict = get_linkage_info_dict_one_fetch(bamfiles[i], regionlength,
             samplenames[i], linkdict)
 
     # Header
     print ("%s\t%s" + "\t%s" * len(bamfiles)) % (("contig1", "contig2") +
-        tuple(["nr_links_inward_%s\tnr_links_outward_%s" % (s,s) for s in samplenames]))
+        tuple(["nr_links_inward_%s\tnr_links_outward_%s" % (s, s) for s in samplenames]))
 
     # Content
     for contig in linkdict:
@@ -138,12 +185,13 @@ def print_linkage_info(fastafile, bamfiles, samplenames, regionlength):
 
             for s in samplenames:
                 if s in linkdict[contig][contig2]:
-                    nrlinksl = nrlinksl + [linkdict[contig][contig2][s]["inward"],linkdict[contig][contig2][s]["outward"]]
+                    nrlinksl = nrlinksl + [linkdict[contig][contig2][s]["inward"], linkdict[contig][contig2][s]["outward"]]
                 else:
-                    nrlinksl = nrlinksl + [0,0]
-                    
+                    nrlinksl = nrlinksl + [0, 0]
+
             if sum(nrlinksl) > 0:
-                print ("%s\t%s" + "\t%i" * 2 * len(bamfiles)) % ((contig,contig2) + tuple(nrlinksl))
+                print ("%s\t%s" + "\t%i" * 2 * len(bamfiles)) % ((contig, contig2) + tuple(nrlinksl))
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -156,8 +204,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Get sample names
-    if args.samplenames != None:
-        samplenames = [ s[:-1] for s in open(args.samplenames).readlines() ]
+    if args.samplenames is not None:
+        samplenames = [s[:-1] for s in open(args.samplenames).readlines()]
         if len(samplenames) != len(args.bamfiles):
             raise(Exception("Nr of names in samplenames should be equal to nr "
             "of given bamfiles"))
