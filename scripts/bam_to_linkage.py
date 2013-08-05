@@ -97,7 +97,8 @@ def get_linkage_info_dict_at_loc(bamh, chromosome, start, end, regionlength, sam
 
 def get_linkage_info_dict_one_fetch(bamfile, regionlength, samplename, out_dict={}):
     """Creates a two-dimensional dictionary of linkage information between
-    contigs."""
+    contigs. Fetch is called only once on the bam file, which is faster than a
+    fetch for each contig individually. About twice as fast for 100 reads."""
     bamh = pysam.Samfile(bamfile)
 
     for read in bamh.fetch():
@@ -145,9 +146,9 @@ def get_linkage_info_dict(fdict, bamfile, regionlength, samplename, out_dict={})
     bamh = pysam.Samfile(bamfile)
 
     for contig in fdict:
-        # Check ends if regionlength smaller than the contig length
+        # Check ends if 2 * regionlength smaller than the contig length
         # skip shorter contigs for linkage
-        if regionlength < fdict[contig]["length"]:
+        if regionlength * 2 < fdict[contig]["length"]:
             out_dict = get_linkage_info_dict_at_loc(bamh, contig, 0, regionlength, regionlength,
                 samplename, out_dict)
             out_dict = get_linkage_info_dict_at_loc(bamh, contig,
@@ -198,9 +199,9 @@ if __name__ == "__main__":
     parser.add_argument("fastafile", help="Contigs fasta file")
     parser.add_argument("bamfiles", nargs='+', help="BAM files with mappings to contigs")
     parser.add_argument("--samplenames", default=None, help="File with sample names, one line each. Should be same nr as bamfiles.")
-    parser.add_argument("--regionlength", default=500, help="Linkage is checked "
+    parser.add_argument("--regionlength", type=int, default=500, help="Linkage is checked "
         "on both ends of the contig, this parameter specifies the search region "
-        "length.")
+        "length. (500)")
     args = parser.parse_args()
 
     # Get sample names
