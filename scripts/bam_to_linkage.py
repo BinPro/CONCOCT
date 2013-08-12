@@ -75,10 +75,14 @@ def get_linkage_info_dict_at_loc(bamh, chromosome, start, end, regionlength, sam
             # Init with empty dic if contig is not in there yet
             if ref not in out_dict:
                 out_dict[ref] = {refm : {}}
+            elif refm not in out_dict[ref]:
+                out_dict[ref][refm] = {}
             # Also check if refm is in the dict, because it could already have
             # links to another contig.
             if refm not in out_dict:
                 out_dict[refm] = {ref : {}}
+            elif ref not in out_dict[refm]:
+                out_dict[refm][ref] = {}
 
             # Add one link
             ori = get_orientation(read, regionlength)
@@ -120,10 +124,14 @@ def get_linkage_info_dict_one_fetch(bamfile, regionlength, samplename, out_dict=
             # Init with empty dic if contig is not in there yet
             if ref not in out_dict:
                 out_dict[ref] = {refm : {}}
+            elif refm not in out_dict[ref]:
+                out_dict[ref][refm] = {}
             # Also check if refm is in the dict, because it could already have
             # links to another contig.
             if refm not in out_dict:
                 out_dict[refm] = {ref : {}}
+            elif ref not in out_dict[refm]:
+                out_dict[refm][ref] = {}
 
             # Add one link
             ori = get_orientation(read, regionlength)
