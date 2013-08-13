@@ -4,6 +4,7 @@
 """
 import os
 import argparse
+import multiprocessing
 
 from Bio import SeqIO
 from Bio.SeqUtils import GC
@@ -99,11 +100,12 @@ def get_linkage_info_dict_at_loc(bamh, chromosome, start, end, regionlength, sam
     return out_dict
 
 
-def get_linkage_info_dict_one_fetch(bamfile, regionlength, samplename, out_dict={}):
+def get_linkage_info_dict_one_fetch(bamfile, regionlength):
     """Creates a two-dimensional dictionary of linkage information between
     contigs. Fetch is called only once on the bam file, which is faster than a
     fetch for each contig individually. About twice as fast for 100 reads."""
     bamh = pysam.Samfile(bamfile)
+    out_dict = {}
 
     for read in bamh.fetch():
         # check if pair links to another contig
@@ -121,29 +123,22 @@ def get_linkage_info_dict_one_fetch(bamfile, regionlength, samplename, out_dict=
             ref = bamh.getrname(read.tid)
             refm = bamh.getrname(read.mrnm)
 
-            # Init with empty dic if contig is not in there yet
+            # Init with if contig is not in there yet
             if ref not in out_dict:
-                out_dict[ref] = {refm : {}}
+                out_dict[ref] = {refm : {"inward" : 0, "outward" : 0, "inline" : 0}}
             elif refm not in out_dict[ref]:
-                out_dict[ref][refm] = {}
+                out_dict[ref][refm] = {"inward" : 0, "outward" : 0, "inline" : 0}
             # Also check if refm is in the dict, because it could already have
             # links to another contig.
             if refm not in out_dict:
-                out_dict[refm] = {ref : {}}
+                out_dict[refm] = {ref : {"inward" : 0, "outward" : 0, "inline" : 0}}
             elif ref not in out_dict[refm]:
-                out_dict[refm][ref] = {}
+                out_dict[refm][ref] = {"inward" : 0, "outward" : 0, "inline" : 0}
 
             # Add one link
             ori = get_orientation(read, regionlength)
-            try:
-                d = out_dict[ref][refm][samplename]
-            except KeyError:
-                # Sample hasn't been added yet
-                out_dict[ref][refm][samplename] = {"inward" : 0, "outward" : 0, "inline" : 0}
-                out_dict[refm][ref][samplename] = {"inward" : 0, "outward" : 0, "inline" : 0}
-
-            out_dict[ref][refm][samplename][ori] += 1
-            out_dict[refm][ref][samplename][ori] += 1
+            out_dict[ref][refm][ori] += 1
+            out_dict[refm][ref][ori] += 1
 
     return out_dict
 
@@ -166,7 +161,12 @@ def get_linkage_info_dict(fdict, bamfile, regionlength, samplename, out_dict={})
     return out_dict
 
 
-def print_linkage_info(fastafile, bamfiles, samplenames, regionlength):
+def parallel_get_linkage_info_dict(args):    
+    i, bamfile, regionlength = args
+    return i, get_linkage_info_dict_one_fetch(bamfile, regionlength)
+
+
+def print_linkage_info(fastafile, bamfiles, samplenames, regionlength, max_n_processors):
     """Prints a linkage information table. Format as
 
     contig1<TAB>contig2<TAB>nr_links_inward_n<TAB>nr_links_outward_n
@@ -178,28 +178,38 @@ def print_linkage_info(fastafile, bamfiles, samplenames, regionlength):
 
     assert(len(bamfiles) == len(samplenames))
 
-    linkdict = {}
+    # Determine links in parallel
+    linkdict_args = []
     for i in range(len(bamfiles)):
-        linkdict = get_linkage_info_dict_one_fetch(bamfiles[i], regionlength,
-            samplenames[i], linkdict)
+        linkdict_args.append((i, bamfiles[i], regionlength))
+
+    n_processes = min(multiprocessing.cpu_count(), max_n_processors)
+    pool = multiprocessing.Pool(processes=n_processes) 
+    poolrv = pool.map(parallel_get_linkage_info_dict, linkdict_args)
+
+    # order parallel link results
+    linkdict = {}
+    for rv in poolrv:
+        linkdict[samplenames[rv[0]]] = rv[1]
 
     # Header
     print ("%s\t%s" + "\t%s" * len(bamfiles)) % (("contig1", "contig2") +
         tuple(["nr_links_inward_%s\tnr_links_outward_%s" % (s, s) for s in samplenames]))
 
     # Content
-    for contig in linkdict:
-        for contig2 in linkdict[contig]:
+    allcontigs = set([k for k in linkdict[s].keys() for s in samplenames])
+    for c in allcontigs:
+        for c2 in allcontigs:
             nrlinksl = []
 
             for s in samplenames:
-                if s in linkdict[contig][contig2]:
-                    nrlinksl = nrlinksl + [linkdict[contig][contig2][s]["inward"], linkdict[contig][contig2][s]["outward"]]
+                if c in linkdict[s] and c2 in linkdict[s][c]:
+                    nrlinksl = nrlinksl + [linkdict[s][c][c2]["inward"], linkdict[s][c][c2]["outward"]]
                 else:
                     nrlinksl = nrlinksl + [0, 0]
 
             if sum(nrlinksl) > 0:
-                print ("%s\t%s" + "\t%i" * 2 * len(bamfiles)) % ((contig, contig2) + tuple(nrlinksl))
+                print ("%s\t%s" + "\t%i" * 2 * len(bamfiles)) % ((c, c2) + tuple(nrlinksl))
 
 
 if __name__ == "__main__":
@@ -210,6 +220,9 @@ if __name__ == "__main__":
     parser.add_argument("--regionlength", type=int, default=500, help="Linkage is checked "
         "on both ends of the contig, this parameter specifies the search region "
         "length. (500)")
+    parser.add_argument('-m','--max_n_processors',type=int, default=1,
+        help="Specify the maximum number of processors to use, if absent, all present processors will be used.") 
+
     args = parser.parse_args()
 
     # Get sample names
@@ -226,4 +239,4 @@ if __name__ == "__main__":
             raise(Exception("No index for %s file found, run samtools index "
             "first on bam file." % bf))
 
-    print_linkage_info(args.fastafile, args.bamfiles, samplenames, args.regionlength)
+    print_linkage_info(args.fastafile, args.bamfiles, samplenames, args.regionlength, args.max_n_processors)
