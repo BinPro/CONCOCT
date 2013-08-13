@@ -146,15 +146,21 @@ def print_input_table(fastadict, bedcovdicts, taxonomydict=None, gffdict=None, s
         else:
             sys.stdout.write("\tN/A")
 
-        # bed coverage stats
+        # Print mean
         for bcd in bedcovdicts:
             try:
                 # Print cov mean
-                # If no 0 bases with 0 coverage, then all bases in the contig are covered
-                sys.stdout.write("\t%f\t%f" % (bcd[acc]["cov_mean"], bcd[acc].get("percentage_covered", 100)))
+                sys.stdout.write("\t%f" % (bcd[acc]["cov_mean"]))
             except KeyError:
                 # No reads mapped to this contig
-                sys.stdout.write("\t0\t0")
+                sys.stdout.write("\t0")
+                bcd[acc] = {"percentage_covered":0}
+        
+
+        # Print percentage covered
+        for bcd in bedcovdicts:
+            # If no 0 bases with 0 coverage, then all bases in the contig are covered
+            sys.stdout.write("\t%f" % bcd[acc].get("percentage_covered", 100))
 
         sys.stdout.write("\n")
 
@@ -179,20 +185,24 @@ def get_taxonomy_dict(taxonomyfile):
 
 
 def generate_input_table(fastafile, bamfiles, taxonomyfile=None, gfffile=None,
-    samplenames=None):
+    samplenames=None, isbedfiles=False):
     """Reads input files into dictionaries then prints everything in the table
     format required for running ProBin."""
     bedcovdicts = []
     
     # Determine coverage information from bam file using BEDTools
     for i, bf in enumerate(bamfiles):
-        p = subprocess.Popen(["genomeCoverageBed", "-ibam", bf], stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        if p.returncode != 0:
-            sys.stderr.write(out)
-            raise Exception('Error with genomeCoverageBed')
+        if isbedfiles == False:
+            p = subprocess.Popen(["genomeCoverageBed", "-ibam", bf], stdout=subprocess.PIPE)
+            out, err = p.communicate()
+            if p.returncode != 0:
+                sys.stderr.write(out)
+                raise Exception('Error with genomeCoverageBed')
+            else:
+                bedcovdicts.append(get_bedcov_dict(out))
         else:
-            bedcovdicts.append(get_bedcov_dict(out))
+            bedcovdicts.append(get_bedcov_dict(bf))
+                
 
     # Determine annotations from gfffile
     gffdict = get_gff_dict(gfffile) if gfffile != None else None
@@ -211,7 +221,9 @@ if __name__ == "__main__":
     parser.add_argument("--taxonomyfile", help="The taxonomy for the contigs. Has"
     " 7 columns. Contig name, Phylum, Class, Order, Family, Genus, Species.")
     parser.add_argument("--gfffile", default=None, help="GFF file with features info.")
-    parser.add_argument( "--samplenames", default=None, help="File with sample names, one line each. Should be same nr as bamfiles.")
+    parser.add_argument("--samplenames", default=None, help="File with sample names, one line each. Should be same nr as bamfiles.")
+    parser.add_argument("--isbedfiles", action='store_true',
+        help="The bamfiles argument are outputs of genomeCoverageBed, not the actual bam file. Skips running genomeCoverageBed from within this script.")
     args = parser.parse_args()
 
     # Get sample names
@@ -228,4 +240,4 @@ if __name__ == "__main__":
 
     generate_input_table(args.fastafile, args.bamfiles,
         taxonomyfile=args.taxonomyfile, gfffile=args.gfffile,
-        samplenames=samplenames)
+        samplenames=samplenames, isbedfiles=args.isbedfiles)
