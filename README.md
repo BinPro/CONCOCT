@@ -49,7 +49,7 @@ optional arguments:
 
 Dependencies
 -----------
-Developed under python 2.7 and following packages installed through pip:
+CONCOCT requires python version 2.7 and the following packages:
 ```
 argparse==1.2.1
 biopython==1.62b
