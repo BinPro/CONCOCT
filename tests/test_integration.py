@@ -23,7 +23,10 @@ CWD = os.getcwd()
 
 class TestCMD(object):
     def setUp(self):
-        """If tmp dir already exists, delete it"""
+        """Create temporary dir if necessary,
+        otherwise clear contents of it"""
+        if not isdir(tmp_dir_path):
+            os.mkdir(tmp_dir_path)
         self.tearDown()
         os.mkdir(tmp_basename_dir)
         os.chdir(test_dir_path)
