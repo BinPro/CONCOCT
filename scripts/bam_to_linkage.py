@@ -6,23 +6,20 @@ import os
 import argparse
 import multiprocessing
 
-from Bio import SeqIO
-from Bio.SeqUtils import GC
 import pysam
 
+import ipdb
 
-#TODO: same function as in gen_input_table.py
-def get_gc_and_len_dict(fastafile):
-    """Creates a dictionary with the fasta id as key and GC and length as keys
-    for the inner dictionary."""
-    out_dict = {}
 
-    for rec in SeqIO.parse(fastafile, "fasta"):
-        out_dict[rec.id] = {}
-        out_dict[rec.id]["GC"] = GC(rec.seq)
-        out_dict[rec.id]["length"] = len(rec.seq)
+class Read:
+    def __init__(self):
+        self.align_count = 0
 
-    return out_dict
+    def count(self):
+        self.align_count += 1
+
+    def get_value(self):
+        return 1 / self.align_count
 
 
 def read_is_inward(read, regionlength):
@@ -47,8 +44,29 @@ def pair_is_outward(read, regionlength):
     return not read_is_inward(read, regionlength) and not mate_is_inward(read, regionlength)
 
 
-def get_orientation(read, regionlength):
-    """Determine orientation of pair."""
+def is_in_overlapping_region(readpos, contiglength, readlength, regionlength):
+    return readpos - readlength <= regionlength and readpos >= contiglength - regionlength
+
+
+def get_orientation(read, regionlength, readlength, contiglength, contigmlength):
+    # Check if one of the reads is in an overlapping region or not within a
+    # region. In that case link can only follow two orientations
+    # inward_or_outward or inline.
+    if is_in_overlapping_region(read.pos, contiglength, readlength, regionlength) \
+      or is_in_overlapping_region(read.mpos, contigmlength, readlength, regionlength) \
+      or not is_within_region(read.pos, contiglength, readlength, regionlength) \
+      or not is_within_region(read.mpos, contigmlength, readlength, regionlength):
+        if read.is_reverse == read.mate_is_reverse:
+            return "inline"
+        else:
+            return "inward_or_outward"
+    else:
+        return get_orientation_tips(read, regionlength)
+
+
+def get_orientation_tips(read, regionlength):
+    """Determine orientation of pair if the reads are located on the tips of
+    the contig."""
     if pair_is_inward(read, regionlength):
         return "inward"
     elif pair_is_outward(read, regionlength):
@@ -57,144 +75,101 @@ def get_orientation(read, regionlength):
         return "inline"
 
 
-def get_linkage_info_dict_at_loc(bamh, chromosome, start, end, regionlength, samplename, out_dict={}):
-    """Returns a linkage information dictionary given a specific location on a
-    contig. The linkage information dictionary shows which contigs are linked
-    to what other contigs by pairs. The pairs can be inward pointing, outward
-    or in line. The outer dictionary contains contig names, as well as the
-    inner to indicate linkage between the two contigs. The information is
-    stored twice (for both contigs). The 2nd inner dictionary has a sample name
-    and the third is a counter for inner/outward/inline pairs that link the two
-    contigs."""
-    for read in bamh.fetch(chromosome, start, end):
-        # check if pair links to another contig
-        # only look at pair1, to prevent counting links twice
-        if read.is_paired and read.tid != read.mrnm and read.is_read1:
-            ref = bamh.getrname(read.tid)
-            refm = bamh.getrname(read.mrnm)
-
-            # Init with empty dic if contig is not in there yet
-            if ref not in out_dict:
-                out_dict[ref] = {refm : {}}
-            elif refm not in out_dict[ref]:
-                out_dict[ref][refm] = {}
-            # Also check if refm is in the dict, because it could already have
-            # links to another contig.
-            if refm not in out_dict:
-                out_dict[refm] = {ref : {}}
-            elif ref not in out_dict[refm]:
-                out_dict[refm][ref] = {}
-
-            # Add one link
-            ori = get_orientation(read, regionlength)
-            try:
-                d = out_dict[ref][refm][samplename]
-            except KeyError:
-                # Sample hasn't been added yet
-                out_dict[ref][refm][samplename] = {"inward" : 0, "outward" : 0, "inline" : 0}
-                out_dict[refm][ref][samplename] = {"inward" : 0, "outward" : 0, "inline" : 0}
-
-            out_dict[ref][refm][samplename][ori] += 1
-            out_dict[refm][ref][samplename][ori] += 1
-
-    return out_dict
+def is_within_region(readpos, contiglength, readlength, regionlength):
+    return readpos - readlength <= regionlength \
+      or readpos >= contiglength - regionlength
 
 
-def get_linkage_info_dict_one_fetch(bamfile, regionlength):
+def is_link(read):
+    return read.is_paired \
+      and read.tid != read.mrnm
+
+
+def get_linkage_info_dict_one_fetch(bamfile, readlength, min_contig_length, regionlength, fullsearch):
     """Creates a two-dimensional dictionary of linkage information between
-    contigs. Fetch is called only once on the bam file, which is faster than a
-    fetch for each contig individually. About twice as fast for 100 reads."""
+    contigs. Fetch is called only once on the bam file."""
     bamh = pysam.Samfile(bamfile)
-    out_dict = {}
+    linkdict = {}
+    read_count_dict = {}
 
-    for read in bamh.fetch():
-        # check if pair links to another contig
-        # only look at pair1, to prevent counting links twice
-        # check if both contigs are bigger than twice the regionlength
-        # (arbitrary contig length cut-off)
-        # check if pairs are both at one end of the contig
-        if read.is_paired \
-          and read.tid != read.mrnm \
-          and read.is_read1 \
-          and bamh.lengths[read.tid] > 2 * regionlength \
-          and bamh.lengths[read.mrnm] > 2 * regionlength \
-          and (read.pos <= regionlength or read.pos >= bamh.lengths[read.tid] - regionlength) \
-          and (read.mpos <= regionlength or read.mpos >= bamh.lengths[read.mrnm] - regionlength):
+    for read in bamh:
+        # check if contig meets length threshold
+        # check if the read falls within specified region
+        if bamh.lengths[read.tid] >= min_contig_length \
+          and (fullsearch
+          or is_within_region(read.pos, bamh.lengths[read.tid], readlength, regionlength)):
             ref = bamh.getrname(read.tid)
-            refm = bamh.getrname(read.mrnm)
+            read_count_dict[ref] = read_count_dict.get(ref, 0) + 1
 
-            # Init with if contig is not in there yet
-            if ref not in out_dict:
-                out_dict[ref] = {refm : {"inward" : 0, "outward" : 0, "inline" : 0}}
-            elif refm not in out_dict[ref]:
-                out_dict[ref][refm] = {"inward" : 0, "outward" : 0, "inline" : 0}
-            # Also check if refm is in the dict, because it could already have
-            # links to another contig.
-            if refm not in out_dict:
-                out_dict[refm] = {ref : {"inward" : 0, "outward" : 0, "inline" : 0}}
-            elif ref not in out_dict[refm]:
-                out_dict[refm][ref] = {"inward" : 0, "outward" : 0, "inline" : 0}
+            # look at first read to prevent counting links twice
+            # linked contig should be within threshold as well
+            # linked mate should be within specified region
+            if read.is_read1 \
+              and read.is_paired \
+              and bamh.lengths[read.mrnm] >= min_contig_length \
+              and (fullsearch
+              or is_within_region(read.mpos, bamh.lengths[read.mrnm], readlength, regionlength)):
+                refm = bamh.getrname(read.mrnm)
 
-            # Add one link
-            ori = get_orientation(read, regionlength)
-            out_dict[ref][refm][ori] += 1
-            out_dict[refm][ref][ori] += 1
+                #if refm == "contig-2482000051":
+                #    ipdb.set_trace()
 
-    return out_dict
+                init_link_row = lambda: {"inward" : 0, "outward" : 0, "inline" : 0, "inward_or_outward" : 0}
+                # Init if contig is not in there yet
+                if ref not in linkdict:
+                    linkdict[ref] = {refm : init_link_row()}
+                elif refm not in linkdict[ref]:
+                    linkdict[ref][refm] = init_link_row()
+                # Also check if refm is in the dict, because it could already have
+                # links to another contig.
+                if refm not in linkdict:
+                    linkdict[refm] = {ref : init_link_row()}
+                elif ref not in linkdict[refm]:
+                    linkdict[refm][ref] = init_link_row()
 
+                # Add one link
+                ori = get_orientation(read, regionlength, readlength, bamh.lengths[read.tid], bamh.lengths[read.mrnm])
+                linkdict[ref][refm][ori] += 1
+                linkdict[refm][ref][ori] += 1
 
-def get_linkage_info_dict(fdict, bamfile, regionlength, samplename, out_dict={}):
-    """Creates a two-dimensional dictionary of linkage information between
-    contigs."""
-    bamh = pysam.Samfile(bamfile)
-
-    for contig in fdict:
-        # Check ends if 2 * regionlength smaller than the contig length
-        # skip shorter contigs for linkage
-        if regionlength * 2 < fdict[contig]["length"]:
-            out_dict = get_linkage_info_dict_at_loc(bamh, contig, 0, regionlength, regionlength,
-                samplename, out_dict)
-            out_dict = get_linkage_info_dict_at_loc(bamh, contig,
-                fdict[contig]["length"] - regionlength - 1, fdict[contig]["length"], regionlength,
-                samplename, out_dict)
-
-    return out_dict
+    return linkdict, read_count_dict
 
 
-def parallel_get_linkage_info_dict(args):    
-    i, bamfile, regionlength = args
-    return i, get_linkage_info_dict_one_fetch(bamfile, regionlength)
+def parallel_get_linkage_info_dict(args):
+    i, bamfile, readlength, min_contig_length, regionlength = args
+    return i, get_linkage_info_dict_one_fetch(bamfile, readlength, min_contig_length, regionlength)
 
 
-def print_linkage_info(fastafile, bamfiles, samplenames, regionlength, max_n_processors):
+def print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_length, regionlength, max_n_processors, fullsearch):
     """Prints a linkage information table. Format as
 
     contig1<TAB>contig2<TAB>nr_links_inward_n<TAB>nr_links_outward_n
 
     where n represents sample name. Number of columns is thus 2 + 2 * n.
     """
-    # With one fetch determining length beforehand is no longer necessary
-    #fdict = get_gc_and_len_dict(fastafile)
-
     assert(len(bamfiles) == len(samplenames))
 
     # Determine links in parallel
     linkdict_args = []
     for i in range(len(bamfiles)):
-        linkdict_args.append((i, bamfiles[i], regionlength))
+        linkdict_args.append((i, bamfiles[i], readlength, min_contig_length, regionlength))
 
-    n_processes = min(multiprocessing.cpu_count(), max_n_processors)
-    pool = multiprocessing.Pool(processes=n_processes) 
-    poolrv = pool.map(parallel_get_linkage_info_dict, linkdict_args)
+    #n_processes = min(multiprocessing.cpu_count(), max_n_processors)
+    #pool = multiprocessing.Pool(processes=n_processes)
+    #poolrv = pool.map(parallel_get_linkage_info_dict, linkdict_args)
 
-    # order parallel link results
+    ## order parallel link results
+    #linkdict = {}
+    #for rv in poolrv:
+    #    linkdict[samplenames[rv[0]]] = rv[1][0]
     linkdict = {}
-    for rv in poolrv:
-        linkdict[samplenames[rv[0]]] = rv[1]
+    read_count_dict = {}
+    for s in samplenames:
+        linkdict[s], read_count_dict[s] = get_linkage_info_dict_one_fetch(bamfiles[0], readlength, min_contig_length, regionlength, fullsearch)
 
     # Header
     print ("%s\t%s" + "\t%s" * len(bamfiles)) % (("contig1", "contig2") +
-        tuple(["nr_links_inward_%s\tnr_links_outward_%s" % (s, s) for s in samplenames]))
+        tuple(["nr_links_inward_%s\tnr_links_outward_%s\tnr_links_inline_%s\tnr_links_inward_or_outward_%s" % (s, s, s, s) for s in samplenames]))
 
     # Content
     allcontigs = set([k for k in linkdict[s].keys() for s in samplenames])
@@ -204,12 +179,15 @@ def print_linkage_info(fastafile, bamfiles, samplenames, regionlength, max_n_pro
 
             for s in samplenames:
                 if c in linkdict[s] and c2 in linkdict[s][c]:
-                    nrlinksl = nrlinksl + [linkdict[s][c][c2]["inward"], linkdict[s][c][c2]["outward"]]
+                    nrlinksl = nrlinksl + [linkdict[s][c][c2]["inward"],
+                                           linkdict[s][c][c2]["outward"],
+                                           linkdict[s][c][c2]["inline"],
+                                           linkdict[s][c][c2]["inward_or_outward"]]
                 else:
-                    nrlinksl = nrlinksl + [0, 0]
+                    nrlinksl = nrlinksl + [0, 0, 0, 0]
 
             if sum(nrlinksl) > 0:
-                print ("%s\t%s" + "\t%i" * 2 * len(bamfiles)) % ((c, c2) + tuple(nrlinksl))
+                print ("%s\t%s" + "\t%i" * 4 * len(bamfiles)) % ((c, c2) + tuple(nrlinksl))
 
 
 if __name__ == "__main__":
@@ -217,11 +195,15 @@ if __name__ == "__main__":
     parser.add_argument("fastafile", help="Contigs fasta file")
     parser.add_argument("bamfiles", nargs='+', help="BAM files with mappings to contigs")
     parser.add_argument("--samplenames", default=None, help="File with sample names, one line each. Should be same nr as bamfiles.")
-    parser.add_argument("--regionlength", type=int, default=500, help="Linkage is checked "
-        "on both ends of the contig, this parameter specifies the search region "
-        "length. (500)")
-    parser.add_argument('-m','--max_n_processors',type=int, default=1,
-        help="Specify the maximum number of processors to use, if absent, all present processors will be used.") 
+    parser.add_argument("--regionlength", type=int, default=500, help="Linkage "
+            "is checked on both ends of the contig. This parameter specifies the "
+            "search region length in bases, e.g. setting this to 500 means "
+            "check for linkage within 500 bases on both ends. (500)")
+    parser.add_argument("--fullsearch", action='store_true')
+    parser.add_argument('-m', '--max_n_processors', type=int, default=1,
+        help="Specify the maximum number of processors to use, if absent, one processor will be used.")
+    parser.add_argument("--readlength", type=int, default=100, help="Specify untrimmed read length of reads.")
+    parser.add_argument("--mincontiglength", type=int, default=0, help="Length threshold for considered contigs.")
 
     args = parser.parse_args()
 
@@ -239,4 +221,4 @@ if __name__ == "__main__":
             raise(Exception("No index for %s file found, run samtools index "
             "first on bam file." % bf))
 
-    print_linkage_info(args.fastafile, args.bamfiles, samplenames, args.regionlength, args.max_n_processors)
+    print_linkage_info(args.fastafile, args.bamfiles, samplenames, args.readlength, args.mincontiglength, args.regionlength, args.max_n_processors, args.fullsearch)
