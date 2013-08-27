@@ -169,7 +169,8 @@ def print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_
 
     # Header
     print ("%s\t%s" + "\t%s" * len(bamfiles)) % (("contig1", "contig2") +
-        tuple(["nr_links_inward_%s\tnr_links_outward_%s\tnr_links_inline_%s\tnr_links_inward_or_outward_%s" % (s, s, s, s) for s in samplenames]))
+        tuple(["nr_links_inward_%s\tnr_links_outward_%s\tnr_links_inline_%s\tnr_links_inward_or_outward_%s\t"
+               "read_count_contig1_%s\tread_count_contig2_%s" % ((s,) * 6) for s in samplenames]))
 
     # Content
     allcontigs = set([k for k in linkdict[s].keys() for s in samplenames])
@@ -185,9 +186,10 @@ def print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_
                                            linkdict[s][c][c2]["inward_or_outward"]]
                 else:
                     nrlinksl = nrlinksl + [0, 0, 0, 0]
+                nrlinksl = nrlinksl + [read_count_dict[s].get(c, 0), read_count_dict[s].get(c2, 0)]
 
-            if sum(nrlinksl) > 0:
-                print ("%s\t%s" + "\t%i" * 4 * len(bamfiles)) % ((c, c2) + tuple(nrlinksl))
+            if sum(nrlinksl[0:4]) > 0:
+                print ("%s\t%s" + "\t%i" * 6 * len(bamfiles)) % ((c, c2) + tuple(nrlinksl))
 
 
 if __name__ == "__main__":
