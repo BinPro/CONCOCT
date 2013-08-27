@@ -34,71 +34,15 @@ def parallelized_cluster(args):
     return bic,c
 
 
+def main(args):
+    Output(args.basename,args)
+    composition,threshold_filter = composition_data(args.kmer_length,args.composition_file,args.limit_kmer_count)
+    cov,cov_range = coverage_data(args.coverage_file,args.coverage_file_column_names)
+    joined,pca,transform_filter = join_data(composition,cov,threshold_filter,args.limit_kmer_count,cov_range,args.split_pca)
+    cluster(joined,threshold_filter,args.limit_kmer_count,args.clusters,args.executions,args.iterations,transform_filter,args.max_n_processors,pca,args.pipe)
 
-def cluster(comp_file, cov_file, kmer_len, threshold, 
-            read_length, clusters_range, cov_range, 
-            split_pca, inits, iters, outdir, pipe,
-            max_n_processors,args=None):
-    Output(outdir,args)
-    #Composition
-    #Generate kmer dictionary
-    feature_mapping, nr_features = generate_feature_mapping(kmer_len)
-    #Count lines in composition file
-    count_re = re.compile("^>")
-    seq_count = 0
-    with open(comp_file) as fh:
-        for line in fh:
-            if re.match(count_re,line):
-                seq_count += 1
 
-    #Initialize with ones since we do pseudo count, we have i contigs as rows
-    #and j features as columns
-    composition = np.ones((seq_count,nr_features))
-    
-    
-    contigs_id = []
-    for i,seq in enumerate(SeqIO.parse(comp_file,"fasta")):
-        contigs_id.append(seq.id)
-        for kmer_tuple in window(seq.seq.tostring().upper(),kmer_len):
-            composition[i,feature_mapping["".join(kmer_tuple)]] += 1
-    composition = p.DataFrame(composition,index=contigs_id,dtype=float)
-    #Select contigs to cluster on
-    threshold_filter = composition.sum(axis=1) > threshold
-    
-    #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
-    composition = np.log(composition.divide(composition.sum(axis=1),axis=0))
-    
-    #Coverage import, file has header and contig ids as index
-    #Assume datafile is in log coverage format with pseudo counts
-    cov = p.read_table(cov_file,header=0,index_col=0)
-    if cov_range is None:
-        cov_range = (cov.columns[0],cov.columns[-1])
-
-    ###TODO: Here we expect the data to be coverage not read counts. 
-    ###The commented section calculates log coverage from read counts.
-    ###log(q_ij) = log[(Y_ij + 1).R/L_i]) where L_i is the length of 
-    ###contig i and R is the read length.
-    ###cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
-    ###       cov.ix[:,cov_range[0]:cov_range[1]]+1
-    ###       ).mul(read_length/cov.length))
-    cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
-        cov.ix[:,cov_range[0]:cov_range[1]] + 0.01))
-
-    cov.ix[:,cov_range[0]:cov_range[1]] = scale(cov.ix[:,cov_range[0]:cov_range[1]])
-
-    if split_pca:
-        raise NotImplementedError("Not implemented yet to run seperate PCA")
-    else:
-        joined = composition.join(
-            cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
-        joined.ix[:,:] = scale(joined)
-        #PCA on the contigs that have kmer count greater than threshold
-        Output.write_original_data(joined[threshold_filter],threshold)
-        pca = PCA(n_components=0.9).fit(joined[threshold_filter])
-        transform_filter = pca.transform(joined[threshold_filter])
-        Output.write_pca(transform_filter,
-                         threshold,cov[threshold_filter].index)
-    
+def cluster(joined,threshold_filter,threshold,clusters_range,inits,iters,transform_filter,max_n_processors,pca,pipe):
     cv_type='full'
     cluster_args = []
     for c in clusters_range:
@@ -130,7 +74,73 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     Output.write_cluster_responsibilities(
         pp,
         threshold,c)
-        
+
+def join_data(composition,cov,threshold_filter,threshold,cov_range,split_pca):
+    if split_pca:
+        raise NotImplementedError("Not implemented yet to run seperate PCA")
+    else:
+        joined = composition.join(
+            cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
+        joined.ix[:,:] = scale(joined)
+        #PCA on the contigs that have kmer count greater than threshold
+        Output.write_original_data(joined[threshold_filter],threshold)
+        pca = PCA(n_components=0.9).fit(joined[threshold_filter])
+        transform_filter = pca.transform(joined[threshold_filter])
+        Output.write_pca(transform_filter,
+                         threshold,cov[threshold_filter].index)
+    return joined,pca,transform_filter
+
+def coverage_data(cov_file,cov_range):
+    #Coverage import, file has header and contig ids as index
+    #Assume datafile is in log coverage format with pseudo counts
+    cov = p.read_table(cov_file,header=0,index_col=0)
+    if cov_range is None:
+        cov_range = (cov.columns[0],cov.columns[-1])
+
+    ###TODO: Here we expect the data to be coverage not read counts. 
+    ###The commented section calculates log coverage from read counts.
+    ###log(q_ij) = log[(Y_ij + 1).R/L_i]) where L_i is the length of 
+    ###contig i and R is the read length.
+    ###cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
+    ###       cov.ix[:,cov_range[0]:cov_range[1]]+1
+    ###       ).mul(read_length/cov.length))
+    cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
+        cov.ix[:,cov_range[0]:cov_range[1]] + 0.01))
+
+    cov.ix[:,cov_range[0]:cov_range[1]] = scale(cov.ix[:,cov_range[0]:cov_range[1]])
+    return cov,cov_range
+
+def composition_data(kmer_len,comp_file,threshold):
+    #Composition
+    #Generate kmer dictionary
+    feature_mapping, nr_features = generate_feature_mapping(kmer_len)
+    #Count lines in composition file
+    count_re = re.compile("^>")
+    seq_count = 0
+    with open(comp_file) as fh:
+        for line in fh:
+            if re.match(count_re,line):
+                seq_count += 1
+
+    #Initialize with ones since we do pseudo count, we have i contigs as rows
+    #and j features as columns
+    composition = np.ones((seq_count,nr_features))
+    
+    
+    contigs_id = []
+    for i,seq in enumerate(SeqIO.parse(comp_file,"fasta")):
+        contigs_id.append(seq.id)
+        for kmer_tuple in window(seq.seq.tostring().upper(),kmer_len):
+            composition[i,feature_mapping["".join(kmer_tuple)]] += 1
+    composition = p.DataFrame(composition,index=contigs_id,dtype=float)
+    #Select contigs to cluster on
+    threshold_filter = composition.sum(axis=1) > threshold
+    
+    #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
+    composition = np.log(composition.divide(composition.sum(axis=1),axis=0))
+    return composition,threshold_filter
+
+
 def window(seq,n):
     els = tee(seq,n)
     for i,el in enumerate(els):
@@ -241,17 +251,4 @@ def arguments():
         
 if __name__=="__main__":
     args = arguments()
-    results = cluster(args.composition_file, 
-                      args.coverage_file,
-                      args.kmer_length, 
-                      args.limit_kmer_count, 
-                      args.read_length, 
-                      args.clusters, 
-                      args.coverage_file_column_names, 
-                      args.split_pca, 
-                      args.executions, 
-                      args.iterations, 
-                      args.basename, 
-                      args.pipe,
-                      args.max_n_processors,
-                      args)
+    results = main(args)
