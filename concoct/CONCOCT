@@ -84,8 +84,6 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
         cov.ix[:,cov_range[0]:cov_range[1]] + 0.01))
 
-    cov.ix[:,cov_range[0]:cov_range[1]] = scale(cov.ix[:,cov_range[0]:cov_range[1]])
-
     if split_pca:
         raise NotImplementedError("Not implemented yet to run seperate PCA")
     else:
@@ -96,6 +94,7 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
         Output.write_original_data(joined[threshold_filter],threshold)
         pca = PCA(n_components=0.9).fit(joined[threshold_filter])
         transform_filter = pca.transform(joined[threshold_filter])
+        transform_filter = scale(transform_filter)
         Output.write_pca(transform_filter,
                          threshold,cov[threshold_filter].index)
     
