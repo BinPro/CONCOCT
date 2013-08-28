@@ -97,7 +97,7 @@ class TestCMD(object):
         assert_true(isfile(tmp_basename_file+'_clustering.csv'),
                     msg = "Clustering file is not created, when file is used as basename")
         L = listdir(tmp_dir_path)
-        assert_true(len(L) == 13,
+        assert_true(len(L) == 14,
                     msg = "Wrong number of output files")
 
     def test_output_files_creation(self):
@@ -141,6 +141,10 @@ class TestCMD(object):
             isfile(d_p+ '/original_data_gt1000.csv'),
             msg='Original data file is not created'
             )
+        assert_true(
+            isfile(d_p+ '/concoct_log.txt'),
+            msg='Log file is not created'
+            )
         
         # dir as file
         self.run_command(basename=tmp_basename_file)
@@ -181,6 +185,10 @@ class TestCMD(object):
         assert_true(
             isfile(d_p+ 'original_data_gt1000.csv'),
             msg='Original data file is not created'
+            )
+        assert_true(
+            isfile(d_p+ 'concoct_log.txt'),
+            msg='Log file is not created'
             )
                 
     def test_threshold_functionality(self):
@@ -266,3 +274,10 @@ class TestCMD(object):
         bic = p.io.parsers.read_table(tmp_basename_dir+'/bic.csv',sep=',',index_col=0,header=None)
         assert_true(len(bic)==3,
                     'BIC file is probably appended to')
+
+    def test_logging(self):
+        self.run_command()
+        with open(tmp_basename_dir+'/concoct_log.txt','r') as log:
+            log_content = log.read()
+            assert_true(len(log_content)>10,
+                        "Log content is too small")

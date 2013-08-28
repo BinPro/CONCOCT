@@ -11,6 +11,7 @@ import numpy as np
 from itertools import tee, izip, product
 from argparse import ArgumentParser,ArgumentTypeError
 from datetime import datetime
+import logging
 
 from Bio import SeqIO
 
@@ -31,6 +32,7 @@ def parallelized_cluster(args):
     print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(
         c,gmm.converged_)
     bic = gmm.bic(transform_filter)
+    logging.info('Done fitting model for cluster number {0}'.format(c))
     return bic,c
 
 
@@ -68,6 +70,7 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
     composition = np.log(composition.divide(composition.sum(axis=1),axis=0))
     
+    logging.info('Successfully loaded composition data.')
     #Coverage import, file has header and contig ids as index
     #Assume datafile is in log coverage format with pseudo counts
     cov = p.read_table(cov_file,header=0,index_col=0)
@@ -84,6 +87,7 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
         cov.ix[:,cov_range[0]:cov_range[1]] + 0.01))
 
+    logging.info('Successfully loaded coverage data.')
     if split_pca:
         raise NotImplementedError("Not implemented yet to run seperate PCA")
     else:
@@ -97,7 +101,7 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
         transform_filter = scale(transform_filter)
         Output.write_pca(transform_filter,
                          threshold,cov[threshold_filter].index)
-    
+    logging.info('PCA transformed data.')
     cv_type='full'
     cluster_args = []
     for c in clusters_range:

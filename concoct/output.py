@@ -8,6 +8,7 @@ import os
 import sys
 import pandas as p
 import numpy as np
+import logging
 
 class Output(object):
     """
@@ -52,8 +53,15 @@ class Output(object):
         self.MEANS_FILE_BASE = self.CONCOCT_PATH + "means{0}.csv"
         self.VARIANCE_FILE_BASE = self.CONCOCT_PATH + "variance_gt{0}_dim{1}.csv"
         self.RESPONSIBILITY_FILE_BASE = self.CONCOCT_PATH + "responsibilities.csv"
+        self.LOG_FILE_BASE = self.CONCOCT_PATH + 'concoct_log.txt'
         self.pipe = args.pipe
 
+        logging.basicConfig(
+            filename=self.LOG_FILE_BASE,
+            level=logging.INFO,
+            filemode='w', # Over wrights old log file
+            format='%(asctime)s:%(levelname)s:%(name)s:%(message)s'
+            )
         #Write header to bic.csv
         with open(self.BIC_FILE,"a+") as fh:
             print >> fh, "cluster_count,bic_value"
