@@ -114,6 +114,7 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     
     joined["clustering"] = gmm.predict(pca.transform(joined))
     Output.write_clustering(joined,threshold_filter,threshold,c,pipe)
+    Output.write_cluster_pca_means(gmm.means_,threshold,c)
     Output.write_cluster_means(pca.inverse_transform(gmm.means_),
                                    threshold,c)
     # Covariance matrix is three dimensional if full

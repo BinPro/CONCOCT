@@ -48,6 +48,7 @@ class Output(object):
         self.PCA_FILE_BASE = self.CONCOCT_PATH + \
             "PCA_transformed_data_gt{0}.csv"
         self.CLUSTERING_FILE_BASE = self.CONCOCT_PATH + "clustering{0}.csv"
+        self.PCA_MEANS_FILE_BASE = self.CONCOCT_PATH + "pca_means{0}.csv"
         self.MEANS_FILE_BASE = self.CONCOCT_PATH + "means{0}.csv"
         self.VARIANCE_FILE_BASE = self.CONCOCT_PATH + "variance_gt{0}_dim{1}.csv"
         self.RESPONSIBILITY_FILE_BASE = self.CONCOCT_PATH + "responsibilities.csv"
@@ -86,6 +87,11 @@ class Output(object):
             for bic,c in bics:
                 print >> fh, "{0},{1}".format(c,bic)
     
+    @classmethod
+    def write_cluster_pca_means(self,means,threshold,c):
+        np.savetxt(
+            self.PCA_MEANS_FILE_BASE.format("_gt{0}".format(threshold)),means)
+
     @classmethod
     def write_cluster_means(self,means,threshold,c):
         np.savetxt(
