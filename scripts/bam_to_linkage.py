@@ -8,8 +8,6 @@ import multiprocessing
 
 import pysam
 
-import ipdb
-
 
 class Read:
     def __init__(self):
@@ -111,9 +109,6 @@ def get_linkage_info_dict_one_fetch(bamfile, readlength, min_contig_length, regi
               or is_within_region(read.mpos, bamh.lengths[read.mrnm], readlength, regionlength)):
                 refm = bamh.getrname(read.mrnm)
 
-                #if refm == "contig-2482000051":
-                #    ipdb.set_trace()
-
                 init_link_row = lambda: {"inward" : 0, "outward" : 0, "inline" : 0, "inward_or_outward" : 0}
                 # Init if contig is not in there yet
                 if ref not in linkdict:
@@ -136,11 +131,11 @@ def get_linkage_info_dict_one_fetch(bamfile, readlength, min_contig_length, regi
 
 
 def parallel_get_linkage_info_dict(args):
-    i, bamfile, readlength, min_contig_length, regionlength = args
-    return i, get_linkage_info_dict_one_fetch(bamfile, readlength, min_contig_length, regionlength)
+    i, bamfile, readlength, min_contig_length, regionlength, fullsearch = args
+    return i, get_linkage_info_dict_one_fetch(bamfile, readlength, min_contig_length, regionlength, fullsearch)
 
 
-def print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_length, regionlength, max_n_processors, fullsearch):
+def print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_length, regionlength, max_n_cores, fullsearch):
     """Prints a linkage information table. Format as
 
     contig1<TAB>contig2<TAB>nr_links_inward_n<TAB>nr_links_outward_n
@@ -152,20 +147,20 @@ def print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_
     # Determine links in parallel
     linkdict_args = []
     for i in range(len(bamfiles)):
-        linkdict_args.append((i, bamfiles[i], readlength, min_contig_length, regionlength))
+        linkdict_args.append((i, bamfiles[i], readlength, min_contig_length, regionlength, fullsearch))
 
-    #n_processes = min(multiprocessing.cpu_count(), max_n_processors)
-    #pool = multiprocessing.Pool(processes=n_processes)
-    #poolrv = pool.map(parallel_get_linkage_info_dict, linkdict_args)
+    n_processes = min(len(bamfiles), max_n_cores)
+    pool = multiprocessing.Pool(processes=n_processes)
+    poolrv = pool.map(parallel_get_linkage_info_dict, linkdict_args)
 
-    ## order parallel link results
-    #linkdict = {}
-    #for rv in poolrv:
-    #    linkdict[samplenames[rv[0]]] = rv[1][0]
+    # order parallel link results
     linkdict = {}
     read_count_dict = {}
-    for s in samplenames:
-        linkdict[s], read_count_dict[s] = get_linkage_info_dict_one_fetch(bamfiles[0], readlength, min_contig_length, regionlength, fullsearch)
+    for rv in poolrv:
+        linkdict[samplenames[rv[0]]] = rv[1][0]
+        read_count_dict[samplenames[rv[0]]] = rv[1][1]
+    #for s in samplenames:
+    #    linkdict[s], read_count_dict[s] = get_linkage_info_dict_one_fetch(bamfiles[0], readlength, min_contig_length, regionlength, fullsearch)
 
     # Header
     print ("%s\t%s" + "\t%s" * len(bamfiles)) % (("contig1", "contig2") +
@@ -201,11 +196,18 @@ if __name__ == "__main__":
             "is checked on both ends of the contig. This parameter specifies the "
             "search region length in bases, e.g. setting this to 500 means "
             "check for linkage within 500 bases on both ends. (500)")
-    parser.add_argument("--fullsearch", action='store_true')
-    parser.add_argument('-m', '--max_n_processors', type=int, default=1,
-        help="Specify the maximum number of processors to use, if absent, one processor will be used.")
-    parser.add_argument("--readlength", type=int, default=100, help="Specify untrimmed read length of reads.")
-    parser.add_argument("--mincontiglength", type=int, default=0, help="Length threshold for considered contigs.")
+    parser.add_argument("--fullsearch", action='store_true', help="Search "
+            "entire contig for links. Orientation is determined differently for "
+            "links that fall outside <regionlength>, since one can only "
+            "differentiate between pairs being in sequence or not in sequence in "
+            "that case.")
+    parser.add_argument('-m', '--max_n_cores', type=int, default=multiprocessing.cpu_count(),
+        help="Specify the maximum number of cores to use, if absent, all cores "
+        "will be used. Each core reads one bamfile, so number of cores used will "
+        "never be bigger than the number of bamfiles. (%i)" %
+        multiprocessing.cpu_count())
+    parser.add_argument("--readlength", type=int, default=100, help="Specify untrimmed read length of reads. (100)")
+    parser.add_argument("--mincontiglength", type=int, default=0, help="Length threshold for considered contigs. (0)")
 
     args = parser.parse_args()
 
@@ -223,4 +225,4 @@ if __name__ == "__main__":
             raise(Exception("No index for %s file found, run samtools index "
             "first on bam file." % bf))
 
-    print_linkage_info(args.fastafile, args.bamfiles, samplenames, args.readlength, args.mincontiglength, args.regionlength, args.max_n_processors, args.fullsearch)
+    print_linkage_info(args.fastafile, args.bamfiles, samplenames, args.readlength, args.mincontiglength, args.regionlength, args.max_n_cores, args.fullsearch)
