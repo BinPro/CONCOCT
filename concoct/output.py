@@ -90,17 +90,21 @@ class Output(object):
     @classmethod
     def write_cluster_pca_means(self,means,threshold,c):
         np.savetxt(
-            self.PCA_MEANS_FILE_BASE.format("_gt{0}".format(threshold)),means)
+            self.PCA_MEANS_FILE_BASE.format("_gt{0}".format(threshold)),
+            means,delimiter=',')
 
     @classmethod
     def write_cluster_means(self,means,threshold,c):
         np.savetxt(
-            self.MEANS_FILE_BASE.format("_gt{0}".format(threshold)),means)
+            self.MEANS_FILE_BASE.format("_gt{0}".format(threshold)),
+            means,delimiter=',')
             
     @classmethod
     def write_cluster_variance(self,var,threshold,i):
-        np.savetxt(self.VARIANCE_FILE_BASE.format(threshold,i),var)
+        np.savetxt(self.VARIANCE_FILE_BASE.format(threshold,i),
+        var,delimiter=',')
 
     @classmethod
     def write_cluster_responsibilities(self,res,threshold,c):
-        np.savetxt(self.RESPONSIBILITY_FILE_BASE,res)
+        np.savetxt(self.RESPONSIBILITY_FILE_BASE,
+        res,delimiter=',')
