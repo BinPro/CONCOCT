@@ -59,7 +59,7 @@ class Output(object):
         logging.basicConfig(
             filename=self.LOG_FILE_BASE,
             level=logging.INFO,
-            filemode='w', # Over wrights old log file
+            filemode='w', # Overwrites old log file
             format='%(asctime)s:%(levelname)s:%(name)s:%(message)s'
             )
         #Write header to bic.csv
