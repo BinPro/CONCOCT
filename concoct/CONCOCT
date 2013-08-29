@@ -93,8 +93,6 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     else:
         joined = composition.join(
             cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
-        #Removed due to diminished performance in issue #13
-        #joined.ix[:,:] = scale(joined)
         #PCA on the contigs that have kmer count greater than threshold
         Output.write_original_data(joined[threshold_filter],threshold)
         pca = PCA(n_components=0.9).fit(joined[threshold_filter])
