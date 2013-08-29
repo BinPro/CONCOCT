@@ -42,7 +42,7 @@ class Output(object):
             self.CONCOCT_PATH = basename+'_'
 
         print >> sys.stderr, "Results created at {0}".format(
-            self.CONCOCT_PATH)
+            os.path.abspath(self.CONCOCT_PATH))
         self.BIC_FILE = self.CONCOCT_PATH + "bic.csv"
         self.ARGS_FILE = self.CONCOCT_PATH + "args.txt"
         self.ORIGINAL_FILE_BASE = self.CONCOCT_PATH + "original_data_gt{0}.csv"
