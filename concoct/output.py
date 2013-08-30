@@ -6,9 +6,12 @@ Created on Fri Jul 12 2013
 """
 import os
 import sys
+import pickle
+import logging
+
 import pandas as p
 import numpy as np
-import logging
+
 
 class Output(object):
     """
@@ -54,6 +57,7 @@ class Output(object):
         self.VARIANCE_FILE_BASE = self.CONCOCT_PATH + "variance_gt{0}_dim{1}.csv"
         self.RESPONSIBILITY_FILE_BASE = self.CONCOCT_PATH + "responsibilities.csv"
         self.LOG_FILE_BASE = self.CONCOCT_PATH + 'concoct_log.txt'
+        self.SEED_FILE_NAME = "random_seed.pickle"
         self.pipe = args.pipe
 
         logging.basicConfig(
@@ -65,6 +69,9 @@ class Output(object):
         #Write header to bic.csv
         with open(self.BIC_FILE,"a+") as fh:
             print >> fh, "cluster_count,bic_value"
+        #Write RandomState used for this run
+        with open(self.CONCOCT_PATH + self.SEED_FILE_NAME,"w+") as fh:
+            pickle.dump(args.force_seed,fh)
         with open(self.ARGS_FILE,"w+") as fh:
             print >> fh, args
     
