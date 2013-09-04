@@ -40,7 +40,7 @@ def parallelized_cluster(args):
 def cluster(comp_file, cov_file, kmer_len, threshold, 
             read_length, clusters_range, cov_range, 
             split_pca, inits, iters, outdir, pipe,
-            max_n_processors,args=None):
+            max_n_processors,no_scaling,args=None):
     Output(outdir,args)
     #Composition
     #Generate kmer dictionary
@@ -97,7 +97,8 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
         Output.write_original_data(joined[threshold_filter],threshold)
         pca = PCA(n_components=0.9).fit(joined[threshold_filter])
         transform_filter = pca.transform(joined[threshold_filter])
-        transform_filter = scale(transform_filter)
+        if not no_scaling:
+            transform_filter = scale(transform_filter)
         Output.write_pca(transform_filter,
                          threshold,cov[threshold_filter].index)
     logging.info('PCA transformed data.')
@@ -238,7 +239,8 @@ def arguments():
                               'printed to stdout. Useful for pipeline use'))
     parser.add_argument('-m','--max_n_processors',type=int,
                        help='Specify the maximum number of processors CONCOCT is allowed to use, if absent, all present processors will be used.')
-    
+    parser.add_argument('--no_scaling', action="store_true",
+                        help='Disable scaling as a data preprocessing step')
     return parser.parse_args()
 
         
@@ -257,4 +259,5 @@ if __name__=="__main__":
                       args.basename, 
                       args.pipe,
                       args.max_n_processors,
+                      args.no_scaling,
                       args)
