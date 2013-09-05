@@ -1,8 +1,11 @@
 CONCOCT
 ======
-
 A program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
 coverage data in multiple samples and linkage data from paired end reads.
+
+Warning! This software is to be considered unstable and under heavy development. Functionality can not yet be guaranteed and the user interface may change significantly. 
+If you still want to use this software, please stay up to date with the list of known issues:
+https://github.com/BinPro/CONCOCT/issues
 
 Install
 -------
