@@ -282,10 +282,4 @@ class TestCMD(object):
             assert_true(len(log_content)>10,
                         "Log content is too small")
 
-    def test_no_scaling(self):
-        """ Only checks that there's no errors """
-        self.run_command(tags=['--no_scaling'])
-        assert_equal(self.c,0,
-                     msg = ("Command exited with nonzero status when "
-                            " no scaling tag was used"))
         
