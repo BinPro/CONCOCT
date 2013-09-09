@@ -6,18 +6,15 @@ import os
 import argparse
 import multiprocessing
 
+from collections import defaultdict
+
 import pysam
 
 
-class Read:
-    def __init__(self):
-        self.align_count = 0
-
-    def count(self):
-        self.align_count += 1
-
-    def get_value(self):
-        return 1 / self.align_count
+INWARD = 0
+OUTWARD = 1
+INLINE = 2
+INOUTWARD = 3
 
 
 def read_is_inward(read, regionlength):
@@ -55,9 +52,9 @@ def get_orientation(read, regionlength, readlength, contiglength, contigmlength)
       or not is_within_region(read.pos, contiglength, readlength, regionlength) \
       or not is_within_region(read.mpos, contigmlength, readlength, regionlength):
         if read.is_reverse == read.mate_is_reverse:
-            return "inline"
+            return INLINE
         else:
-            return "inward_or_outward"
+            return INOUTWARD
     else:
         return get_orientation_tips(read, regionlength)
 
@@ -66,11 +63,11 @@ def get_orientation_tips(read, regionlength):
     """Determine orientation of pair if the reads are located on the tips of
     the contig."""
     if pair_is_inward(read, regionlength):
-        return "inward"
+        return INWARD
     elif pair_is_outward(read, regionlength):
-        return "outward"
+        return OUTWARD
     else:
-        return "inline"
+        return INLINE
 
 
 def is_within_region(readpos, contiglength, readlength, regionlength):
@@ -83,49 +80,58 @@ def is_link(read):
       and read.tid != read.mrnm
 
 
+# Named functions for get_linkage_info_dict_one_fetch because, pickle can't
+# serialize lambda functions 
+def _default_link_dict():
+    return defaultdict(_default_links)
+    
+def _default_links():
+    return [0, 0, 0, 0]
+
+def _default_count():
+    return 0
+        
 def get_linkage_info_dict_one_fetch(bamfile, readlength, min_contig_length, regionlength, fullsearch):
     """Creates a two-dimensional dictionary of linkage information between
     contigs. Fetch is called only once on the bam file."""
-    bamh = pysam.Samfile(bamfile)
-    linkdict = {}
-    read_count_dict = {}
+    linkdict = defaultdict(_default_link_dict)
+    read_count_dict = defaultdict(_default_count)
 
-    for read in bamh:
-        # check if contig meets length threshold
-        # check if the read falls within specified region
-        if bamh.lengths[read.tid] >= min_contig_length \
-          and (fullsearch
-          or is_within_region(read.pos, bamh.lengths[read.tid], readlength, regionlength)):
-            ref = bamh.getrname(read.tid)
-            read_count_dict[ref] = read_count_dict.get(ref, 0) + 1
+    with pysam.Samfile(bamfile, 'rb') as bamh:
+        reflens = bamh.lengths
 
-            # look at first read to prevent counting links twice
-            # linked contig should be within threshold as well
-            # linked mate should be within specified region
-            if read.is_read1 \
-              and read.is_paired \
-              and bamh.lengths[read.mrnm] >= min_contig_length \
+        for read in bamh:
+            # check if read is aligned
+            try:
+                ref = bamh.getrname(read.tid)
+            except ValueError:
+                continue
+
+            # check if contig meets length threshold
+            # check if the read falls within specified region
+            if reflens[read.tid] >= min_contig_length \
               and (fullsearch
-              or is_within_region(read.mpos, bamh.lengths[read.mrnm], readlength, regionlength)):
-                refm = bamh.getrname(read.mrnm)
+              or is_within_region(read.pos, reflens[read.tid], readlength, regionlength)):
+                read_count_dict[ref] += 1
 
-                init_link_row = lambda: {"inward" : 0, "outward" : 0, "inline" : 0, "inward_or_outward" : 0}
-                # Init if contig is not in there yet
-                if ref not in linkdict:
-                    linkdict[ref] = {refm : init_link_row()}
-                elif refm not in linkdict[ref]:
-                    linkdict[ref][refm] = init_link_row()
-                # Also check if refm is in the dict, because it could already have
-                # links to another contig.
-                if refm not in linkdict:
-                    linkdict[refm] = {ref : init_link_row()}
-                elif ref not in linkdict[refm]:
-                    linkdict[refm][ref] = init_link_row()
+                # look at first read to prevent counting links twice
+                # linked contig should be within threshold as well
+                # linked mate should be within specified region
+                if read.is_read1 \
+                  and is_link(read) \
+                  and reflens[read.mrnm] >= min_contig_length \
+                  and (fullsearch
+                  or is_within_region(read.mpos, reflens[read.mrnm], readlength, regionlength)):
+                    # check if mate is aligned
+                    try:
+                        refm = bamh.getrname(read.mrnm)
+                    except ValueError:
+                        continue
 
-                # Add one link
-                ori = get_orientation(read, regionlength, readlength, bamh.lengths[read.tid], bamh.lengths[read.mrnm])
-                linkdict[ref][refm][ori] += 1
-                linkdict[refm][ref][ori] += 1
+                    # Add one link
+                    ori = get_orientation(read, regionlength, readlength, reflens[read.tid], reflens[read.mrnm])
+                    linkdict[ref][refm][ori] += 1
+                    linkdict[refm][ref] = linkdict[ref][refm]
 
     return linkdict, read_count_dict
 
@@ -148,7 +154,6 @@ def print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_
     linkdict_args = []
     for i in range(len(bamfiles)):
         linkdict_args.append((i, bamfiles[i], readlength, min_contig_length, regionlength, fullsearch))
-
     n_processes = min(len(bamfiles), max_n_cores)
     pool = multiprocessing.Pool(processes=n_processes)
     poolrv = pool.map(parallel_get_linkage_info_dict, linkdict_args)
@@ -171,20 +176,29 @@ def print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_
     allcontigs = set([k for k in linkdict[s].keys() for s in samplenames])
     for c in allcontigs:
         for c2 in allcontigs:
-            nrlinksl = []
+            row = []
 
+            has_links = False
             for s in samplenames:
-                if c in linkdict[s] and c2 in linkdict[s][c]:
-                    nrlinksl = nrlinksl + [linkdict[s][c][c2]["inward"],
-                                           linkdict[s][c][c2]["outward"],
-                                           linkdict[s][c][c2]["inline"],
-                                           linkdict[s][c][c2]["inward_or_outward"]]
-                else:
-                    nrlinksl = nrlinksl + [0, 0, 0, 0]
-                nrlinksl = nrlinksl + [read_count_dict[s].get(c, 0), read_count_dict[s].get(c2, 0)]
+                # check links
+                linkssample = [linkdict[s][c][c2][INWARD],
+                               linkdict[s][c][c2][OUTWARD],
+                               linkdict[s][c][c2][INLINE],
+                               linkdict[s][c][c2][INOUTWARD]]
 
-            if sum(nrlinksl[0:4]) > 0:
-                print ("%s\t%s" + "\t%i" * 6 * len(bamfiles)) % ((c, c2) + tuple(nrlinksl))
+                # check if contigs have links
+                if not has_links:
+                    if sum(linkssample) > 0:
+                        has_links = True 
+
+                row += linkssample
+                
+                # check counts
+                row += [read_count_dict[s][c], read_count_dict[s][c2]]
+
+            # output if contigs have links
+            if has_links:
+                print ("%s\t%s" + "\t%i" * 6 * len(bamfiles)) % ((c, c2) + tuple(row))
 
 
 if __name__ == "__main__":
