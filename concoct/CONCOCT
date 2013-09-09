@@ -123,6 +123,7 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
         for i,v in enumerate(gmm.covars_):
             Output.write_cluster_variance(pca.inverse_transform(v),
                                           threshold,i)
+            Output.write_cluster_pca_variances(v,threshold,i)
     else:
         Output.write_cluster_variance(pca.inverse_transform(v),
                                       threshold,1)
