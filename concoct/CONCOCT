@@ -11,10 +11,10 @@ import numpy as np
 from itertools import tee, izip, product
 from argparse import ArgumentParser,ArgumentTypeError
 from datetime import datetime
+import logging
 
 from Bio import SeqIO
 
-from sklearn.preprocessing import scale
 from sklearn.mixture import GMM
 from sklearn.decomposition import PCA
 
@@ -27,10 +27,11 @@ def parallelized_cluster(args):
     #Run GMM on the pca transform of contigs with kmer count greater
     #than threshold
     gmm = GMM(n_components=c, covariance_type=cv_type, n_init=inits,
-              n_iter=iters).fit(transform_filter)
+              n_iter=iters,random_state=1).fit(transform_filter)
     print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(
         c,gmm.converged_)
     bic = gmm.bic(transform_filter)
+    logging.info('Done fitting model for cluster number {0}'.format(c))
     return bic,c
 
 
@@ -68,6 +69,7 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
     composition = np.log(composition.divide(composition.sum(axis=1),axis=0))
     
+    logging.info('Successfully loaded composition data.')
     #Coverage import, file has header and contig ids as index
     #Assume datafile is in log coverage format with pseudo counts
     cov = p.read_table(cov_file,header=0,index_col=0)
@@ -84,20 +86,19 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
         cov.ix[:,cov_range[0]:cov_range[1]] + 0.01))
 
+    logging.info('Successfully loaded coverage data.')
     if split_pca:
         raise NotImplementedError("Not implemented yet to run seperate PCA")
     else:
         joined = composition.join(
             cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
-        joined.ix[:,:] = scale(joined)
         #PCA on the contigs that have kmer count greater than threshold
         Output.write_original_data(joined[threshold_filter],threshold)
         pca = PCA(n_components=0.9).fit(joined[threshold_filter])
         transform_filter = pca.transform(joined[threshold_filter])
-        transform_filter = scale(transform_filter)
         Output.write_pca(transform_filter,
                          threshold,cov[threshold_filter].index)
-    
+    logging.info('PCA transformed data.')
     cv_type='full'
     cluster_args = []
     for c in clusters_range:
@@ -110,10 +111,11 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
 
     min_bic,optimal_c = min(bics,key=lambda x: x[0])
     gmm = GMM(n_components=optimal_c,covariance_type=cv_type,n_init=inits,
-              n_iter=iters).fit(transform_filter)
+              n_iter=iters,random_state=1).fit(transform_filter)
     
     joined["clustering"] = gmm.predict(pca.transform(joined))
     Output.write_clustering(joined,threshold_filter,threshold,c,pipe)
+    Output.write_cluster_pca_means(gmm.means_,threshold,c)
     Output.write_cluster_means(pca.inverse_transform(gmm.means_),
                                    threshold,c)
     # Covariance matrix is three dimensional if full
@@ -234,7 +236,6 @@ def arguments():
                               'printed to stdout. Useful for pipeline use'))
     parser.add_argument('-m','--max_n_processors',type=int,
                        help='Specify the maximum number of processors CONCOCT is allowed to use, if absent, all present processors will be used.')
-    
     return parser.parse_args()
 
         

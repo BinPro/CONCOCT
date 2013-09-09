@@ -8,6 +8,7 @@ import os
 import sys
 import pandas as p
 import numpy as np
+import logging
 
 class Output(object):
     """
@@ -41,18 +42,26 @@ class Output(object):
             self.CONCOCT_PATH = basename+'_'
 
         print >> sys.stderr, "Results created at {0}".format(
-            self.CONCOCT_PATH)
+            os.path.abspath(self.CONCOCT_PATH))
         self.BIC_FILE = self.CONCOCT_PATH + "bic.csv"
         self.ARGS_FILE = self.CONCOCT_PATH + "args.txt"
         self.ORIGINAL_FILE_BASE = self.CONCOCT_PATH + "original_data_gt{0}.csv"
         self.PCA_FILE_BASE = self.CONCOCT_PATH + \
             "PCA_transformed_data_gt{0}.csv"
         self.CLUSTERING_FILE_BASE = self.CONCOCT_PATH + "clustering{0}.csv"
+        self.PCA_MEANS_FILE_BASE = self.CONCOCT_PATH + "pca_means{0}.csv"
         self.MEANS_FILE_BASE = self.CONCOCT_PATH + "means{0}.csv"
         self.VARIANCE_FILE_BASE = self.CONCOCT_PATH + "variance_gt{0}_dim{1}.csv"
         self.RESPONSIBILITY_FILE_BASE = self.CONCOCT_PATH + "responsibilities.csv"
+        self.LOG_FILE_BASE = self.CONCOCT_PATH + 'concoct_log.txt'
         self.pipe = args.pipe
 
+        logging.basicConfig(
+            filename=self.LOG_FILE_BASE,
+            level=logging.INFO,
+            filemode='w', # Overwrites old log file
+            format='%(asctime)s:%(levelname)s:%(name)s:%(message)s'
+            )
         #Write header to bic.csv
         with open(self.BIC_FILE,"a+") as fh:
             print >> fh, "cluster_count,bic_value"
@@ -87,14 +96,23 @@ class Output(object):
                 print >> fh, "{0},{1}".format(c,bic)
     
     @classmethod
+    def write_cluster_pca_means(self,means,threshold,c):
+        np.savetxt(
+            self.PCA_MEANS_FILE_BASE.format("_gt{0}".format(threshold)),
+            means,delimiter=',')
+
+    @classmethod
     def write_cluster_means(self,means,threshold,c):
         np.savetxt(
-            self.MEANS_FILE_BASE.format("_gt{0}".format(threshold)),means)
+            self.MEANS_FILE_BASE.format("_gt{0}".format(threshold)),
+            means,delimiter=',')
             
     @classmethod
     def write_cluster_variance(self,var,threshold,i):
-        np.savetxt(self.VARIANCE_FILE_BASE.format(threshold,i),var)
+        np.savetxt(self.VARIANCE_FILE_BASE.format(threshold,i),
+        var,delimiter=',')
 
     @classmethod
     def write_cluster_responsibilities(self,res,threshold,c):
-        np.savetxt(self.RESPONSIBILITY_FILE_BASE,res)
+        np.savetxt(self.RESPONSIBILITY_FILE_BASE,
+        res,delimiter=',')
