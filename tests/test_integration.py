@@ -94,9 +94,9 @@ class TestCMD(object):
         self.run_command(basename=tmp_basename_file)
         assert_true(isfile(tmp_basename_file+'_clustering.csv'),
                     msg = "Clustering file is not created, when file is used as basename")
-        L = listdir(tmp_dir_path)
-        assert_true(len(L) == 14,
-                    msg = "Wrong number of output files")
+        L = listdir(tmp_basename_dir)
+        assert_true(len(L) == 16,
+                    msg = "Wrong number of output files, observed {0}".format(L))
 
     def test_output_files_creation(self):
         # dir as basename
@@ -113,6 +113,10 @@ class TestCMD(object):
         assert_true(
             isfile(d_p+ '/pca_means_gt1000.csv'),
             msg='Large contigs cluster pca means file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/pca_variances_gt1000_dim1.csv'),
+            msg='Large contigs cluster pca variances file is not created'
             )
         assert_true(
             isfile(d_p+ '/means_gt1000.csv'),
@@ -159,6 +163,10 @@ class TestCMD(object):
             msg='Large contigs cluster means file is not created'
             )
         assert_true(
+            isfile(d_p+ 'pca_variances_gt1000_dim1.csv'),
+            msg='Large contigs cluster variances file is not created'
+            )
+        assert_true(
             isfile(d_p+ 'means_gt1000.csv'),
             msg='Large contigs cluster means file is not created'
             )
@@ -195,12 +203,14 @@ class TestCMD(object):
         pca_1 = d_p+'/PCA_transformed_data_gt1000.csv'
         var_1 = d_p+'/variance_gt1000_dim1.csv'
         pca_means_1 = d_p+'/pca_means_gt1000.csv'
+        pca_variances_1 = d_p+'/pca_variances_gt1000_dim1.csv'
         means_1 = d_p+'/means_gt1000.csv'
         clust_gt_1 = d_p+'/clustering_gt1000.csv'
         clust_1 = d_p+'/clustering.csv'
         odl_1 = self.file_len(od_1)
         varl_1= self.file_len(var_1)
         pca_meansl_1= self.file_len(pca_means_1)
+        pca_variancesl_1= self.file_len(pca_variances_1)
         meansl_1= self.file_len(means_1)
         clust_gtl_1= self.file_len(clust_gt_1)
         clustl_1 = self.file_len(clust_1)
@@ -215,12 +225,14 @@ class TestCMD(object):
         pca_2 = d_p2+'/PCA_transformed_data_gt1000.csv'
         var_2 = d_p2+'/variance_gt1000_dim1.csv'
         pca_means_2 = d_p2+'/pca_means_gt1000.csv'
+        pca_variances_2 = d_p2+'/pca_variances_gt1000_dim1.csv'
         means_2 = d_p2+'/means_gt1000.csv'
         clust_gt_2 = d_p2+'/clustering_gt1000.csv'
         clust_2 = d_p2+'/clustering.csv'
         odl_2 = self.file_len(od_2)
         varl_2= self.file_len(var_2)
         pca_meansl_2= self.file_len(pca_means_2)
+        pca_variancesl_2= self.file_len(pca_variances_2)
         meansl_2= self.file_len(means_2)
         clust_gtl_2= self.file_len(clust_gt_2)
         clustl_2 = self.file_len(clust_2)
@@ -233,6 +245,8 @@ class TestCMD(object):
                     msg='Variance files do not have the same lengths')
         assert_true(pca_meansl_1==pca_meansl_2,
                     msg='PCA mean files do not have the same lengths')
+        assert_true(pca_variancesl_1==pca_variancesl_2,
+                    msg='PCA variances files do not have the same lengths')
         assert_true(meansl_1==meansl_2,
                     msg='Means files do not have the same lengths')
         assert_true(clust_gtl_1!=clust_gtl_2,
@@ -277,6 +291,7 @@ class TestCMD(object):
             log_content = log.read()
             assert_true(len(log_content)>10,
                         "Log content is too small")
+
     def test_random_seed_from_different_sources(self):
         self.run_command(tags=['-f',"19"])
         with open(tmp_basename_dir+"/clustering.csv","r") as f:
@@ -329,4 +344,4 @@ class TestCMD(object):
             fh.write(second_file)
         assert_true(first_file == second_file,
                     msg='Clustering outcomes were different with the same seeds')
-                    
+
