@@ -247,8 +247,8 @@ def arguments():
     parser.add_argument('-m','--max_n_processors',type=int,
                        help='Specify the maximum number of processors CONCOCT is allowed to use, if absent, all present processors will be used.')
     parser.add_argument('-f','--force_seed',type=set_random_state, default=0,
-                       help=('Specify an integer to use as seed for clustering'
-                             'to make the process deterministic. Default is'
+                       help=('Specify an integer to use as seed for clustering '
+                             'to make the process deterministic. Default is '
                              '0 which makes the process random.'))
     return parser.parse_args()
 
