@@ -48,6 +48,9 @@ optional arguments:
   -m --max_n_processors             Specify the maximum number of processors CONCOCT is
                                     allowed to use, if absent, all present processors will
                                     be used.
+  -f --force_seed                   Specify an integer to use as seed for clustering to
+                                    make the process deterministic. Default is 0 which
+                                    makes the process random.
 ```
 
 Dependencies
