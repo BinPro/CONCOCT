@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-from nose.tools import assert_almost_equal, assert_equal, assert_true, assert_list_equal
+from nose.tools import assert_equal, assert_true
 from os.path import isdir,isfile
 from os import listdir
 import os
-import sys
 import subprocess
-import re
-import numpy as np
 import pandas as p
 
 
@@ -45,7 +42,8 @@ class TestCMD(object):
         assert os.listdir(tmp_dir_path) == []
 
 
-    def run_command(self,cov_file='coverage',comp_file='composition.fa',tags=[],basename='nose_tmp_output/1'):
+    def run_command(self,cov_file='coverage',comp_file='composition.fa',
+                    tags=[],basename='nose_tmp_output/1'):
         call_string = "CONCOCT test_data/{0} test_data/{1} --basename {2} -c 3,5,1".format(cov_file,comp_file,basename)
         for tag in tags:
             call_string += " " + tag
@@ -97,7 +95,7 @@ class TestCMD(object):
         assert_true(isfile(tmp_basename_file+'_clustering.csv'),
                     msg = "Clustering file is not created, when file is used as basename")
         L = listdir(tmp_dir_path)
-        assert_true(len(L) == 15,
+        assert_true(len(L) == 14,
                     msg = "Wrong number of output files")
 
     def test_output_files_creation(self):
@@ -145,10 +143,6 @@ class TestCMD(object):
             isfile(d_p+ '/concoct_log.txt'),
             msg='Log file is not created'
             )
-        assert_true(
-            isfile(d_p+ '/random_seed.pickle'),
-            msg='Random seed not created'
-            )
         # dir as file
         self.run_command(basename=tmp_basename_file)
         d_p = tmp_basename_file +'_'
@@ -192,10 +186,6 @@ class TestCMD(object):
         assert_true(
             isfile(d_p+ 'concoct_log.txt'),
             msg='Log file is not created'
-            )
-        assert_true(
-            isfile(d_p+ 'random_seed.pickle'),
-            msg='Random seed not created'
             )
             
     def test_threshold_functionality(self):
@@ -264,7 +254,6 @@ class TestCMD(object):
         f2 = open(tmp_basename_dir + '/clustering.csv','rb')
         f2_content = f2.read()
         f2.close()
-        import filecmp
         assert_true(len(f1_content)==len(f2_content),
                     msg='stdout and clustering file is not equal')
 
@@ -289,39 +278,29 @@ class TestCMD(object):
             assert_true(len(log_content)>10,
                         "Log content is too small")
     def test_random_seed_from_different_sources(self):
-        import pickle
-        from numpy.random import RandomState
-        self.run_command()
-        with open(tmp_basename_dir+'/random_seed.pickle','r') as seed:
-            random_seed = pickle.load(seed)
-            assert_true(type(random_seed)==RandomState,
-                        msg='random_seed is not of type RandomState')
-        
-        self.run_command(tags=['-f',"19"])        
-        with open(tmp_basename_dir+'/random_seed.pickle','r') as seed:
-            random_seed = pickle.load(seed)
-            assert_list_equal(list(random_seed.get_state()[1]),list(RandomState(19).get_state()[1]),
-                        msg='random_seed is not from the original seed')
-        prev_time = os.path.getmtime(tmp_basename_dir+'/random_seed.pickle')
-        self.run_command(tags=['-f',tmp_basename_dir])
-        curr_time = os.path.getmtime(tmp_basename_dir+'/random_seed.pickle')
-        assert_true(not(prev_time==curr_time),
-                    msg='random_seed.pickle has not changed')
-        with open(tmp_basename_dir+'/random_seed.pickle','r') as seed:
-            random_seed = pickle.load(seed)
-            assert_list_equal(list(random_seed.get_state()[1]),list(RandomState(19).get_state()[1]),
-                        msg='random_seed is not from the seed file')
+        self.run_command(tags=['-f',"19"])
+        with open(tmp_basename_dir+"/clustering.csv","r") as f:
+            first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
+            first_file = f.read()
+        self.run_command(tags=['-f',"19"])
+        with open(tmp_basename_dir+"/clustering.csv","r") as f:
+            second_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
+            second_file = f.read()
+        assert_true(not(first_time==second_time),
+                    msg='clustering.csv has not changed')
+        assert_true(first_file == second_file, 
+                    msg='clustering.csv files should have been identical.')
 
     def test_random_seed(self):
         first_file = None
         second_file= None
         first_time = None
         second_time = None        
-        self.run_command(tags=['-m','1'])
+        self.run_command()
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
         with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
             first_file=clustering.read()        
-        self.run_command(tags=['-m','1'])
+        self.run_command()
         second_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
         with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
             second_file=clustering.read()
@@ -334,11 +313,11 @@ class TestCMD(object):
         second_file= None
         first_time = None
         second_time = None        
-        self.run_command(tags=['-f','19','-m','1'])
+        self.run_command(tags=['-f','19'])
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
         with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
             first_file=clustering.read()
-        self.run_command(tags=['-f','19','-m','1'])
+        self.run_command(tags=['-f','19'])
         second_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
         with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
             second_file=clustering.read()
@@ -350,20 +329,4 @@ class TestCMD(object):
             fh.write(second_file)
         assert_true(first_file == second_file,
                     msg='Clustering outcomes were different with the same seeds')
-
-        first_file = None
-        second_file= None
-        first_time = None
-        second_time = None
-        self.run_command(tags=['-f',tmp_basename_dir,'-m','1'])
-        first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
-        with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
-            first_file=clustering.read()
-        self.run_command(tags=['-f',tmp_basename_dir,'-m','1'])
-        second_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
-        with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
-            second_file=clustering.read()
-        assert_true(not (first_time==second_time),
-                    msg='clustering.csv did not change')
-        assert_true(first_file == second_file,
-                    msg='Clustering outcomes were different with the same seeds')
+                    
