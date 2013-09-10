@@ -80,21 +80,19 @@ def is_link(read):
       and read.tid != read.mrnm
 
 
-# Named functions for get_linkage_info_dict_one_fetch because, pickle can't
-# serialize lambda functions 
-def _default_link_dict():
-    return defaultdict(_default_links)
-    
-def _default_links():
+def _default_linkdict():
+    return defaultdict(_default_link)
+
+def _default_link():
     return [0, 0, 0, 0]
 
 def _default_count():
     return 0
-        
-def get_linkage_info_dict_one_fetch(bamfile, readlength, min_contig_length, regionlength, fullsearch):
+
+def get_linkage_info_dict(bamfile, readlength, min_contig_length, regionlength, fullsearch):
     """Creates a two-dimensional dictionary of linkage information between
-    contigs. Fetch is called only once on the bam file."""
-    linkdict = defaultdict(_default_link_dict)
+    contigs."""
+    linkdict = defaultdict(_default_linkdict)
     read_count_dict = defaultdict(_default_count)
 
     with pysam.Samfile(bamfile, 'rb') as bamh:
@@ -133,21 +131,62 @@ def get_linkage_info_dict_one_fetch(bamfile, readlength, min_contig_length, regi
                     linkdict[ref][refm][ori] += 1
                     linkdict[refm][ref] = linkdict[ref][refm]
 
-    return linkdict, read_count_dict
+    return dict([(k,v) for k, v in linkdict.iteritems()]), dict([(k, v) for k, v in read_count_dict.iteritems()])
 
 
 def parallel_get_linkage_info_dict(args):
     i, bamfile, readlength, min_contig_length, regionlength, fullsearch = args
-    return i, get_linkage_info_dict_one_fetch(bamfile, readlength, min_contig_length, regionlength, fullsearch)
+    return i, get_linkage_info_dict(bamfile, readlength, min_contig_length, regionlength, fullsearch)
 
 
-def print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_length, regionlength, max_n_cores, fullsearch):
+def print_linkage_info(linkdict, read_count_dict, samplenames):
     """Prints a linkage information table. Format as
 
     contig1<TAB>contig2<TAB>nr_links_inward_n<TAB>nr_links_outward_n
 
     where n represents sample name. Number of columns is thus 2 + 2 * n.
     """
+    # Header
+    print ("%s\t%s" + "\t%s" * len(samplenames)) % (("contig1", "contig2") +
+        tuple(["nr_links_inward_%s\tnr_links_outward_%s\tnr_links_inline_%s\tnr_links_inward_or_outward_%s\t"
+               "read_count_contig1_%s\tread_count_contig2_%s" % ((s,) * 6) for s in samplenames]))
+
+    # Content
+    allcontigs = list(set([k for k in linkdict[s].keys() for s in samplenames]))
+    for i in xrange(len(allcontigs)):
+        c = allcontigs[i]
+
+        for j in xrange(i + 1, len(allcontigs)):
+            c2 =allcontigs[j]
+
+            row = []
+
+            for s in samplenames:
+                # check links
+                try:
+                    row += [
+                           linkdict[s][c][c2][INWARD],
+                           linkdict[s][c][c2][OUTWARD],
+                           linkdict[s][c][c2][INLINE],
+                           linkdict[s][c][c2][INOUTWARD],
+                           ]
+                except KeyError:
+                    row += [0, 0, 0, 0]
+                # check counts
+                try:
+                    row += [
+                           read_count_dict[s][c],
+                           read_count_dict[s][c2]
+                           ]
+                except KeyError:
+                    row += [0, 0]
+
+            # output if contigs have links
+            if any([row[i] for i in xrange(6 * len(samplenames)) if i % 6 < 4]):
+                print ("%s\t%s" + "\t%i" * 6 * len(samplenames)) % ((c, c2) + tuple(row))
+
+
+def parse_and_print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_length, regionlength, max_n_cores, fullsearch):
     assert(len(bamfiles) == len(samplenames))
 
     # Determine links in parallel
@@ -165,40 +204,10 @@ def print_linkage_info(fastafile, bamfiles, samplenames, readlength, min_contig_
         linkdict[samplenames[rv[0]]] = rv[1][0]
         read_count_dict[samplenames[rv[0]]] = rv[1][1]
     #for s in samplenames:
-    #    linkdict[s], read_count_dict[s] = get_linkage_info_dict_one_fetch(bamfiles[0], readlength, min_contig_length, regionlength, fullsearch)
+    #    linkdict[s], read_count_dict[s] = get_linkage_info_dict(bamfiles[0], readlength, min_contig_length, regionlength, fullsearch)
 
-    # Header
-    print ("%s\t%s" + "\t%s" * len(bamfiles)) % (("contig1", "contig2") +
-        tuple(["nr_links_inward_%s\tnr_links_outward_%s\tnr_links_inline_%s\tnr_links_inward_or_outward_%s\t"
-               "read_count_contig1_%s\tread_count_contig2_%s" % ((s,) * 6) for s in samplenames]))
+    print_linkage_info(linkdict, read_count_dict, samplenames)
 
-    # Content
-    allcontigs = set([k for k in linkdict[s].keys() for s in samplenames])
-    for c in allcontigs:
-        for c2 in allcontigs:
-            row = []
-
-            has_links = False
-            for s in samplenames:
-                # check links
-                linkssample = [linkdict[s][c][c2][INWARD],
-                               linkdict[s][c][c2][OUTWARD],
-                               linkdict[s][c][c2][INLINE],
-                               linkdict[s][c][c2][INOUTWARD]]
-
-                # check if contigs have links
-                if not has_links:
-                    if sum(linkssample) > 0:
-                        has_links = True 
-
-                row += linkssample
-                
-                # check counts
-                row += [read_count_dict[s][c], read_count_dict[s][c2]]
-
-            # output if contigs have links
-            if has_links:
-                print ("%s\t%s" + "\t%i" * 6 * len(bamfiles)) % ((c, c2) + tuple(row))
 
 
 if __name__ == "__main__":
@@ -239,4 +248,4 @@ if __name__ == "__main__":
             raise(Exception("No index for %s file found, run samtools index "
             "first on bam file." % bf))
 
-    print_linkage_info(args.fastafile, args.bamfiles, samplenames, args.readlength, args.mincontiglength, args.regionlength, args.max_n_cores, args.fullsearch)
+    parse_and_print_linkage_info(args.fastafile, args.bamfiles, samplenames, args.readlength, args.mincontiglength, args.regionlength, args.max_n_cores, args.fullsearch)
