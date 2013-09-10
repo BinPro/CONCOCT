@@ -142,9 +142,12 @@ def window(seq,n):
     return izip(*els)
 
 def set_random_state(seed):
-    ERROR="'" + seed + ("' should be converatable to integer")
+    ERROR="'{0}' should be converatable to integer".format(seed)
     try:
-        np.random.seed(int(seed))
+        seed = int(seed)
+        if seed < 0:
+            raise ArgumentTypeError("'" + seed + "' should be >= 0")
+        np.random.seed(seed)
     except ValueError as e:
         raise ArgumentTypeError(ERROR)
     
@@ -246,10 +249,10 @@ def arguments():
                               'printed to stdout. Useful for pipeline use'))
     parser.add_argument('-m','--max_n_processors',type=int,
                        help='Specify the maximum number of processors CONCOCT is allowed to use, if absent, all present processors will be used.')
-    parser.add_argument('-f','--force_seed',type=set_random_state, default=0,
-                       help=('Specify an integer to use as seed for clustering '
-                             'to make the process deterministic. Default is '
-                             '0 which makes the process random.'))
+    parser.add_argument('-f','--force_seed',type=set_random_state, default=set_random_state(11),
+                       help=('Specify an integer to use as seed for clustering. '
+                             'You can specify 0 for random seed. The default seed '
+                             'is 11.'))
     return parser.parse_args()
 
         

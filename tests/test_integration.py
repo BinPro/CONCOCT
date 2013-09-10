@@ -292,56 +292,80 @@ class TestCMD(object):
             assert_true(len(log_content)>10,
                         "Log content is too small")
 
-    def test_random_seed_from_different_sources(self):
-        self.run_command(tags=['-f',"19"])
-        with open(tmp_basename_dir+"/clustering.csv","r") as f:
-            first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
-            first_file = f.read()
-        self.run_command(tags=['-f',"19"])
-        with open(tmp_basename_dir+"/clustering.csv","r") as f:
-            second_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
-            second_file = f.read()
-        assert_true(not(first_time==second_time),
-                    msg='clustering.csv has not changed')
-        assert_true(first_file == second_file, 
-                    msg='clustering.csv files should have been identical.')
-
-    def test_random_seed(self):
+    def test_seed(self):
+        #Test default behaviour, seed = 11
         first_file = None
         second_file= None
         first_time = None
         second_time = None        
+
+        #Should both run with seed 11
         self.run_command()
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
         with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
-            first_file=clustering.read()        
+            first_file=clustering.read()
+      
         self.run_command()
+        second_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
+        with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
+            second_file=clustering.read()
+        assert_true(not (first_time==second_time),
+                    msg='clustering.csv did not change')
+#        assert_true(first_file == second_file,
+#                    msg='Clustering outcomes were not the same with same seeds')
+
+        #Should be equal to both above since default seed is 11
+	self.run_command(tags=["-f","11"])
+        first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
+        with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
+            first_file=clustering.read()        
+        assert_true(not (first_time==second_time),
+                    msg='clustering.csv did not change')
+        assert_true(first_file == second_file,
+                    msg='Clustering outcomes were not the same with same seeds')
+
+        #Test that 0 gives random seed
+        first_file = None
+        second_file= None
+        first_time = None
+        second_time = None
+        
+        #Should give random clustering
+        self.run_command(tags=['-f','0'])
+        first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
+        with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
+            first_file=clustering.read()
+        
+        #Should give random clustering
+        self.run_command(tags=['-f','0'])
+        second_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
+        with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
+            second_file=clustering.read()
+        assert_true(not (first_time==second_time),
+                    msg='clustering.csv did not change')
+        assert_true(first_file == second_file,
+                    msg='Clustering outcomes were the same with the different seeds')
+
+
+        #Test that two differnet seeds give different clustering
+        first_file = None
+        second_file= None
+        first_time = None
+        second_time = None
+        
+        #Should give clustering 2
+        self.run_command(tags=['-f','2'])
+        first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
+        with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
+            first_file=clustering.read()
+        
+        #Should give clustering 3
+        self.run_command(tags=['-f','3'])
         second_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
         with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
             second_file=clustering.read()
         assert_true(not (first_time==second_time),
                     msg='clustering.csv did not change')
         assert_true(not (first_file == second_file),
-                    msg='Clustering outcomes were the same with different seeds')
-
-        first_file = None
-        second_file= None
-        first_time = None
-        second_time = None        
-        self.run_command(tags=['-f','19'])
-        first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
-        with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
-            first_file=clustering.read()
-        self.run_command(tags=['-f','19'])
-        second_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
-        with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
-            second_file=clustering.read()
-        assert_true(not (first_time==second_time),
-                    msg='clustering.csv did not change')
-        with open("/tmp/t1.csv","w+") as fh:
-            fh.write(first_file)
-        with open("/tmp/t2.csv","w+") as fh:
-            fh.write(second_file)
-        assert_true(first_file == second_file,
-                    msg='Clustering outcomes were different with the same seeds')
+                    msg='Clustering outcomes were the same with the different seeds')
 
