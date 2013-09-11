@@ -1,6 +1,43 @@
 #!/usr/bin/env python
 """
-@author: inodb
+Parses bamfiles and prints the linkage between contigs. Format is:
+
+    contig1<TAB>contig2<TAB>nr_links_inward_n<TAB>nr_links_outward_n<TAB>nr_links_inline_n<TAB>nr_links_inward_or_outward_n<TAB>read_count_contig1_n<TAB>read_count_contig2_n
+
+where n represents sample name. Number of columns is thus 2 + 6 * n. Bamfiles
+by default get samplenames from 0 to #bamfiles-1 ordered by their position in
+the argument list. 
+
+Links are printed only once, e.g. if the row starting with
+    contig1<TAB>contig2
+is printed, then 
+    contig2<TAB>contig1
+is not. Ambiguous link counts are counted similar to unambiguous
+links.
+
+
+Here follows an explanation per column:
+contig1
+    Contig linking with contig2
+contig2
+    Contig linking with contig1
+nr_links_inward
+    Number of pairs confirming an inward orientation of the contigs -><-
+nr_links_outward
+    Number of pairs confirming an outward orientation of the contigs <--> 
+nr_links_inline
+    Number of pairs confirming an outward orientation of the contigs ->->
+nr_links_inward_or_outward
+    Number of pairs confirming an inward or outward orientation of the contigs.
+    This can be the case if the contig is very short and the search region
+    <regionlength> on both tips of a contig overlaps or the --fullsearch
+    parameter is used and one of the reads in the pair is outside
+    <regionlength>.
+read_count_contig1
+read_count_contig2
+    Number of reads on contig1 or contig2. With --fullsearch read count over
+    the entire contig is used, otherwise only the number of reads in the tips
+    are counted.
 """
 import os
 import sys
@@ -87,8 +124,12 @@ def is_link(read):
 
 
 def parse_linkage_info_bam(bamfile, readlength, min_contig_length, regionlength, fullsearch):
-    """Creates a two-dimensional dictionary of linkage information between
-    contigs."""
+    """Parses a bamfile to retrieve the linkage information.
+    
+    Returns a two-dimensional dictionary of linkage information between contigs
+    and a dictionary of the read count for each contigs. The linkage dictionary
+    stores links only once e.g. if [contig1][contig2] exists,
+    [contig2][contig1] does not."""
     linkdict = defaultdict(lambda: defaultdict(lambda: [0, 0, 0, 0]))
     read_count_dict = defaultdict(lambda: 0)
 
@@ -125,8 +166,10 @@ def parse_linkage_info_bam(bamfile, readlength, min_contig_length, regionlength,
 
                     # Add one link
                     ori = get_orientation(read, regionlength, readlength, reflens[read.tid], reflens[read.mrnm])
-                    linkdict[ref][refm][ori] += 1
-                    linkdict[refm][ref] = linkdict[ref][refm]
+                    if ref not in linkdict[refm]:
+                        linkdict[ref][refm][ori] += 1
+                    else:
+                        linkdict[refm][ref][ori] += 1
 
     # Remove default generators
     linkdict.default_factory = None
@@ -136,13 +179,15 @@ def parse_linkage_info_bam(bamfile, readlength, min_contig_length, regionlength,
 
     return linkdict, read_count_dict
 
+
 def parallel_parse_linkage_info_bam(args):
     """Used by parallel_get_linkage to unpack arguments for parse_linkage_info_bam."""
     i, bamfile, readlength, min_contig_length, regionlength, fullsearch = args
     return i, parse_linkage_info_bam(bamfile, readlength, min_contig_length, regionlength, fullsearch)
 
-def print_link_row(linkdict, read_count_dict, samplenames, c, c2):
-    """Prints one row of linkage information, same format as print_linkage_info."""
+
+def get_string_link_row(linkdict, read_count_dict, samplenames, c, c2):
+    """Returns string for one row of linkage information, same format as print_linkage_info."""
     row = []
 
     for s in samplenames:
@@ -165,9 +210,7 @@ def print_link_row(linkdict, read_count_dict, samplenames, c, c2):
         except KeyError:
             row += [0, 0]
 
-    # output if contigs have links
-    if any([row[i] for i in xrange(6 * len(samplenames)) if i % 6 < 4]):
-        print ("%s\t%s" + "\t%i" * 6 * len(samplenames)) % ((c, c2) + tuple(row))
+    return ("%s\t%s" + "\t%i" * 6 * len(samplenames)) % ((c, c2) + tuple(row))
 
 
 def print_linkage_info(linkdict, read_count_dict, samplenames):
@@ -175,9 +218,7 @@ def print_linkage_info(linkdict, read_count_dict, samplenames):
 
     contig1<TAB>contig2<TAB>nr_links_inward_n<TAB>nr_links_outward_n<TAB>nr_links_inline_n<TAB>nr_links_inward_or_outward_n<TAB>read_count_contig1_n<TAB>read_count_contig2_n
 
-    where n represents sample name. Number of columns is thus 2 + 6 * n. Links
-    are printed only once in the table, e.g. the entry contig1<TAB>contig2
-    exists but not contig2<TAB>contig1.
+    where n represents sample name. Number of columns is thus 2 + 6 * n.
     """
     # Header
     print ("%s\t%s" + "\t%s" * len(samplenames)) % (("contig1", "contig2") +
@@ -186,14 +227,10 @@ def print_linkage_info(linkdict, read_count_dict, samplenames):
 
     # Content
     allcontigs = tuple(set([k for k in linkdict[s].keys() for s in samplenames]))
-    for i in xrange(len(allcontigs)):
-        c = allcontigs[i]
-
-        for j in xrange(i + 1, len(allcontigs)):
-            c2 = allcontigs[j]
-            print_link_row(linkdict, read_count_dict, samplenames, c, c2)
-
-
+    for c in allcontigs:
+        for c2 in set([k for k in linkdict[s][c].keys() for s in samplenames]):
+            print get_string_link_row(linkdict, read_count_dict, samplenames, c, c2)
+            
 
 def parallel_get_linkage(bamfiles, readlength, min_contig_length, regionlength, max_n_cores, fullsearch):
     """Uses multiprocessing to run parallel_parse_linkage_info_bam in parallel."""
@@ -242,10 +279,12 @@ def main(fastafile, bamfiles, samplenames, readlength, min_contig_length, region
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=print_linkage_info.__doc__ + "\nBamfiles by default get samplenames from 0 to #bamfiles-1 ordered by their position in the argument list. ", formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("fastafile", help="Contigs fasta file")
     parser.add_argument("bamfiles", nargs='+', help="BAM files with mappings to contigs")
-    parser.add_argument("--samplenames", default=None, help="File with sample names, one line each. Should be same nr as bamfiles.")
+    parser.add_argument("--samplenames", default=None, help="File with sample "
+    "names, one line each. Should be same nr as bamfiles.")
     parser.add_argument("--regionlength", type=int, default=500, help="Linkage "
             "is checked on both ends of the contig. This parameter specifies the "
             "search region length in bases, e.g. setting this to 500 means "
