@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-from nose.tools import assert_equal, assert_true
+from nose.tools import assert_equal, assert_true, assert_almost_equal
 from os.path import isdir,isfile
 from os import listdir
 import os
 import subprocess
 import pandas as p
-
 
 file_path = os.path.realpath(__file__)
 data_path = os.path.abspath(os.path.join(file_path,"..","..","data/"))
@@ -345,3 +344,12 @@ class TestCMD(object):
         assert_true(first_file == second_file,
                     msg='Clustering outcomes were different with the same seeds')
 
+    def test_log_coverage(self):
+        self.run_command()
+        original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
+        df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
+        # Manually calculated pseudo coverage using
+        # coverage 0.153531, contig length 10132
+        true_pseudo_cov = -1.8115 
+        calc_pseudo_cov = df.sample_1[0]
+        assert_almost_equal(true_pseudo_cov,calc_pseudo_cov,places=4)
