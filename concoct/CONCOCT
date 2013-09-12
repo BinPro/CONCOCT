@@ -61,6 +61,10 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
         for kmer_tuple in window(seq.seq.tostring().upper(),kmer_len):
             composition[i,feature_mapping["".join(kmer_tuple)]] += 1
     composition = p.DataFrame(composition,index=contigs_id,dtype=float)
+
+    # save contig lengths, used for pseudo counts in coverage
+    contig_lengths = composition.sum(axis=1)
+
     #Select contigs to cluster on
     threshold_filter = composition.sum(axis=1) > threshold
     
@@ -69,22 +73,19 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
     
     logging.info('Successfully loaded composition data.')
     #Coverage import, file has header and contig ids as index
-    #Assume datafile is in log coverage format with pseudo counts
+    #Assume datafile is in coverage format without pseudo counts
     cov = p.read_table(cov_file,header=0,index_col=0)
     if cov_range is None:
         cov_range = (cov.columns[0],cov.columns[-1])
 
-    ###TODO: Here we expect the data to be coverage not read counts. 
-    ###The commented section calculates log coverage from read counts.
-    ###log(q_ij) = log[(Y_ij + 1).R/L_i]) where L_i is the length of 
-    ###contig i and R is the read length.
-    ###cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
-    ###       cov.ix[:,cov_range[0]:cov_range[1]]+1
-    ###       ).mul(read_length/cov.length))
-    cov.ix[:,cov_range[0]:cov_range[1]] = np.log((
-        cov.ix[:,cov_range[0]:cov_range[1]] + 0.01))
+    # Log transform and add pseudo counts corresponding to one 100bp read
+    cov.ix[:,cov_range[0]:cov_range[1]] = np.log(
+        cov.ix[:,cov_range[0]:cov_range[1]].add(
+            (100/contig_lengths),
+            axis='index'))
 
     logging.info('Successfully loaded coverage data.')
+
 
     if split_pca:
         raise NotImplementedError("Not implemented yet to run seperate PCA")
