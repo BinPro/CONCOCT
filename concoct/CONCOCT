@@ -10,8 +10,9 @@ import multiprocessing
 import pandas as p
 import numpy as np
 
-from itertools import tee, izip, product
 from argparse import ArgumentParser,ArgumentTypeError
+from itertools import tee, izip, product, chain
+from collections import namedtuple
 
 from Bio import SeqIO
 
@@ -38,102 +39,123 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
             read_length, clusters_range, cov_range, 
             split_pca, inits, iters, outdir, pipe,
             max_n_processors,args=None):
-    Output(outdir,args)
-    #Composition
-    #Generate kmer dictionary
-    feature_mapping, nr_features = generate_feature_mapping(kmer_len)
-    #Count lines in composition file
-    count_re = re.compile("^>")
-    seq_count = 0
-    with open(comp_file) as fh:
-        for line in fh:
-            if re.match(count_re,line):
-                seq_count += 1
-
-    #Initialize with ones since we do pseudo count, we have i contigs as rows
-    #and j features as columns
-    composition = np.ones((seq_count,nr_features))
+    #Run this code if we are 
+    # 1. using MPI and are rank 0 
+    # or 
+    # 2. if we are not using MPI
+    if (max_n_processors.use_mpi and max_n_processors.rank==0) or not max_n_processors.use_mpi:
+        Output(outdir,args)
+        #Composition
+        #Generate kmer dictionary
+        feature_mapping, nr_features = generate_feature_mapping(kmer_len)
+        #Count lines in composition file
+        count_re = re.compile("^>")
+        seq_count = 0
+        with open(comp_file) as fh:
+            for line in fh:
+                if re.match(count_re,line):
+                    seq_count += 1
     
-    
-    contigs_id = []
-    for i,seq in enumerate(SeqIO.parse(comp_file,"fasta")):
-        contigs_id.append(seq.id)
-        for kmer_tuple in window(seq.seq.tostring().upper(),kmer_len):
-            composition[i,feature_mapping["".join(kmer_tuple)]] += 1
-    composition = p.DataFrame(composition,index=contigs_id,dtype=float)
-
-    # save contig lengths, used for pseudo counts in coverage
-    contig_lengths = composition.sum(axis=1)
-
-    #Select contigs to cluster on
-    threshold_filter = composition.sum(axis=1) > threshold
-    
-    #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
-    composition = np.log(composition.divide(composition.sum(axis=1),axis=0))
-    
-    logging.info('Successfully loaded composition data.')
-    #Coverage import, file has header and contig ids as index
-    #Assume datafile is in coverage format without pseudo counts
-    cov = p.read_table(cov_file,header=0,index_col=0)
-    if cov_range is None:
-        cov_range = (cov.columns[0],cov.columns[-1])
-
-    # Log transform and add pseudo counts corresponding to one 100bp read
-    cov.ix[:,cov_range[0]:cov_range[1]] = np.log(
-        cov.ix[:,cov_range[0]:cov_range[1]].add(
-            (100/contig_lengths),
-            axis='index'))
-
-    logging.info('Successfully loaded coverage data.')
-
-
-    if split_pca:
-        raise NotImplementedError("Not implemented yet to run seperate PCA")
-    else:
-        joined = composition.join(
-            cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
-        #PCA on the contigs that have kmer count greater than threshold
-        Output.write_original_data(joined[threshold_filter],threshold)
-        pca = PCA(n_components=0.9).fit(joined[threshold_filter])
-        transform_filter = pca.transform(joined[threshold_filter])
-        Output.write_pca(transform_filter,
-                         threshold,cov[threshold_filter].index)
-    logging.info('PCA transformed data.')
-
-    cv_type='full'
-    cluster_args = []
-    for c in clusters_range:
-        cluster_args.append((c,cv_type,inits,iters,transform_filter))
-    n_processes = min(multiprocessing.cpu_count(),max_n_processors)
-    pool = multiprocessing.Pool(processes=n_processes)
-    bics = pool.map(parallelized_cluster,cluster_args)
-
-    Output.write_bic(bics)
-
-    min_bic,optimal_c = min(bics,key=lambda x: x[0])
-    gmm = GMM(n_components=optimal_c,covariance_type=cv_type,n_init=inits,
-              n_iter=iters).fit(transform_filter)
-    
-    joined["clustering"] = gmm.predict(pca.transform(joined))
-    Output.write_clustering(joined,threshold_filter,threshold,c,pipe)
-    Output.write_cluster_pca_means(gmm.means_,threshold,c)
-    Output.write_cluster_means(pca.inverse_transform(gmm.means_),
-                                   threshold,c)
-    # Covariance matrix is three dimensional if full
-    if cv_type == 'full':
-        for i,v in enumerate(gmm.covars_):
-            Output.write_cluster_variance(pca.inverse_transform(v),
-                                          threshold,i)
-            Output.write_cluster_pca_variances(v,threshold,i)
-    else:
-        Output.write_cluster_variance(pca.inverse_transform(v),
-                                      threshold,1)
+        #Initialize with ones since we do pseudo count, we have i contigs as rows
+        #and j features as columns
+        composition = np.ones((seq_count,nr_features))
         
-    pp = gmm.predict_proba(transform_filter)
+        
+        contigs_id = []
+        for i,seq in enumerate(SeqIO.parse(comp_file,"fasta")):
+            contigs_id.append(seq.id)
+            for kmer_tuple in window(seq.seq.tostring().upper(),kmer_len):
+                composition[i,feature_mapping["".join(kmer_tuple)]] += 1
+        composition = p.DataFrame(composition,index=contigs_id,dtype=float)
+    
+        # save contig lengths, used for pseudo counts in coverage
+        contig_lengths = composition.sum(axis=1)
+    
+        #Select contigs to cluster on
+        threshold_filter = composition.sum(axis=1) > threshold
+        
+        #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
+        composition = np.log(composition.divide(composition.sum(axis=1),axis=0))
+        
+        logging.info('Successfully loaded composition data.')
+        #Coverage import, file has header and contig ids as index
+        #Assume datafile is in coverage format without pseudo counts
+        cov = p.read_table(cov_file,header=0,index_col=0)
+        if cov_range is None:
+            cov_range = (cov.columns[0],cov.columns[-1])
+    
+        # Log transform and add pseudo counts corresponding to one 100bp read
+        cov.ix[:,cov_range[0]:cov_range[1]] = np.log(
+            cov.ix[:,cov_range[0]:cov_range[1]].add(
+                (100/contig_lengths),
+                axis='index'))
+    
+        logging.info('Successfully loaded coverage data.')
+    
+    
+        if split_pca:
+            raise NotImplementedError("Not implemented yet to run seperate PCA")
+        else:
+            joined = composition.join(
+                cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
+            #PCA on the contigs that have kmer count greater than threshold
+            Output.write_original_data(joined[threshold_filter],threshold)
+            pca = PCA(n_components=0.9).fit(joined[threshold_filter])
+            transform_filter = pca.transform(joined[threshold_filter])
+            Output.write_pca(transform_filter,
+                             threshold,cov[threshold_filter].index)
+        logging.info('PCA transformed data.')
+    
+        cv_type='full'
+        cluster_args = []
+        for c in clusters_range:
+            cluster_args.append((c,cv_type,inits,iters,transform_filter))
+    
+    #This code should be executed by all threads
+    if max_n_processors.use_mpi:
+        if max_n_processors.rank != 0:
+            cluster_args = []
+        cluster_args = max_n_processors.comm.bcast(cluster_args, root=0)
+        bic = map(parallelized_cluster,cluster_args[max_n_processors.rank::max_n_processors.size])
+        #Gather all results to root process again
+        bics = max_n_processors.comm.gather(bic, root=0)
+        if max_n_processors.rank == 0:
+            bics = list(chain(*bics))
+    else:
+        pool = multiprocessing.Pool(processes=max_n_processors.size)
+        bics = pool.map(parallelized_cluster,cluster_args)
 
-    Output.write_cluster_responsibilities(
-        pp,
-        threshold,c)
+    #Run this code if we are 
+    # 1. using MPI and are rank 0 
+    # or 
+    # 2. if we are not using MPI
+    if (max_n_processors.use_mpi and max_n_processors.rank==0) or not max_n_processors.use_mpi:
+        Output.write_bic(bics)
+
+        min_bic,optimal_c = min(bics,key=lambda x: x[0])
+        gmm = GMM(n_components=optimal_c,covariance_type=cv_type,n_init=inits,
+                  n_iter=iters).fit(transform_filter)
+    
+        joined["clustering"] = gmm.predict(pca.transform(joined))
+        Output.write_clustering(joined,threshold_filter,threshold,c,pipe)
+        Output.write_cluster_pca_means(gmm.means_,threshold,c)
+        Output.write_cluster_means(pca.inverse_transform(gmm.means_),
+                                       threshold,c)
+        # Covariance matrix is three dimensional if full
+        if cv_type == 'full':
+            for i,v in enumerate(gmm.covars_):
+                Output.write_cluster_variance(pca.inverse_transform(v),
+                                              threshold,i)
+                Output.write_cluster_pca_variances(v,threshold,i)
+        else:
+            Output.write_cluster_variance(pca.inverse_transform(v),
+                                          threshold,1)
+            
+        pp = gmm.predict_proba(transform_filter)
+    
+        Output.write_cluster_responsibilities(
+            pp,
+            threshold,c)
         
 def window(seq,n):
     els = tee(seq,n)
@@ -152,6 +174,31 @@ def set_random_state(seed):
     except ValueError as e:
         raise ArgumentTypeError(ERROR)
     
+def get_max_n_processors(n_procs):
+    #-------------------------------------------------------------------------------
+    # MPI setup
+    #-------------------------------------------------------------------------------
+    MpiParams = namedtuple("MpiParams","comm use_mpi size rank")
+    if n_procs:
+        try:
+            n_procs = int(n_procs)
+        except ValueError:
+            raise ArgumentTypeError("{0} should be convertable to integer".format(n_procs))
+    try:
+        if not os.environ.has_key('OMPI_COMM_WORLD_RANK'):
+            raise ImportError
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        use_mpi = True
+        size =  n_procs if n_procs else comm.Get_size() 
+        rank = comm.Get_rank()
+    except ImportError:
+        comm = None
+        use_mpi = False
+        rank = None
+        size = n_procs if n_procs else multiprocessing.cpu_count()
+
+    return MpiParams(comm,use_mpi,size,rank)
 
 def generate_feature_mapping(kmer_len):
     BASE_COMPLEMENT = {"A":"T","T":"A","G":"C","C":"G"}
@@ -248,8 +295,15 @@ def arguments():
     parser.add_argument('-p', '--pipe', default=False, action="store_true",
                         help=('Add this tag if the main result file should be'
                               'printed to stdout. Useful for pipeline use'))
-    parser.add_argument('-m','--max_n_processors',type=int,
-                       help='Specify the maximum number of processors CONCOCT is allowed to use, if absent, all present processors will be used.')
+    parser.add_argument('-m','--max_n_processors',type=get_max_n_processors, 
+                        default=get_max_n_processors(None),
+                        help=('Specify the maximum number of processors CONCOCT is allowed to use, '
+                            'if absent, all present processors will be used. Default is to  '
+                            'assume MPI execution, allowing execution over multiple nodes, '
+                            'with a fallback to standard python multiprocessing on a single '
+                            'machine using available cores. '
+                            'It is recommended to install mpi and mpi4py if execution over multiple '
+                            'nodes is required. To specifically run '))
     parser.add_argument('-f','--force_seed',type=set_random_state, default=set_random_state(11),
                        help=('Specify an integer to use as seed for clustering. '
                              'You can specify 0 for random seed. The default seed '

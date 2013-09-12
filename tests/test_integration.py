@@ -54,6 +54,19 @@ class TestCMD(object):
         except subprocess.CalledProcessError as exc:
             self.c = exc.returncode
 
+    def run_command_mpi(self,cov_file='coverage',comp_file='composition.fa',
+                    tags=[],basename='nose_tmp_output/1'):
+        call_string = "mpirun -np 8 CONCOCT test_data/{0} test_data/{1} --basename {2} -c 3,5,1".format(cov_file,comp_file,basename)
+        for tag in tags:
+            call_string += " " + tag
+        self.c = 0 # Exit code
+        try:
+            self.op = subprocess.check_output(
+                call_string,
+                shell=True)
+        except subprocess.CalledProcessError as exc:
+            self.c = exc.returncode
+
     def file_len(self,fh):
         i=0
         with open(fh) as f:
@@ -71,6 +84,9 @@ class TestCMD(object):
  
     def test_no_errors(self):
         self.run_command()
+        assert_equal(self.c,0,
+                     msg = "Command exited with nonzero status")
+        self.run_command_mpi()
         assert_equal(self.c,0,
                      msg = "Command exited with nonzero status")
 
