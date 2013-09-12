@@ -64,4 +64,12 @@ numpy==1.7.1
 pandas==0.11.0
 scikit-learn==0.13.1
 scipy==0.12.0
+mpi4py==1.3.1
 ```
+From linux (ubuntu) repositories:
+```
+openmpi1.6-bin 
+libopenmpi1.6-dev
+MISSING MORE
+```
+
