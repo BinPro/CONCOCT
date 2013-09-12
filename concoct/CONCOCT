@@ -301,9 +301,10 @@ def arguments():
                             'if absent, all present processors will be used. Default is to  '
                             'assume MPI execution, allowing execution over multiple nodes, '
                             'with a fallback to standard python multiprocessing on a single '
-                            'machine using available cores. '
-                            'It is recommended to install mpi and mpi4py if execution over multiple '
-                            'nodes is required. To specifically run '))
+                            'machine using available cores. It is recommended to install mpi '
+                            'and mpi4py if execution over multiple '
+                            'nodes is required. To run with MPI use call it with mpirun -np N '
+                            'or equivalent'))
     parser.add_argument('-f','--force_seed',type=set_random_state, default=set_random_state(11),
                        help=('Specify an integer to use as seed for clustering. '
                              'You can specify 0 for random seed. The default seed '
