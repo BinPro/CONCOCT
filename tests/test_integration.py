@@ -86,9 +86,15 @@ class TestCMD(object):
         self.run_command()
         assert_equal(self.c,0,
                      msg = "Command exited with nonzero status")
-        self.run_command_mpi()
-        assert_equal(self.c,0,
-                     msg = "Command exited with nonzero status")
+        run_mpi_test = True
+        try:
+            import mpi4py
+        except ImportError:
+            run_mpi_test = False
+        if run_mpi_test:
+            self.run_command_mpi()
+            assert_equal(self.c,0,
+                         msg = "Command exited with nonzero status")
 
     def test_directory_creation(self):
         self.run_command()
