@@ -38,7 +38,7 @@ def parallelized_cluster(args):
 def cluster(comp_file, cov_file, kmer_len, threshold, 
             read_length, clusters_range, cov_range, 
             split_pca, inits, iters, outdir, pipe,
-            max_n_processors,args=None):
+            max_n_processors, pca_components, args=None):
     #Run this code if we are 
     # 1. using MPI and are rank 0 
     # or 
@@ -93,17 +93,36 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
         logging.info('Successfully loaded coverage data.')
     
     
+        joined = composition.join(
+            cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
         if split_pca:
-            raise NotImplementedError("Not implemented yet to run seperate PCA")
+            cov_pca = PCA(n_components=pca_components[0]).fit(
+                cov[threshold_filter].ix[:,cov_range[0]:cov_range[1]])
+            transform_filter_cov = cov_pca.transform(
+                cov[threshold_filter].ix[:,cov_range[0]:cov_range[1]])
+
+            transform_filter_cov = p.DataFrame(transform_filter_cov,
+                                               index=cov[threshold_filter].index)
+            transform_filter_cov = transform_filter_cov.rename(
+                columns=lambda x: 'cov_'+str(x))
+
+            comp_pca = PCA(n_components=pca_components[1]).fit(
+                composition[threshold_filter])
+            transform_filter_comp = comp_pca.transform(composition[threshold_filter])
+            transform_filter_comp = p.DataFrame(transform_filter_comp,
+                                                index=composition[threshold_filter].index)
+            transform_filter_comp = transform_filter_comp.rename(
+                columns=lambda x: 'comp_'+str(x))
+            transform_filter = transform_filter_comp.join(
+                transform_filter_cov, how='inner')
         else:
-            joined = composition.join(
-                cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
             #PCA on the contigs that have kmer count greater than threshold
-            Output.write_original_data(joined[threshold_filter],threshold)
-            pca = PCA(n_components=0.9).fit(joined[threshold_filter])
+            pca = PCA(n_components=pca_components).fit(joined[threshold_filter])
             transform_filter = pca.transform(joined[threshold_filter])
-            Output.write_pca(transform_filter,
-                             threshold,cov[threshold_filter].index)
+
+        Output.write_original_data(joined[threshold_filter],threshold)
+        Output.write_pca(transform_filter,
+                         threshold,cov[threshold_filter].index)
         logging.info('PCA transformed data.')
     
         cv_type='full'
@@ -136,20 +155,41 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
         gmm = GMM(n_components=optimal_c,covariance_type=cv_type,n_init=inits,
                   n_iter=iters).fit(transform_filter)
     
-        joined["clustering"] = gmm.predict(pca.transform(joined))
-        Output.write_clustering(joined,threshold_filter,threshold,c,pipe)
-        Output.write_cluster_pca_means(gmm.means_,threshold,c)
-        Output.write_cluster_means(pca.inverse_transform(gmm.means_),
+        if split_pca:
+            # Transform both unfiltered datasets separately before joining
+            transform_comp = comp_pca.transform(composition)
+            transform_cov = cov_pca.transform(cov)
+            transform_comp = p.DataFrame(transform_comp,
+                                         index=composition.index)
+            transform_cov = p.DataFrame(transform_cov,
+                                        index=cov.index)
+            # Renaming is necessary so no columns have the same name
+            transform_comp = transform_comp.rename(
+                columns = lambda x: 'comp_'+str(x))
+            transform_cov = transform_cov.rename(
+                columns = lambda x: 'cov_'+str(x))
+            joined_transform = transform_comp.join(
+                transform_cov, how='inner')
+
+            joined["clustering"] = gmm.predict(joined_transform)
+                        
+        else:
+            joined["clustering"] = gmm.predict(pca.transform(joined))
+            Output.write_cluster_means(pca.inverse_transform(gmm.means_),
                                        threshold,c)
         # Covariance matrix is three dimensional if full
         if cv_type == 'full':
             for i,v in enumerate(gmm.covars_):
-                Output.write_cluster_variance(pca.inverse_transform(v),
-                                              threshold,i)
+                if not split_pca:
+                    Output.write_cluster_variance(pca.inverse_transform(v),
+                                                  threshold,i)
                 Output.write_cluster_pca_variances(v,threshold,i)
         else:
-            Output.write_cluster_variance(pca.inverse_transform(v),
-                                          threshold,1)
+            # Not implemented yet
+            pass
+            
+        Output.write_clustering(joined,threshold_filter,threshold,c,pipe)
+        Output.write_cluster_pca_means(gmm.means_,threshold,c)
             
         pp = gmm.predict_proba(transform_filter)
     
@@ -239,6 +279,20 @@ def parse_taxonomy_cluster_list(tax_file):
     raise NotImplementedError(("This functionality has not been added yet. "
                                "Please use -c and specify range"))
 
+
+def parse_split_pca(s):
+    ERROR="'" + s + ("' is not a valid split pca proportion tuple. "
+                     "Expected two positive integers <100")
+    try:
+        prop = s.split(",")
+    except ValueError as e:
+        raise ArgumentTypeError(ERROR)
+    if not len(prop) == 2:
+        raise ArgumentTypeError(ERROR)
+    cov_prop = int(prop[0])
+    comp_prop = int(prop([1]))
+    return (cov_prop,comp_prop)
+
 def arguments():
     parser = ArgumentParser()
 
@@ -276,11 +330,24 @@ def arguments():
     parser.add_argument('-r','--read_length', type=int, default=100,
         help='specify read length for coverage, default 100')
     #Joined PCA or seperate PCA
-    parser.add_argument('-s','--split_pca', default=False, action="store_true",
-        help='specify this flag to first do PCA for the composition \
-              and using that component number that explaines 90 percent \
-              of variance for the coverage as well. Default join composition \
-              and coverage before PCA. ***NOT IMPLEMENTED***')
+    parser.add_argument('-s','--split_pca', action='store_true',
+              help=('specify this flag to perform PCA for the composition '
+               ' and coverage data seperately'))
+    parser.add_argument('--coverage_percentage_pca', default=90, type=int,
+                        help=('The percentatage of variance explained'
+                              ' by the principal components for the'
+                              ' coverage data, only considered if '
+                              ' split pca is used'))
+    parser.add_argument('--composition_percentage_pca', default=90, type=int,
+                        help=('The percentatage of variance explained'
+                              ' by the principal components for the'
+                              ' composiiton data, only considered if '
+                              ' split pca is used'))
+    parser.add_argument('--total_percentage_pca', default=90, type=int,
+                        help=('The percentage of variance explained'
+                              ' by the principal components for the'
+                              ' combined data, only considered if '
+                              ' split pca is NOT used'))
     #Clustering Parameters
     parser.add_argument('-e', '--executions',type=int, default=5,
         help='How often to initialize each cluster count. default 5 times')
@@ -314,6 +381,14 @@ def arguments():
         
 if __name__=="__main__":
     args = arguments()
+    if args.split_pca:
+        cov = args.coverage_percentage_pca/100.0
+        comp = args.composition_percentage_pca/100.0
+        pca_components = (cov,comp)
+                          
+    else:
+        pca_components = args.total_percentage_pca/100.0
+
     results = cluster(args.composition_file, 
                       args.coverage_file,
                       args.kmer_length, 
@@ -327,4 +402,5 @@ if __name__=="__main__":
                       args.basename, 
                       args.pipe,
                       args.max_n_processors,
+                      pca_components,
                       args)
