@@ -86,9 +86,15 @@ class TestCMD(object):
         self.run_command()
         assert_equal(self.c,0,
                      msg = "Command exited with nonzero status")
-        self.run_command_mpi()
-        assert_equal(self.c,0,
-                     msg = "Command exited with nonzero status")
+        run_mpi_test = True
+        try:
+            import mpi4py
+        except ImportError:
+            run_mpi_test = False
+        if run_mpi_test:
+            self.run_command_mpi()
+            assert_equal(self.c,0,
+                         msg = "Command exited with nonzero status")
 
     def test_directory_creation(self):
         self.run_command()
@@ -393,3 +399,56 @@ class TestCMD(object):
         true_pseudo_cov = -1.8115 
         calc_pseudo_cov = df.sample_1[0]
         assert_almost_equal(true_pseudo_cov,calc_pseudo_cov,places=4)
+
+    def test_split_pca(self):
+        self.run_command(tags=['--split_pca',
+                               '--composition_percentage_pca 90',
+                               '--coverage_percentage_pca 60'])
+        assert_equal(self.c,0,
+                     msg = "Split PCA tag results in error")
+
+        d_p = os.path.join(tmp_basename_dir)
+        assert_true(
+            isfile(d_p+ '/bic.csv'),
+            msg='Bic file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/clustering_gt1000.csv'),
+            msg='Large contigs clustering file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/pca_means_gt1000.csv'),
+            msg='Large contigs cluster pca means file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/pca_variances_gt1000_dim1.csv'),
+            msg='Large contigs cluster pca variances file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/responsibilities.csv'),
+            msg='Large contigs responsibilities file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/clustering.csv'),
+            msg='Clustering file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/PCA_transformed_data_gt1000.csv'),
+            msg='PCA file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/original_data_gt1000.csv'),
+            msg='Original data file is not created'
+            )
+        assert_true(
+            isfile(d_p+ '/concoct_log.txt'),
+            msg='Log file is not created'
+            )
+        self.run_command(basename=tmp_basename_dir2+'/')
+        with open(tmp_basename_dir+'/pca_means_gt1000.csv','r') as pca_m1:
+            pca_means1 = pca_m1.read()
+        with open(tmp_basename_dir2+'/pca_means_gt1000.csv','r') as pca_m2:
+            pca_means2 = pca_m2.read()
+        assert_true(not (pca_means1 == pca_means2),
+                    msg=('Pca mean files same even with different '
+                         'percentage explained variance'))
