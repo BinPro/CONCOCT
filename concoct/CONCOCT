@@ -30,8 +30,8 @@ def parallelized_cluster(args):
     print >> sys.stderr, "Convergence for cluster number {0}: {1}".format(
         c,gmm.converged_)
     bic = gmm.bic(transform_filter)
-    logging.info('Done fitting model for cluster number {0}'.format(c))
-    return bic,c
+    
+    return bic,c, gmm.converged_
 
 
 
@@ -116,20 +116,23 @@ def cluster(comp_file, cov_file, kmer_len, threshold,
         if max_n_processors.rank != 0:
             cluster_args = []
         cluster_args = max_n_processors.comm.bcast(cluster_args, root=0)
-        bic = map(parallelized_cluster,cluster_args[max_n_processors.rank::max_n_processors.size])
+        result = map(parallelized_cluster,cluster_args[max_n_processors.rank::max_n_processors.size])
         #Gather all results to root process again
-        bics = max_n_processors.comm.gather(bic, root=0)
+        results = max_n_processors.comm.gather(result, root=0)
         if max_n_processors.rank == 0:
-            bics = list(chain(*bics))
+            results = list(chain(*results))
+    
     else:
         pool = multiprocessing.Pool(processes=max_n_processors.size)
-        bics = pool.map(parallelized_cluster,cluster_args)
-
+        results = pool.map(parallelized_cluster,cluster_args)
     #Run this code if we are 
     # 1. using MPI and are rank 0 
     # or 
     # 2. if we are not using MPI
     if (max_n_processors.use_mpi and max_n_processors.rank==0) or not max_n_processors.use_mpi:
+        for bic,c,converged in results:
+            logging.info('Done fitting model for cluster number {0}'.format(c))
+            bics = [(r[0],r[1]) for r in results]
         Output.write_bic(bics)
 
         min_bic,optimal_c = min(bics,key=lambda x: x[0])
