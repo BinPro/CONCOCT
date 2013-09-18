@@ -43,8 +43,6 @@ class Output(object):
             basename_path = os.path.abspath(basename)
             self.CONCOCT_PATH = basename+'_'
 
-        print >> sys.stderr, "Results created at {0}".format(
-            os.path.abspath(self.CONCOCT_PATH))
         self.BIC_FILE = self.CONCOCT_PATH + "bic.csv"
         self.ARGS_FILE = self.CONCOCT_PATH + "args.txt"
         self.ORIGINAL_FILE_BASE = self.CONCOCT_PATH + "original_data_gt{0}.csv"
@@ -56,7 +54,7 @@ class Output(object):
         self.MEANS_FILE_BASE = self.CONCOCT_PATH + "means{0}.csv"
         self.VARIANCE_FILE_BASE = self.CONCOCT_PATH + "variance_gt{0}_dim{1}.csv"
         self.RESPONSIBILITY_FILE_BASE = self.CONCOCT_PATH + "responsibilities.csv"
-        self.LOG_FILE_BASE = self.CONCOCT_PATH + 'concoct_log.txt'
+        self.LOG_FILE_BASE = self.CONCOCT_PATH + 'log.txt'
         self.pipe = args.pipe
 
         logging.basicConfig(
@@ -65,9 +63,13 @@ class Output(object):
             filemode='w', # Overwrites old log file
             format='%(asctime)s:%(levelname)s:%(name)s:%(message)s'
             )
+
+        logging.info("Results created at {0}".format(
+            os.path.abspath(self.CONCOCT_PATH)))
+
+        print >> sys.stderr, "Up and running. Check {0} for progress".format(
+            os.path.abspath(self.LOG_FILE_BASE))
         #Write header to bic.csv
-        with open(self.BIC_FILE,"a+") as fh:
-            print >> fh, "cluster_count,bic_value"
         with open(self.ARGS_FILE,"w+") as fh:
             print >> fh, args
     

@@ -43,7 +43,7 @@ class TestCMD(object):
 
     def run_command(self,cov_file='coverage',comp_file='composition.fa',
                     tags=[],basename='nose_tmp_output/1'):
-        call_string = "CONCOCT test_data/{0} test_data/{1} --basename {2} -c 3,5,1".format(cov_file,comp_file,basename)
+        call_string = "CONCOCT test_data/{0} test_data/{1} --basename {2} -c 3,5,1 2> /dev/null".format(cov_file,comp_file,basename)
         for tag in tags:
             call_string += " " + tag
         self.c = 0 # Exit code
@@ -56,7 +56,7 @@ class TestCMD(object):
 
     def run_command_mpi(self,cov_file='coverage',comp_file='composition.fa',
                     tags=[],basename='nose_tmp_output/1'):
-        call_string = "mpirun -np 8 CONCOCT test_data/{0} test_data/{1} --basename {2} -c 3,5,1".format(cov_file,comp_file,basename)
+        call_string = "mpirun -np 8 CONCOCT test_data/{0} test_data/{1} --basename {2} -c 3,5,1 2> /dev/null".format(cov_file,comp_file,basename)
         for tag in tags:
             call_string += " " + tag
         self.c = 0 # Exit code
@@ -165,7 +165,7 @@ class TestCMD(object):
             msg='Original data file is not created'
             )
         assert_true(
-            isfile(d_p+ '/concoct_log.txt'),
+            isfile(d_p+ '/log.txt'),
             msg='Log file is not created'
             )
         # dir as file
@@ -213,7 +213,7 @@ class TestCMD(object):
             msg='Original data file is not created'
             )
         assert_true(
-            isfile(d_p+ 'concoct_log.txt'),
+            isfile(d_p+ 'log.txt'),
             msg='Log file is not created'
             )
             
@@ -308,7 +308,7 @@ class TestCMD(object):
 
     def test_logging(self):
         self.run_command()
-        with open(tmp_basename_dir+'/concoct_log.txt','r') as log:
+        with open(tmp_basename_dir+'/log.txt','r') as log:
             log_content = log.read()
             assert_true(len(log_content)>10,
                         "Log content is too small")
@@ -441,7 +441,7 @@ class TestCMD(object):
             msg='Original data file is not created'
             )
         assert_true(
-            isfile(d_p+ '/concoct_log.txt'),
+            isfile(d_p+ '/log.txt'),
             msg='Log file is not created'
             )
         self.run_command(basename=tmp_basename_dir2+'/')
