@@ -31,7 +31,7 @@ def parallelized_cluster(args):
     if gmm.converged_:
         logging.info("Cluster {0} converged".format(c))
     else:
-        logging.error("Cluster {0} did not converge".format(c))
+        logging.warning("Cluster {0} did not converge".format(c))
         print >> sys.stderr, "Cluster {0} did not converge".format(c)
     return bic,c, gmm.converged_
 
@@ -407,5 +407,5 @@ if __name__=="__main__":
                       args.max_n_processors,
                       pca_components,
                       args)
-
-    print >> sys.stderr, "CONCOCT Finished, the log shows how it went."
+    if (args.max_n_processors.use_mpi and args.max_n_processors.rank==0) or not args.max_n_processors.use_mpi:
+        print >> sys.stderr, "CONCOCT Finished, the log shows how it went."

@@ -3,6 +3,7 @@ from nose.tools import assert_equal, assert_true, assert_almost_equal
 from os.path import isdir,isfile
 from os import listdir
 import os
+import sys
 import subprocess
 import pandas as p
 
@@ -64,8 +65,10 @@ class TestCMD(object):
             self.op = subprocess.check_output(
                 call_string,
                 shell=True)
+            print >> sys.stderr, "You have mpi support"
         except subprocess.CalledProcessError as exc:
             self.c = exc.returncode
+            print >> sys.stderr, "You do not have mpi support"
 
     def file_len(self,fh):
         i=0
