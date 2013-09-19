@@ -1,5 +1,5 @@
-CONCOCT
-======
+#CONCOCT#
+
 A program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
 coverage data in multiple samples and linkage data from paired end reads.
 
@@ -7,17 +7,35 @@ Warning! This software is to be considered unstable and under heavy development.
 If you still want to use this software, please stay up to date with the list of known issues:
 https://github.com/BinPro/CONCOCT/issues
 
-Install
--------
-Clone the repository and execute
+##Install##
+###Short version###
+Installs the package concoct in default python path, and adds script CONCOCT to bin. You can use sudo if needed.
+
+Resolve all dependencies, see below and then clone the repository and execute:
 ```
 cd CONCOCT
 python setup.py install
 ```
-Installs the package concoct in default python path, and adds script CONCOCT to bin
 
-Execute concoct
--------
+###Detailed version###
+Installs the package concoct in default python path, and adds script CONCOCT to bin. You can use sudo if needed.
+
+The simplest way to get the dependencies (given Ubuntu / Debian, similar for other distros):
+```
+sudo apt-get install git python-setuptools python-biopython python-nose \
+                     python-numpy python-pandas python-scikits-learn python-scipy
+git clone https://github.com/BinPro/CONCOCT.git
+cd CONCOCT
+python setup.py install
+```
+And if you want MPI execution:
+```
+sudo apt-get install python-pip openmpi1.6-bin libopenmpi1.6 libopenmpi1.6-dev
+sudo pip install mpi4py
+```
+
+##Execute concoct##
+
 ```
 usage: CONCOCT [-h] [-c CLUSTERS] [-n COVERAGE_FILE_COLUMN_NAMES]
                [-k KMER_LENGTH] [-l LIMIT_KMER_COUNT] [-r READ_LENGTH] [-s]
@@ -90,8 +108,8 @@ optional arguments:
                         can specify 0 for random seed. The default seed is 11.
 ```
 
-Dependencies
------------
+##Dependencies##
+
 CONCOCT requires python version 2.7 and the following packages:
 ```
 argparse==1.2.1
