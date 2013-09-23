@@ -41,19 +41,6 @@ def get_max_n_processors(n_procs):
 
     return MpiParams(comm,use_mpi,size,rank)
 
-def generate_feature_mapping(kmer_len):
-    BASE_COMPLEMENT = {"A":"T","T":"A","G":"C","C":"G"}
-    kmer_hash = {}
-    counter = 0
-    for kmer in product("ATGC",repeat=kmer_len):
-        kmer = ''.join(kmer)
-        if kmer not in kmer_hash:
-            kmer_hash[kmer] = counter
-            rev_compl = ''.join([BASE_COMPLEMENT[x] for x in reversed(kmer)])
-            kmer_hash[rev_compl] = counter
-            counter += 1
-    return kmer_hash, counter+1
-
 def parse_cluster_list(cc_string):
     ERROR="'" + cc_string + ("' is not a valid range of number. Expected "
                              "forms like '20,100,2'.")
