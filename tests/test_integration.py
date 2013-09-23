@@ -455,3 +455,23 @@ class TestCMD(object):
         assert_true(not (pca_means1 == pca_means2),
                     msg=('Pca mean files same even with different '
                          'percentage explained variance'))
+
+    def test_versus_reference_results(self):
+        self.run_command()
+        reference_result_dir = os.path.join(test_dir_path,
+                                            'test_data',
+                                            'reference_result')
+        for ref_f in listdir(reference_result_dir):
+            fn = os.path.basename(ref_f)
+            # Log will have time stamps and thus not the same
+            if fn == 'log.txt':
+                continue
+            new_f = os.path.join(tmp_basename_dir,fn)
+            ref_f = os.path.join(reference_result_dir,fn)
+            with open(ref_f,'r') as ref_fh:
+                ref_f = ref_fh.read()
+            with open(new_f,'r') as new_fh:
+                new_f = new_fh.read()
+            assert_true(ref_f == new_f,
+                        msg=('File not consistent with '
+                             'reference file {0}').format(fn))
