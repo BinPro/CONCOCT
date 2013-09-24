@@ -14,6 +14,9 @@ from Bio import SeqIO
 from itertools import tee, izip, product, chain
 
 from sklearn.decomposition import PCA
+from sklearn.mixture import GMM
+
+import multiprocessing
 
 from concoct.output import Output
 from concoct.parser import arguments
@@ -23,11 +26,16 @@ def main(comp_file, cov_file, kmer_len, threshold,
          read_length, clusters_range, cov_range, 
          split_pca, inits, iters, outdir, pipe,
          max_n_processors, pca_components, args=None):
-    #Run this code if we are 
+
+    # Main node is if we're
     # 1. using MPI and are rank 0 
     # or 
     # 2. if we are not using MPI
-    if (max_n_processors.use_mpi and max_n_processors.rank==0) or not max_n_processors.use_mpi:
+    main_node = ((max_n_processors.use_mpi and 
+                  max_n_processors.rank==0) or 
+                 not max_n_processors.use_mpi)
+
+    if main_node:
         Output(outdir,args)
         #Composition
         #Generate kmer dictionary
@@ -112,13 +120,31 @@ def main(comp_file, cov_file, kmer_len, threshold,
         cluster_args = []
         for c in clusters_range:
             cluster_args.append((c,cv_type,inits,iters,transform_filter))
-    results = cluster(max_n_processors,cluster_args)
 
-    #Run this code if we are 
-    # 1. using MPI and are rank 0 
-    # or 
-    # 2. if we are not using MPI
-    if (max_n_processors.use_mpi and max_n_processors.rank==0) or not max_n_processors.use_mpi:
+    #This code should be executed by all threads
+    if max_n_processors.use_mpi:
+        if max_n_processors.rank != 0:
+            cluster_args = []
+        cluster_args = max_n_processors.comm.bcast(cluster_args, root=0)
+        result = map(cluster,cluster_args[max_n_processors.rank::max_n_processors.size])
+        #Gather all results to root process again
+        results = max_n_processors.comm.gather(result, root=0)
+        if max_n_processors.rank == 0:
+            results = list(chain(*results))
+    
+    else:
+        pool = multiprocessing.Pool(processes=max_n_processors.size)
+        results = pool.map(cluster,cluster_args)
+
+    if main_node:
+        bics = [(r[0],r[1]) for r in results]
+        Output.write_bic(bics)
+        min_bic,optimal_c = min(bics,key=lambda x: x[0])
+        gmm = GMM(n_components=optimal_c,covariance_type=cv_type,n_init=inits,
+                  n_iter=iters).fit(transform_filter)
+    
+
+    if main_node:
         if split_pca:
             # Transform both unfiltered datasets separately before joining
             transform_comp = comp_pca.transform(composition)
