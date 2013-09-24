@@ -97,7 +97,6 @@ def main(comp_file, cov_file, kmer_len, threshold,
                   n_iter=iters).fit(transform_filter)
     
 
-    if main_node:
         if split_pca:
             # Transform both unfiltered datasets separately before joining
             transform_comp = comp_pca.transform(composition)
