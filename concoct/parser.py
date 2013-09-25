@@ -139,7 +139,7 @@ def arguments():
     #Clustering Parameters
     parser.add_argument('-e', '--executions',type=int, default=5,
         help='How often to initialize each cluster count. default 5 times')
-    parser.add_argument('-i', '--iterations',type=int, default=100,
+    parser.add_argument('-i', '--iterations',type=int, default=1000,
         help='Maximum number of iterations if convergance not achieved')
     #Output
     parser.add_argument('-b', '--basename', default=os.curdir,
