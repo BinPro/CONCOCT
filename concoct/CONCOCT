@@ -40,11 +40,23 @@ def main(comp_file, cov_file, kmer_len, threshold,
 
         joined = composition.join(
             cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
+
         if split_pca:
             cov_d = cov[threshold_filter].ix[:,cov_range[0]:cov_range[1]]
+                
+            # Fix special case in pca_components
+            if pca_components[0] == "All":
+                pca_components = (cov_d.shape[1],pca_components[1])
+            if pca_components[1] == "All":
+                pca_components = (pca_components[0],
+                                  composition[threshold_filter].shape[1])
+
             transform_filter, cov_pca, comp_pca = \
                 perform_split_pca(cov_d, composition[threshold_filter], pca_components)
         else:
+            # Fix special cas in pca_components
+            if pca_components == "All":
+                pca_components = joined[threshold_filter].shape[1]
             #PCA on the contigs that have kmer count greater than threshold
             transform_filter, pca = perform_pca(joined[threshold_filter], pca_components)
 
@@ -117,12 +129,21 @@ def main(comp_file, cov_file, kmer_len, threshold,
 if __name__=="__main__":
     args = arguments()
     if args.split_pca:
-        cov = args.coverage_percentage_pca/100.0
-        comp = args.composition_percentage_pca/100.0
+        if args.coverage_percentage_pca == 100:
+            cov = "All"
+        else:
+            cov = args.coverage_percentage_pca/100.0
+        if args.composition_percentage_pca == 100:
+            comp = "All"
+        else:
+            comp = args.composition_percentage_pca/100.0
         pca_components = (cov,comp)
                           
     else:
-        pca_components = args.total_percentage_pca/100.0
+        if args.total_percentage_pca == 100:
+            pca_components = "All"
+        else:
+            pca_components = args.total_percentage_pca/100.0
 
     results = main(args.composition_file, 
                    args.coverage_file,
