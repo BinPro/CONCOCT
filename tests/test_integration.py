@@ -475,3 +475,23 @@ class TestCMD(object):
             assert_true(ref_f == new_f,
                         msg=('File not consistent with '
                              'reference file {0}').format(fn))
+
+    def test_versus_reference_results_split_pca(self):
+        self.run_command(tags=["--split_pca"])
+        reference_result_dir = os.path.join(test_dir_path,
+                                            'test_data',
+                                            'reference_result_split_pca')
+        for ref_f in listdir(reference_result_dir):
+            fn = os.path.basename(ref_f)
+            # Log will have time stamps and thus not the same
+            if fn == 'log.txt':
+                continue
+            new_f = os.path.join(tmp_basename_dir,fn)
+            ref_f = os.path.join(reference_result_dir,fn)
+            with open(ref_f,'r') as ref_fh:
+                ref_f = ref_fh.read()
+            with open(new_f,'r') as new_fh:
+                new_f = new_fh.read()
+            assert_true(ref_f == new_f,
+                        msg=('File not consistent with '
+                             'reference file {0}').format(fn))
