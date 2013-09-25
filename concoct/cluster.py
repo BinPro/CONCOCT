@@ -11,9 +11,11 @@ def cluster(args):
               n_iter=iters).fit(transform_filter)
     bic = gmm.bic(transform_filter)
     if gmm.converged_:
-        logging.info("Cluster {0} converged".format(c))
+        logging.info("Clustering into {0} clusters converged.".format(c))
     else:
-        logging.warning("Cluster {0} did not converge".format(c))
+        logging.warning(("Clustering into {0} clusters did not "
+                         "converge, consider increasing the number "
+                         "of iterations.").format(c))
         print >> sys.stderr, "Cluster {0} did not converge".format(c)
     return bic,c, gmm.converged_
 

@@ -87,7 +87,12 @@ def main(comp_file, cov_file, kmer_len, threshold,
     if main_node:
         bics = [(r[0],r[1]) for r in results]
         Output.write_bic(bics)
-        min_bic, optimal_c = min(bics,key=lambda x: x[0])
+        min_bic, optimal_c, converged = min(results,key=lambda x: x[0])
+        if not converged:
+            logging.error(("Optimal bic score was reached for non convergent "
+                           "cluster number {0}, exiting without clustering "
+                           "output").format(optimal_c))
+            sys.exit(-1)
         gmm = GMM(n_components=optimal_c, covariance_type=cv_type, n_init=inits,
                   n_iter=iters).fit(transform_filter)
     
