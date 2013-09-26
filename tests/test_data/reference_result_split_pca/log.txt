@@ -1,8 +1,0 @@
-2013-09-25 18:13:07,762:INFO:root:Results created at /home/johannes/repos/CONCOCT.BINPRO/tests/nose_tmp_output/1
-2013-09-25 18:13:09,564:INFO:root:Successfully loaded composition data.
-2013-09-25 18:13:09,568:INFO:root:Successfully loaded coverage data.
-2013-09-25 18:13:09,733:INFO:root:PCA transformed data.
-2013-09-25 18:13:10,724:INFO:root:Cluster 3 converged
-2013-09-25 18:13:11,011:INFO:root:Cluster 4 converged
-2013-09-25 18:13:11,774:INFO:root:Cluster 5 converged
-2013-09-25 18:13:12,393:INFO:root:CONCOCT Finished
