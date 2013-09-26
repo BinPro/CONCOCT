@@ -76,7 +76,7 @@ class Output(object):
     @classmethod
     def write_pca(self,transform,threshold,index):
         transform_df = p.DataFrame(transform,index=index)
-        transform_df.to_csv(self.PCA_FILE_BASE.format(threshold))
+        transform_df.to_csv(self.PCA_FILE_BASE.format(threshold),float_format='%1.8e')
     
     @classmethod
     def write_original_data(self,original,threshold):
