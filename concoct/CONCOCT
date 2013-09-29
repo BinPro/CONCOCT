@@ -20,7 +20,8 @@ from concoct.transform import perform_pca, perform_split_pca
 def main(comp_file, cov_file, kmer_len, threshold, 
          read_length, clusters_range, cov_range, 
          split_pca, inits, iters, outdir, pipe,
-         max_n_processors, pca_components, args=None):
+         max_n_processors, pca_components, random_seed,
+         args=None):
 
     # Main node is if we're
     # 1. using MPI and are rank 0 
@@ -67,7 +68,7 @@ def main(comp_file, cov_file, kmer_len, threshold,
         cv_type='full'
         cluster_args = []
         for c in clusters_range:
-            cluster_args.append((c,cv_type,inits,iters,transform_filter))
+            cluster_args.append((c,cv_type,inits,iters,transform_filter,random_seed))
 
     #This code should be executed by all threads
     if max_n_processors.use_mpi:
@@ -94,7 +95,7 @@ def main(comp_file, cov_file, kmer_len, threshold,
                            "output").format(optimal_c))
             sys.exit(-1)
         gmm = GMM(n_components=optimal_c, covariance_type=cv_type, n_init=inits,
-                  n_iter=iters).fit(transform_filter)
+                  n_iter=iters,random_state=random_seed).fit(transform_filter)
     
         if split_pca:
             # Transform both unfiltered datasets separately before joining
@@ -164,6 +165,7 @@ if __name__=="__main__":
                    args.pipe,
                    args.max_n_processors,
                    pca_components,
+                   args.force_seed,
                    args)
     if (args.max_n_processors.use_mpi and args.max_n_processors.rank==0) or not args.max_n_processors.use_mpi:
         print >> sys.stderr, "CONCOCT Finished, the log shows how it went."

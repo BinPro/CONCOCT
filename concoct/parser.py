@@ -11,10 +11,10 @@ def set_random_state(seed):
         seed = int(seed)
         if seed < 0:
             raise ArgumentTypeError("'" + seed + "' should be >= 0")
-        np.random.seed(seed)
+        return seed
     except ValueError as e:
         raise ArgumentTypeError(ERROR)
-    
+
 def get_max_n_processors(n_procs):
     #-------------------------------------------------------------------------------
     # MPI setup
