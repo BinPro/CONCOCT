@@ -164,4 +164,9 @@ def arguments():
                        help=('Specify an integer to use as seed for clustering. '
                              'You can specify 0 for random seed. The default seed '
                              'is 11.'))
+    parser.add_argument('--covariance_type', default="full", 
+                        choices=['full','diag'], 
+                        help=("Choose the shape of the covariance matrix for "
+                              "the GMM:s used in clustering."))
+
     return parser.parse_args()

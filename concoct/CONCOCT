@@ -21,7 +21,7 @@ def main(comp_file, cov_file, kmer_len, threshold,
          read_length, clusters_range, cov_range, 
          split_pca, inits, iters, outdir, pipe,
          max_n_processors, pca_components, random_seed,
-         args=None):
+         cv_type, args=None):
 
     # Main node is if we're
     # 1. using MPI and are rank 0 
@@ -65,7 +65,6 @@ def main(comp_file, cov_file, kmer_len, threshold,
         Output.write_pca(transform_filter,
                          threshold,cov[threshold_filter].index)
         logging.info('PCA transformed data.')
-        cv_type='full'
         cluster_args = []
         for c in clusters_range:
             cluster_args.append((c,cv_type,inits,iters,transform_filter,random_seed))
@@ -117,8 +116,10 @@ def main(comp_file, cov_file, kmer_len, threshold,
                                                   threshold,i)
                 Output.write_cluster_pca_variances(v,threshold,i)
         else:
-            # Not implemented yet
-            pass
+            if not split_pca:
+                Output.write_cluster_variance(pca.inverse_transform(gmm.covars_),
+                                              threshold,0)
+            Output.write_cluster_pca_variances(gmm.covars_,threshold,0)
             
         Output.write_clustering(joined,threshold_filter,threshold,c,pipe)
         Output.write_cluster_pca_means(gmm.means_,threshold,c)
@@ -166,6 +167,7 @@ if __name__=="__main__":
                    args.max_n_processors,
                    pca_components,
                    args.force_seed,
+                   args.covariance_type,
                    args)
     if (args.max_n_processors.use_mpi and args.max_n_processors.rank==0) or not args.max_n_processors.use_mpi:
         print >> sys.stderr, "CONCOCT Finished, the log shows how it went."

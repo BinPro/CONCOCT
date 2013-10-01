@@ -495,3 +495,20 @@ class TestCMD(object):
             assert_true(ref_f == new_f,
                         msg=('File not consistent with '
                              'reference file {0}').format(fn))
+
+    def test_diagonal_covariance_matrix(self):
+        self.run_command(tags=["--covariance_type diag","-i 100",'-m 1'])
+        assert_equal(self.c,0,
+                     msg = ("Command exited with nonzero status "
+                            "when ran with diagonal cov matrix"))
+        fn = 'bic.csv'
+        ref_f = os.path.join(test_dir_path, 'test_data',
+                             'reference_result', fn)
+        new_f = os.path.join(tmp_basename_dir,fn)
+        with open(ref_f,'r') as ref_fh:
+            ref_f = ref_fh.read()
+        with open(new_f,'r') as new_fh:
+            new_f = new_fh.read()
+        assert_true(new_f != ref_f,
+                    msg=('Diagonal cov matrix clustering consistent with '
+                         'reference clustering.'))
