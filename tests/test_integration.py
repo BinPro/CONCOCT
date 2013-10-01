@@ -457,7 +457,7 @@ class TestCMD(object):
                          'percentage explained variance'))
 
     def test_versus_reference_results(self):
-        self.run_command()
+        self.run_command(tags=["-i 100","-m 1"])
         reference_result_dir = os.path.join(test_dir_path,
                                             'test_data',
                                             'reference_result')
@@ -477,7 +477,7 @@ class TestCMD(object):
                              'reference file {0}').format(fn))
 
     def test_versus_reference_results_split_pca(self):
-        self.run_command(tags=["--split_pca"])
+        self.run_command(tags=["--split_pca", "-i 100", "-m 1"])
         reference_result_dir = os.path.join(test_dir_path,
                                             'test_data',
                                             'reference_result_split_pca')

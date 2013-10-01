@@ -25,6 +25,8 @@ class Output(object):
     MEANS_FILE_BASE = None
     VARIANCE_FILE_BASE = None
     RESPONSIBILITY_FILE_BASE = None
+    FLOAT_FORMAT = '%1.8e'
+
     @classmethod
     def __init__(self,basename,args):
         """
@@ -76,11 +78,11 @@ class Output(object):
     @classmethod
     def write_pca(self,transform,threshold,index):
         transform_df = p.DataFrame(transform,index=index)
-        transform_df.to_csv(self.PCA_FILE_BASE.format(threshold),float_format='%1.8e')
+        transform_df.to_csv(self.PCA_FILE_BASE.format(threshold),float_format=self.FLOAT_FORMAT)
     
     @classmethod
     def write_original_data(self,original,threshold):
-        original.to_csv(self.ORIGINAL_FILE_BASE.format(threshold))
+        original.to_csv(self.ORIGINAL_FILE_BASE.format(threshold), float_format=self.FLOAT_FORMAT)
 
     
     @classmethod
@@ -88,10 +90,12 @@ class Output(object):
         if pipe:
             dataframe.clustering.to_csv(sys.stdout)
         dataframe.clustering.to_csv(
-            self.CLUSTERING_FILE_BASE.format(""))
+            self.CLUSTERING_FILE_BASE.format(""),
+            float_format=self.FLOAT_FORMAT)
         dataframe[threshold_filter].clustering.to_csv(
             self.CLUSTERING_FILE_BASE.format(
-                "_gt{0}".format(threshold)))
+                "_gt{0}".format(threshold)),
+            float_format=self.FLOAT_FORMAT)
         
     @classmethod
     def write_bic(self,bics):
@@ -104,25 +108,25 @@ class Output(object):
     def write_cluster_pca_means(self,means,threshold,c):
         np.savetxt(
             self.PCA_MEANS_FILE_BASE.format("_gt{0}".format(threshold)),
-            means, fmt='%1.8e', delimiter=',')
+            means, fmt=self.FLOAT_FORMAT, delimiter=',')
 
     @classmethod
     def write_cluster_pca_variances(self,var,threshold,i):
         np.savetxt(self.PCA_VAR_FILE_BASE.format(threshold,i),
-                   var, fmt='%1.8e', delimiter=',')
+                   var, fmt=self.FLOAT_FORMAT, delimiter=',')
 
     @classmethod
     def write_cluster_means(self,means,threshold,c):
         np.savetxt(
             self.MEANS_FILE_BASE.format("_gt{0}".format(threshold)),
-            means, fmt='%1.8e', delimiter=',')
+            means, fmt=self.FLOAT_FORMAT, delimiter=',')
             
     @classmethod
     def write_cluster_variance(self,var,threshold,i):
         np.savetxt(self.VARIANCE_FILE_BASE.format(threshold,i),
-        var, fmt='%1.8e', delimiter=',')
+        var, fmt=self.FLOAT_FORMAT, delimiter=',')
 
     @classmethod
     def write_cluster_responsibilities(self,res,threshold,c):
         np.savetxt(self.RESPONSIBILITY_FILE_BASE,
-        res, fmt='%1.8e', delimiter=',')
+        res, fmt=self.FLOAT_FORMAT, delimiter=',')
