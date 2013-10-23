@@ -56,11 +56,15 @@ def load_coverage(cov_file,cov_range,contig_lengths,normalize=False):
                 (100/contig_lengths),
                 axis='index')
 
-        if normalize:
-            # Normalize
+	if normalize:
+            #Normalize per sample
+	    cov.ix[:,cov_range[0]:cov_range[1]] = \
+		_normalize_per_sample(cov.ix[:,cov_range[0]:cov_range[1]])
+
+            # Normalize per contig
             cov.ix[:,cov_range[0]:cov_range[1]] = \
-              cov.ix[:,cov_range[0]:cov_range[1]].divide(
-                 cov.ix[:,cov_range[0]:cov_range[1]].sum(axis=1),axis=0)
+		_normalize_per_contig(cov.ix[:,cov_range[0]:cov_range[1]])
+
         else:
             # Log transform
             cov.ix[:,cov_range[0]:cov_range[1]] = np.log(
@@ -68,6 +72,14 @@ def load_coverage(cov_file,cov_range,contig_lengths,normalize=False):
     
         logging.info('Successfully loaded coverage data.')
         return cov,cov_range
+    
+def _normalize_per_sample(arr):
+    """ Divides respective column of arr with its sum. """
+    return arr.divide(arr.sum(axis=0),axis=1)
+
+def _normalize_per_contig(arr):
+    """ Divides respective row of arr with its sum. """
+    return arr.divide(arr.sum(axis=1),axis=0)
     
 
 def generate_feature_mapping(kmer_len):
