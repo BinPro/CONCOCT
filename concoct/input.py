@@ -57,11 +57,11 @@ def load_coverage(cov_file,cov_range,contig_lengths,normalize=False):
                 axis='index')
 
 	if normalize:
-            #Normalize per sample
+            #Normalize per sample first
 	    cov.ix[:,cov_range[0]:cov_range[1]] = \
 		_normalize_per_sample(cov.ix[:,cov_range[0]:cov_range[1]])
 
-            # Normalize per contig
+            # Normalize contigs next
             cov.ix[:,cov_range[0]:cov_range[1]] = \
 		_normalize_per_contig(cov.ix[:,cov_range[0]:cov_range[1]])
 

@@ -11,3 +11,5 @@ build/*
 
 #ignore screen file
 .screenrc
+#ignore test folder
+tests/nose_tmp_output
