@@ -169,4 +169,6 @@ def arguments():
                         help=("Choose the shape of the covariance matrix for "
                               "the GMM:s used in clustering."))
 
+    parser.add_argument('--normalize_coverage', action='store_true', default=False,
+                        help=("Set flag to normalize coverage, default is to use log transform"))
     return parser.parse_args()

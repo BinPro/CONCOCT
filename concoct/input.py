@@ -44,18 +44,27 @@ def load_composition(comp_file,kmer_len,threshold):
         logging.info('Successfully loaded composition data.')
         return composition,contig_lengths,threshold_filter
 
-def load_coverage(cov_file,cov_range,contig_lengths):
+def load_coverage(cov_file,cov_range,contig_lengths,normalize=False):
         #Coverage import, file has header and contig ids as index
         #Assume datafile is in coverage format without pseudo counts
         cov = p.read_table(cov_file,header=0,index_col=0)
         if cov_range is None:
             cov_range = (cov.columns[0],cov.columns[-1])
-    
-        # Log transform and add pseudo counts corresponding to one 100bp read
-        cov.ix[:,cov_range[0]:cov_range[1]] = np.log(
-            cov.ix[:,cov_range[0]:cov_range[1]].add(
+
+        # Adding pseudo count
+        cov.ix[:,cov_range[0]:cov_range[1]] = cov.ix[:,cov_range[0]:cov_range[1]].add(
                 (100/contig_lengths),
-                axis='index'))
+                axis='index')
+
+        if normalize:
+            # Normalize
+            cov.ix[:,cov_range[0]:cov_range[1]] = \
+              cov.ix[:,cov_range[0]:cov_range[1]].divide(
+                 cov.ix[:,cov_range[0]:cov_range[1]].sum(axis=1),axis=0)
+        else:
+            # Log transform
+            cov.ix[:,cov_range[0]:cov_range[1]] = np.log(
+                cov.ix[:,cov_range[0]:cov_range[1]])
     
         logging.info('Successfully loaded coverage data.')
         return cov,cov_range

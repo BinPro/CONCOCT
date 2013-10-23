@@ -21,7 +21,7 @@ def main(comp_file, cov_file, kmer_len, threshold,
          read_length, clusters_range, cov_range, 
          split_pca, inits, iters, outdir, pipe,
          max_n_processors, pca_components, random_seed,
-         cv_type, args=None):
+         cv_type,normalize_coverage, args=None):
 
     # Main node is if we're
     # 1. using MPI and are rank 0 
@@ -37,7 +37,7 @@ def main(comp_file, cov_file, kmer_len, threshold,
 
         composition, contig_lengths, threshold_filter = \
             load_composition(comp_file, kmer_len, threshold)
-        cov, cov_range = load_coverage(cov_file, cov_range, contig_lengths)
+        cov, cov_range = load_coverage(cov_file, cov_range, contig_lengths,normalize_coverage)
 
         joined = composition.join(
             cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
@@ -168,6 +168,7 @@ if __name__=="__main__":
                    pca_components,
                    args.force_seed,
                    args.covariance_type,
+                   args.normalize_coverage,
                    args)
     if (args.max_n_processors.use_mpi and args.max_n_processors.rank==0) or not args.max_n_processors.use_mpi:
         print >> sys.stderr, "CONCOCT Finished, the log shows how it went."

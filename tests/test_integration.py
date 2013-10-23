@@ -512,3 +512,21 @@ class TestCMD(object):
         assert_true(new_f != ref_f,
                     msg=('Diagonal cov matrix clustering consistent with '
                          'reference clustering.'))
+
+    def test_normalize_coverage(self):
+        self.run_command(tags=["--normalize_coverage"])
+        assert_equal(self.c,0,
+                     msg = ("Command exited with nonzero status "
+                            "when ran with diagonal cov matrix"))
+        fn = 'bic.csv'
+        ref_f = os.path.join(test_dir_path, 'test_data',
+                             'reference_result', fn)
+        new_f = os.path.join(tmp_basename_dir,fn)
+        with open(ref_f,'r') as ref_fh:
+            ref_f = ref_fh.read()
+        with open(new_f,'r') as new_fh:
+            new_f = new_fh.read()
+        assert_true(new_f != ref_f,
+                    msg=('Normalized coverage clustering consistent with '
+                         'reference clustering.'))
+
