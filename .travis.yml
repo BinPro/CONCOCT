@@ -21,3 +21,4 @@ script: nosetests
 branches:
   only:
     - master
+    - travis_tryout
