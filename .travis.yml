@@ -15,8 +15,9 @@ install:
 #  - pip install scipy
 #  - pip install -q biopython --use-mirrors 
   - pip install pandas
+  - python setup.py install
 # command to run tests
-script: nosetests
+script: CONCOCT --help
 
 branches:
   only:
