@@ -17,7 +17,7 @@ install:
   - pip install pandas
   - python setup.py install
 # command to run tests
-script: CONCOCT tests/test_data/coverage tests/test_data/composition.fa -c 2,5,1
+script: CONCOCT tests/test_data/coverage tests/test_data/composition.fa -c 2,5,1 -m 1
 
 branches:
   only:
