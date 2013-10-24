@@ -17,7 +17,7 @@ install:
   - pip install pandas
   - python setup.py install
 # command to run tests
-script: CONCOCT --help
+script: nosetests
 
 branches:
   only:
