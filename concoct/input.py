@@ -64,11 +64,10 @@ def load_coverage(cov_file,cov_range,contig_lengths,normalize=False):
             # Normalize contigs next
             cov.ix[:,cov_range[0]:cov_range[1]] = \
 		_normalize_per_contig(cov.ix[:,cov_range[0]:cov_range[1]])
-
-        else:
-            # Log transform
-            cov.ix[:,cov_range[0]:cov_range[1]] = np.log(
-                cov.ix[:,cov_range[0]:cov_range[1]])
+       
+        # Log transform
+        cov.ix[:,cov_range[0]:cov_range[1]] = np.log(
+            cov.ix[:,cov_range[0]:cov_range[1]])
     
         logging.info('Successfully loaded coverage data.')
         return cov,cov_range
