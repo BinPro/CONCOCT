@@ -20,7 +20,7 @@ install:
   - pip install scikit-learn
   - python setup.py install
 # command to run tests
-script: CONCOCT tests/test_data/coverage tests/test_data/composition.fa -c 2,5,1 -m 1
+script: nosetests
 
 branches:
   only:
