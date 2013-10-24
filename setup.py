@@ -21,10 +21,8 @@ To be done""",
       scripts=["concoct/CONCOCT"],
       include_package_data=True,
       zip_safe=False,
-      install_requires=['argparse==1.2.1', 'biopython==1.62b',
-        'nose==1.3.0', 'numpy==1.7.1', 'pandas==0.11.0',  'scikit-learn==0.13.1',
-        'scipy==0.12.0'
-      ],
+      install_requires=['argparse==1.2.1',
+                        'nose==1.3.0'],
       entry_points="""
       # -*- Entry points: -*-
       """,
