@@ -8,13 +8,14 @@ virtualenv:
   system_site_packages: true
 before_install:
    - sudo apt-get update -qq
-   - sudo apt-get install -qq cython libatlas-dev liblapack-dev gfortran python-numpy python-scipy python-biopython python-pandas python-sklearn
+   - sudo apt-get install -qq cython libatlas-dev liblapack-dev gfortran python-numpy python-scipy python-biopython
 install:
 #Test with packages from binary install, takes a long time to build numpy and scipy
 #  - pip install -q -U numpy --use-mirrors
 #  - pip install scipy
 #  - pip install -q biopython --use-mirrors 
   - pip install pandas
+  - pip install scikit-learn
   - python setup.py install
 # command to run tests
 script: CONCOCT tests/test_data/coverage tests/test_data/composition.fa -c 2,5,1 -m 1
