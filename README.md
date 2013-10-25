@@ -1,4 +1,5 @@
-#CONCOCT#
+
+#CONCOCT [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)#
 
 A program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
 coverage data in multiple samples and linkage data from paired end reads.
