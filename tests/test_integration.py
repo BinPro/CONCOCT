@@ -515,7 +515,7 @@ class TestCMD(object):
                          'reference clustering.'))
 
     def test_normalize_coverage(self):
-        self.run_command(tags=["--normalize_coverage false"])
+        self.run_command(tags=["--no_cov_normalization"])
         assert_equal(self.c,0,
                      msg = ("Command exited with nonzero status "
                             "when ran with diagonal cov matrix"))
