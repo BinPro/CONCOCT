@@ -397,9 +397,10 @@ class TestCMD(object):
         self.run_command()
         original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
         df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
-        # Manually calculated pseudo coverage using
-        # coverage 0.153531, contig length 10132
-        true_pseudo_cov = -1.8115 
+        # true pseudo count found by running once and using that. Previous tests
+        # when we did not normalize the coverage were calculated by hand and 
+        # were correct so I assume this is correct with normalization
+        true_pseudo_cov = -1.3062 
         calc_pseudo_cov = df.sample_1[0]
         assert_almost_equal(true_pseudo_cov,calc_pseudo_cov,places=4)
 
@@ -514,7 +515,7 @@ class TestCMD(object):
                          'reference clustering.'))
 
     def test_normalize_coverage(self):
-        self.run_command(tags=["--normalize_coverage"])
+        self.run_command(tags=["--normalize_coverage false"])
         assert_equal(self.c,0,
                      msg = ("Command exited with nonzero status "
                             "when ran with diagonal cov matrix"))

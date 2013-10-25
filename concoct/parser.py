@@ -5,6 +5,9 @@ from collections import namedtuple
 import numpy as np
 import multiprocessing
 
+def str2bool(v):
+  return v in ("yes", "true", "y", "t", "1")
+
 def set_random_state(seed):
     ERROR="'{0}' should be converatable to integer".format(seed)
     try:
@@ -169,6 +172,9 @@ def arguments():
                         help=("Choose the shape of the covariance matrix for "
                               "the GMM:s used in clustering."))
 
-    parser.add_argument('--normalize_coverage', action='store_true', default=False,
-                        help=("Set flag to normalize coverage, default is to use log transform"))
+    parser.add_argument('--normalize_coverage', type=str2bool, default=True,
+                        help=("By default the coverage is normalized with regards to samples, "
+                              "then normalized with regards of contigs and finallyl log transformed. "
+                              "By setting this flag to anything other than yes, true, y, t or 1 you "
+                              "skip the normalization and only do log transorm of the coverage."))
     return parser.parse_args()
