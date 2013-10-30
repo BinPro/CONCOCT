@@ -404,6 +404,16 @@ class TestCMD(object):
         calc_pseudo_cov = df.sample_1[0]
         assert_almost_equal(true_pseudo_cov,calc_pseudo_cov,places=4)
 
+    def test_log_coverage_no_cov_normalization(self):
+        self.run_command(tags=["--no_cov_normalization"])
+        original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
+        df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
+        # Manually calculated pseudo coverage using
+        # coverage 0.153531, contig length 10132
+        true_pseudo_cov = -1.8115 
+        calc_pseudo_cov = df.sample_1[0]
+        assert_almost_equal(true_pseudo_cov,calc_pseudo_cov,places=4)
+
     def test_split_pca(self):
         self.run_command(tags=['--split_pca',
                                '--composition_percentage_pca 90',
@@ -552,22 +562,5 @@ class TestCMD(object):
             new_f = new_fh.read()
         assert_true(new_f != ref_f,
                     msg=('Diagonal cov matrix clustering consistent with '
-                         'reference clustering.'))
-
-    def test_normalize_coverage(self):
-        self.run_command(tags=["--no_cov_normalization"])
-        assert_equal(self.c,0,
-                     msg = ("Command exited with nonzero status "
-                            "when ran with diagonal cov matrix"))
-        fn = 'bic.csv'
-        ref_f = os.path.join(test_dir_path, 'test_data',
-                             'reference_result', fn)
-        new_f = os.path.join(tmp_basename_dir,fn)
-        with open(ref_f,'r') as ref_fh:
-            ref_f = ref_fh.read()
-        with open(new_f,'r') as new_fh:
-            new_f = new_fh.read()
-        assert_true(new_f != ref_f,
-                    msg=('Normalized coverage clustering consistent with '
                          'reference clustering.'))
 
