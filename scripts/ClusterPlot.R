@@ -55,7 +55,7 @@ colnames(df_ell)[2] <- "y"
 
 pdf(opt$ofile)
 
-p <- ggplot(data=PCA.df, aes(x=x, y=y,colour=c)) + geom_point(size=1.0, alpha=.6)
+p <- ggplot(data=PCA.df, aes(x=x, y=y,colour=c)) + geom_point(size=1.0, alpha=.6) + xlab("PCA1") + ylab("PCA2")
 
 if( !is.null(opt$legend)){ p + theme(legend.key.size = unit(0.5, "cm")) + geom_path(data=df_ell, aes(x=x, y=y,colour=as.factor(group)), size=0.5, linetype=2);}else{p + theme(legend.position="none") + geom_path(data=df_ell, aes(x=x, y=y,colour=as.factor(group)), size=0.5, linetype=2);}
 
