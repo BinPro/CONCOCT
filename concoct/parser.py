@@ -85,9 +85,9 @@ def arguments():
     parser = ArgumentParser()
 
     #Input files
-    parser.add_argument('coverage_file',
+    parser.add_argument('--coverage_file',
         help='specify the coverage file')
-    parser.add_argument('composition_file',
+    parser.add_argument('--composition_file',
         help='specify the composition file')
 
     #Handle cluster number parsing
@@ -178,4 +178,10 @@ def arguments():
                         help=("By default, the total coverage is added as a new column in the coverage "
                               "data matrix, independently of coverage normalization but previous to "
                               "log transformation. Use this tag to escape this behaviour."))
-    return parser.parse_args()
+    args  = parser.parse_args()
+    # This can be changed to an or case when input of either case is supported individually
+    if not (args.coverage_file and args.composition_file): 
+        parser.error("No input data supplied, add file(s) using --coverage_file <cov_file> and/or "
+                     "--composition_file <comp_file>")
+
+    return args
