@@ -174,4 +174,8 @@ def arguments():
                               "then normalized with regards of contigs and finally log transformed. "
                               "By setting this flag you skip the normalization and only do log "
                               "transorm of the coverage."))
+    parser.add_argument('--no_total_coverage', default=False, action="store_true",
+                        help=("By default, the total coverage is added as a new column in the coverage "
+                              "data matrix, independently of coverage normalization but previous to "
+                              "log transformation. Use this tag to escape this behaviour."))
     return parser.parse_args()

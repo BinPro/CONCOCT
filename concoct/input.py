@@ -44,10 +44,12 @@ def load_composition(comp_file,kmer_len,threshold):
         logging.info('Successfully loaded composition data.')
         return composition,contig_lengths,threshold_filter
 
-def load_coverage(cov_file,cov_range,contig_lengths,no_cov_normalization):
+def load_coverage(cov_file, cov_range, contig_lengths, no_cov_normalization, add_total_coverage=False):
         #Coverage import, file has header and contig ids as index
         #Assume datafile is in coverage format without pseudo counts
         cov = p.read_table(cov_file,header=0,index_col=0)
+
+        temp_cov_range = None
         if cov_range is None:
             cov_range = (cov.columns[0],cov.columns[-1])
 
@@ -55,6 +57,10 @@ def load_coverage(cov_file,cov_range,contig_lengths,no_cov_normalization):
         cov.ix[:,cov_range[0]:cov_range[1]] = cov.ix[:,cov_range[0]:cov_range[1]].add(
                 (100/contig_lengths),
                 axis='index')
+	if add_total_coverage:
+	    cov['total_coverage'] = cov.ix[:,cov_range[0]:cov_range[1]].sum(axis=1)
+	    temp_cov_range = (cov_range[0],'total_coverage')
+
 	if not no_cov_normalization:
             #Normalize per sample first
 	    cov.ix[:,cov_range[0]:cov_range[1]] = \
@@ -63,7 +69,10 @@ def load_coverage(cov_file,cov_range,contig_lengths,no_cov_normalization):
             # Normalize contigs next
             cov.ix[:,cov_range[0]:cov_range[1]] = \
 		_normalize_per_contig(cov.ix[:,cov_range[0]:cov_range[1]])
-       
+
+	if temp_cov_range:
+            cov_range = temp_cov_range
+
         # Log transform
         cov.ix[:,cov_range[0]:cov_range[1]] = np.log(
             cov.ix[:,cov_range[0]:cov_range[1]])
