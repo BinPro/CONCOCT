@@ -224,59 +224,26 @@ class TestCMD(object):
         self.run_command()
         d_p = tmp_basename_dir
         od_1 = d_p+'/original_data_gt1000.csv'
-        pca_1 = d_p+'/PCA_transformed_data_gt1000.csv'
-        var_1 = d_p+'/variance_gt1000_dim1.csv'
-        pca_means_1 = d_p+'/pca_means_gt1000.csv'
-        pca_variances_1 = d_p+'/pca_variances_gt1000_dim1.csv'
-        means_1 = d_p+'/means_gt1000.csv'
         clust_gt_1 = d_p+'/clustering_gt1000.csv'
         clust_1 = d_p+'/clustering.csv'
         odl_1 = self.file_len(od_1)
-        varl_1= self.file_len(var_1)
-        pca_meansl_1= self.file_len(pca_means_1)
-        pca_variancesl_1= self.file_len(pca_variances_1)
-        meansl_1= self.file_len(means_1)
         clust_gtl_1= self.file_len(clust_gt_1)
         clustl_1 = self.file_len(clust_1)
         
-        pca_df1 = p.io.parsers.read_table(pca_1)
-        pca_m1 = pca_df1.to_records()
-
         self.run_command(comp_file='composition_some_shortened.fa',
                          basename=tmp_basename_dir2+'/')
         d_p2 = tmp_basename_dir2
         od_2 = d_p2+'/original_data_gt1000.csv'
-        pca_2 = d_p2+'/PCA_transformed_data_gt1000.csv'
-        var_2 = d_p2+'/variance_gt1000_dim1.csv'
-        pca_means_2 = d_p2+'/pca_means_gt1000.csv'
-        pca_variances_2 = d_p2+'/pca_variances_gt1000_dim1.csv'
-        means_2 = d_p2+'/means_gt1000.csv'
         clust_gt_2 = d_p2+'/clustering_gt1000.csv'
         clust_2 = d_p2+'/clustering.csv'
         odl_2 = self.file_len(od_2)
-        varl_2= self.file_len(var_2)
-        pca_meansl_2= self.file_len(pca_means_2)
-        pca_variancesl_2= self.file_len(pca_variances_2)
-        meansl_2= self.file_len(means_2)
         clust_gtl_2= self.file_len(clust_gt_2)
         clustl_2 = self.file_len(clust_2)
-        pca_df2 = p.io.parsers.read_table(pca_2)
-        pca_m2 = pca_df2.to_records()
         
         assert_true(odl_1!=odl_2,
                     msg='Original data have the same lengths')
-        assert_true(varl_1==varl_2,
-                    msg='Variance files do not have the same lengths %s != %s'% (varl_1,varl_2) )
-        assert_true(pca_meansl_1==pca_meansl_2,
-                    msg='PCA mean files do not have the same lengths')
-        assert_true(pca_variancesl_1==pca_variancesl_2,
-                    msg='PCA variances files do not have the same lengths')
-        assert_true(meansl_1==meansl_2,
-                    msg='Means files do not have the same lengths')
         assert_true(clust_gtl_1!=clust_gtl_2,
                     msg='Filtered clustering files have the same lengths')
-        assert_true(pca_m1.shape!=pca_m2.shape,
-                    msg='PCA transformed data has the same shapes')
         assert_true(clustl_1==clustl_2,
                     msg='Clustering files does not have the same lengths')
         assert_true(clust_gtl_2!=clustl_2,
