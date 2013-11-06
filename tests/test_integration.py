@@ -266,7 +266,7 @@ class TestCMD(object):
         assert_true(odl_1!=odl_2,
                     msg='Original data have the same lengths')
         assert_true(varl_1==varl_2,
-                    msg='Variance files do not have the same lengths')
+                    msg='Variance files do not have the same lengths %s != %s'% (varl_1,varl_2) )
         assert_true(pca_meansl_1==pca_meansl_2,
                     msg='PCA mean files do not have the same lengths')
         assert_true(pca_variancesl_1==pca_variancesl_2,
