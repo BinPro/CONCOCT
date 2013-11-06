@@ -18,7 +18,7 @@ from concoct.input import load_composition, load_coverage
 from concoct.transform import perform_pca, perform_split_pca
 
 def main(comp_file, cov_file, kmer_len, threshold, 
-         read_length, clusters_range, cov_range, 
+         read_length, clusters_range, 
          split_pca, inits, iters, outdir, pipe,
          max_n_processors, pca_components, random_seed,
          cv_type, no_cov_normalization, no_total_coverage,
@@ -38,7 +38,7 @@ def main(comp_file, cov_file, kmer_len, threshold,
 
         composition, contig_lengths, threshold_filter = \
             load_composition(comp_file, kmer_len, threshold)
-        cov, cov_range = load_coverage(cov_file, cov_range, contig_lengths,no_cov_normalization, add_total_coverage=(not no_total_coverage))
+        cov, cov_range = load_coverage(cov_file, contig_lengths,no_cov_normalization, add_total_coverage=(not no_total_coverage))
 
         joined = composition.join(
             cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
@@ -159,7 +159,6 @@ if __name__=="__main__":
                    args.limit_kmer_count, 
                    args.read_length, 
                    args.clusters, 
-                   args.coverage_file_column_names, 
                    args.split_pca, 
                    args.executions, 
                    args.iterations, 

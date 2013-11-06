@@ -52,17 +52,7 @@ def parse_cluster_list(cc_string):
         raise ArgumentTypeError(ERROR)
     return xrange(first, last+1, step)
 
-def parse_coverage_columns(cov_string):
-    ERROR="'" + cov_string + ("' is not valid. Expected 'first_column_name,"
-                              "last_column_name'.")
-    try:
-        cov = cov_string.split(",")
-    except ValueError as e:
-        raise ArgumentTypeError(ERROR)
-    if not len(cov) == 2:
-        raise ArgumentTypeError(ERROR)
-    return cov
-    
+
 def parse_taxonomy_cluster_list(tax_file):
     raise NotImplementedError(("This functionality has not been added yet. "
                                "Please use -c and specify range"))
@@ -97,12 +87,6 @@ def arguments():
                                help=('specify range of clusters to try out'
                                      ' on format first,last,step.'
                                      ' default 20,100,2.'))
-    #Columns in coverage file to use
-    parser.add_argument('-n','--coverage_file_column_names', 
-                        type=parse_coverage_columns, default=None,
-                        help=('specify the first and last column names for'
-                              ' continuous coverage range of read counts'
-                              ' as first,last'))
     #cluster_count.add_argument('-t', type=parse_taxonomy_cluster_list,
     #help='specify a taxonomy file to estimate species number from (X). \
     #      Will use range X*0.5,X*1.5,2')
