@@ -100,7 +100,7 @@ def generate_feature_mapping(kmer_len):
             rev_compl = ''.join([BASE_COMPLEMENT[x] for x in reversed(kmer)])
             kmer_hash[rev_compl] = counter
             counter += 1
-    return kmer_hash, counter+1
+    return kmer_hash, counter
 
 def window(seq,n):
     els = tee(seq,n)
