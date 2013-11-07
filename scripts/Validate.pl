@@ -303,12 +303,16 @@ sub nmi{
       $ctotals[$i]+=$cluster[$i][$j];
     }
     my $dFC = $ctotals[$i]/$nN;
-    $HC += -$dFC*log($dFC);
+    if($dFC > 0.0){
+      $HC += -$dFC*log($dFC);
+    }
   }
 
   for(my $i = 0; $i < $nK; $i++){
     my $dFK = $ktotals[$i]/$nN;
-    $HK += -$dFK*log($dFK);
+    if($dFK > 0.0){
+      $HK += -$dFK*log($dFK);
+    }
   }
   
   
@@ -318,9 +322,11 @@ sub nmi{
     my $NMII = 0.0;
 
     for(my $j = 0; $j < $nC; $j++){
-      my $dF = ($nN*$cluster[$j][$i])/($ctotals[$j]*$ktotals[$i]);
-      if($dF > 0.0){
-	$NMII += $cluster[$j][$i]*log($dF);
+      if($ctotals[$j] >0 && $ktotals[$i] > 0){
+	my $dF = ($nN*$cluster[$j][$i])/($ctotals[$j]*$ktotals[$i]);
+	if($dF > 0.0){
+	  $NMII += $cluster[$j][$i]*log($dF);
+	}
       }
     }
     $NMII /= $nN;
