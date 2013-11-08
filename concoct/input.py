@@ -35,8 +35,11 @@ def load_composition(comp_file,kmer_len,threshold):
         # save contig lengths, used for pseudo counts in coverage
         contig_lengths = composition.sum(axis=1)
     
-        #Select contigs to cluster on
-        threshold_filter = composition.sum(axis=1) > threshold
+        # Select contigs to cluster on, namely the sequences longer than the threshold.
+	# The total kmer count without pseudo counts is related to the sequence length through:
+	# 
+	# Kmer_count = Seq_length - kmer_len + 1
+        threshold_filter = composition.sum(axis=1) - nr_features + kmer_len - 1 > threshold
         
         #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
         composition = np.log(composition.divide(composition.sum(axis=1),axis=0))

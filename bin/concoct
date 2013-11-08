@@ -156,7 +156,7 @@ if __name__=="__main__":
     results = main(args.composition_file, 
                    args.coverage_file,
                    args.kmer_length, 
-                   args.limit_kmer_count, 
+                   args.length_threshold, 
                    args.read_length, 
                    args.clusters, 
                    args.split_pca, 
