@@ -1,4 +1,3 @@
-
 #CONCOCT [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)#
 
 A program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
@@ -10,7 +9,7 @@ https://github.com/BinPro/CONCOCT/issues
 
 ##Install##
 ###Short version###
-Installs the package concoct in default python path, and adds script CONCOCT to bin. You can use sudo if needed.
+Installs the package concoct in default python path, and adds script concoct to bin. You can use sudo if needed.
 
 Resolve all dependencies, see below and then clone the repository and execute:
 ```
@@ -19,7 +18,7 @@ python setup.py install
 ```
 
 ###Detailed version###
-Installs the package concoct in default python path, and adds script CONCOCT to bin. You can use sudo if needed.
+Installs the package concoct in default python path, and adds script concoct to bin. You can use sudo if needed.
 
 The simplest way to get the dependencies (given Ubuntu / Debian, similar for other distros):
 ```
@@ -36,82 +35,38 @@ sudo pip install mpi4py
 ```
 
 ##Execute concoct##
+The script concoct takes two input files. The first file, the coverage
+file, contains a table where each row correspond to a contig, and each
+column correspond to a sample. The values are the average coverage for
+this contig in that sample. All values are separated with tabs. The second file contains sequences in fasta format. It is named the 
+composition file since it is used to calculate the kmer composition,
+or the genomic signature, of each contig.
+
+Here is a list of all parameters available for the concoct script. For a complete and up to date 
+explanation of each parameter and option, the recommended way is to run
 
 ```
-usage: CONCOCT [-h] [-c CLUSTERS] [-n COVERAGE_FILE_COLUMN_NAMES]
-               [-k KMER_LENGTH] [-l LIMIT_KMER_COUNT] [-r READ_LENGTH] [-s]
+usage: concoct [-h] [--coverage_file COVERAGE_FILE]
+               [--composition_file COMPOSITION_FILE] [-c CLUSTERS]
+               [-k KMER_LENGTH] [-l LENGTH_THRESHOLD] [-r READ_LENGTH] [-s]
                [--coverage_percentage_pca COVERAGE_PERCENTAGE_PCA]
                [--composition_percentage_pca COMPOSITION_PERCENTAGE_PCA]
                [--total_percentage_pca TOTAL_PERCENTAGE_PCA] [-e EXECUTIONS]
                [-i ITERATIONS] [-b BASENAME] [-p] [-m MAX_N_PROCESSORS]
-               [-f FORCE_SEED]
-               coverage_file composition_file
+               [-f FORCE_SEED] [--covariance_type {full,diag}]
+               [--no_cov_normalization] [--no_total_coverage]
+```
 
-positional arguments:
-  coverage_file         specify the coverage file
-  composition_file      specify the composition file
+For a complete and up to date explanation of each parameter and option, the recommended way is to run
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -c CLUSTERS, --clusters CLUSTERS
-                        specify range of clusters to try out on format
-                        first,last,step. default 20,100,2.
-  -n COVERAGE_FILE_COLUMN_NAMES, --coverage_file_column_names COVERAGE_FILE_COLUMN_NAMES
-                        specify the first and last column names for continuous
-                        coverage range of read counts as first,last
-  -k KMER_LENGTH, --kmer_length KMER_LENGTH
-                        specify kmer length, defaults to tetramer
-  -l LIMIT_KMER_COUNT, --limit_kmer_count LIMIT_KMER_COUNT
-                        specify the kmer count for threshold in running PCA on
-                        composition contigs, default 1000
-  -r READ_LENGTH, --read_length READ_LENGTH
-                        specify read length for coverage, default 100
-  -s, --split_pca       specify this flag to perform PCA for the composition
-                        and coverage data seperately
-  --coverage_percentage_pca COVERAGE_PERCENTAGE_PCA
-                        The percentatage of variance explained by the
-                        principal components for the coverage data, only
-                        considered if split pca is used
-  --composition_percentage_pca COMPOSITION_PERCENTAGE_PCA
-                        The percentatage of variance explained by the
-                        principal components for the composiiton data, only
-                        considered if split pca is used
-  --total_percentage_pca TOTAL_PERCENTAGE_PCA
-                        The percentage of variance explained by the principal
-                        components for the combined data, only considered if
-                        split pca is NOT used
-  -e EXECUTIONS, --executions EXECUTIONS
-                        How often to initialize each cluster count. default 5
-                        times
-  -i ITERATIONS, --iterations ITERATIONS
-                        Maximum number of iterations if convergance not
-                        achieved
-  -b BASENAME, --basename BASENAME
-                        Specify the basename for files or directory where
-                        outputwill be placed. Path to existing directory or
-                        basenamewith a trailing '/' will be interpreted as a
-                        directory.If not provided, current directory will be
-                        used.
-  -p, --pipe            Add this tag if the main result file should beprinted
-                        to stdout. Useful for pipeline use
-  -m MAX_N_PROCESSORS, --max_n_processors MAX_N_PROCESSORS
-                        Specify the maximum number of processors CONCOCT is
-                        allowed to use, if absent, all present processors will
-                        be used. Default is to assume MPI execution, allowing
-                        execution over multiple nodes, with a fallback to
-                        standard python multiprocessing on a single machine
-                        using available cores. It is recommended to install
-                        mpi and mpi4py if execution over multiple nodes is
-                        required. To run with MPI use call it with mpirun -np
-                        N or equivalent
-  -f FORCE_SEED, --force_seed FORCE_SEED
-                        Specify an integer to use as seed for clustering. You
-                        can specify 0 for random seed. The default seed is 11.
+
+```
+concoct --help
 ```
 
 ##Dependencies##
 
-CONCOCT requires python version 2.7 and the following packages:
+concoct requires python version 2.7 and the following packages:
 ```
 argparse==1.2.1
 biopython==1.62b
@@ -120,9 +75,8 @@ numpy==1.7.1
 pandas==0.11.0
 scikit-learn==0.13.1
 scipy==0.12.0
-mpi4py==1.3.1
 ```
-If mpi will be used for parallelization, also add the python package <pre> mpi4py==1.3.1 </pre> and linux (ubuntu) repositories:
+If mpi will be used for parallelization, also add the python package <pre>mpi4py==1.3.1</pre> and linux (ubuntu) repositories:
 ```
 openmpi1.6-bin 
 libopenmpi1.6-dev
