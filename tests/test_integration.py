@@ -65,10 +65,10 @@ class TestCMD(object):
             self.op = subprocess.check_output(
                 call_string,
                 shell=True)
-            print >> sys.stderr, "You have mpi support"
+            print("You have mpi support", file=sys.stderr)
         except subprocess.CalledProcessError as exc:
             self.c = exc.returncode
-            print >> sys.stderr, "You do not have mpi support"
+            print("You do not have mpi support", file=sys.stderr)
 
     def file_len(self,fh):
         i=0
@@ -306,7 +306,7 @@ class TestCMD(object):
 #                    msg='Clustering outcomes were not the same with same seeds')
 
         #Should be equal to both above since default seed is 11
-	self.run_command(tags=["-f","11"])
+        self.run_command(tags=["-f","11"])
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
         with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
             first_file=clustering.read()        

@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import pandas as p
 
-from itertools import product, tee, izip
+from itertools import product, tee
 
 from Bio import SeqIO
 
@@ -36,9 +36,9 @@ def load_composition(comp_file,kmer_len,threshold):
         contig_lengths = composition.sum(axis=1)
     
         # Select contigs to cluster on, namely the sequences longer than the threshold.
-	# The total kmer count without pseudo counts is related to the sequence length through:
-	# 
-	# Kmer_count = Seq_length - kmer_len + 1
+        # The total kmer count without pseudo counts is related to the sequence length through:
+        # 
+        # Kmer_count = Seq_length - kmer_len + 1
         threshold_filter = composition.sum(axis=1) - nr_features + kmer_len - 1 > threshold
         
         #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
@@ -53,27 +53,27 @@ def load_coverage(cov_file, contig_lengths, no_cov_normalization, add_total_cove
         cov = p.read_table(cov_file,header=0,index_col=0)
 
         temp_cov_range = None
-	# cov_range variable left here for historical reasons. Can be removed entirely
-	cov_range = (cov.columns[0],cov.columns[-1])
+        # cov_range variable left here for historical reasons. Can be removed entirely
+        cov_range = (cov.columns[0],cov.columns[-1])
 
         # Adding pseudo count
         cov.ix[:,cov_range[0]:cov_range[1]] = cov.ix[:,cov_range[0]:cov_range[1]].add(
                 (100/contig_lengths),
                 axis='index')
-	if add_total_coverage:
-	    cov['total_coverage'] = cov.ix[:,cov_range[0]:cov_range[1]].sum(axis=1)
-	    temp_cov_range = (cov_range[0],'total_coverage')
+        if add_total_coverage:
+            cov['total_coverage'] = cov.ix[:,cov_range[0]:cov_range[1]].sum(axis=1)
+            temp_cov_range = (cov_range[0],'total_coverage')
 
-	if not no_cov_normalization:
+        if not no_cov_normalization:
             #Normalize per sample first
-	    cov.ix[:,cov_range[0]:cov_range[1]] = \
-		_normalize_per_sample(cov.ix[:,cov_range[0]:cov_range[1]])
+            cov.ix[:,cov_range[0]:cov_range[1]] = \
+                _normalize_per_sample(cov.ix[:,cov_range[0]:cov_range[1]])
 
             # Normalize contigs next
             cov.ix[:,cov_range[0]:cov_range[1]] = \
-		_normalize_per_contig(cov.ix[:,cov_range[0]:cov_range[1]])
+                _normalize_per_contig(cov.ix[:,cov_range[0]:cov_range[1]])
 
-	if temp_cov_range:
+        if temp_cov_range:
             cov_range = temp_cov_range
 
         # Log transform
@@ -108,6 +108,6 @@ def generate_feature_mapping(kmer_len):
 def window(seq,n):
     els = tee(seq,n)
     for i,el in enumerate(els):
-        for _ in xrange(i):
+        for _ in range(i):
             next(el, None)
-    return izip(*els)
+    return zip(*els)

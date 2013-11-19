@@ -26,7 +26,7 @@ def get_max_n_processors(n_procs):
         except ValueError:
             raise ArgumentTypeError("{0} should be convertable to integer".format(n_procs))
     try:
-        if not os.environ.has_key('OMPI_COMM_WORLD_RANK'):
+        if 'OMPI_COMM_WORLD_RANK' not in os.environ:
             raise ImportError
         from mpi4py import MPI
         comm = MPI.COMM_WORLD
@@ -45,12 +45,12 @@ def parse_cluster_list(cc_string):
     ERROR="'" + cc_string + ("' is not a valid range of number. Expected "
                              "forms like '20,100,2'.")
     try:
-        first, last, step = map(int,cc_string.split(","))
+        first, last, step = list(map(int,cc_string.split(",")))
     except ValueError as e:
         raise ArgumentTypeError(ERROR)
     except Exception as e:
         raise ArgumentTypeError(ERROR)
-    return xrange(first, last+1, step)
+    return range(first, last+1, step)
 
 
 def parse_taxonomy_cluster_list(tax_file):
@@ -82,7 +82,7 @@ def arguments():
 
     #Handle cluster number parsing
     cluster_count = parser.add_mutually_exclusive_group()
-    cluster_count.add_argument('-c', '--clusters', default=range(20,101,2), 
+    cluster_count.add_argument('-c', '--clusters', default=list(range(20,101,2)), 
                                type=parse_cluster_list,
                                help=('specify range of clusters to try out'
                                      ' on format first,last,step.'
