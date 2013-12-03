@@ -15,7 +15,7 @@ Still have to upload the test data somewhere.
 Assembling Metagenomic Reads
 ----------------------------
 After obtaining the test data we assemble the contigs with Ray.
-Go the folder with the reads from the test data and run Ray::
+Go the folder with the reads from the test data and run Ray:
 
     mpiexec -n 1 Ray -k 31 -o out_31 \
         -p Sample118_s1e5_R1.fasta Sample118_s1e5_R2.fasta \
