@@ -12,4 +12,12 @@ To create coverage profiles
 
 Generate input files
 --------------------
-Compress files into the correct format
+Converg files into the correct format
+
+Run concoct
+-----------
+To see possible parameter settings with a description run
+
+    concoct --help
+
+We will only run concoct for some standard settings here.
