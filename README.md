@@ -42,9 +42,7 @@ this contig in that sample. All values are separated with tabs. The second file 
 composition file since it is used to calculate the kmer composition,
 or the genomic signature, of each contig.
 
-Here is a list of all parameters available for the concoct script. For a complete and up to date 
-explanation of each parameter and option, the recommended way is to run
-
+Here is a list of all parameters available for the concoct script.
 ```
 usage: concoct [-h] [--coverage_file COVERAGE_FILE]
                [--composition_file COMPOSITION_FILE] [-c CLUSTERS]
@@ -57,13 +55,14 @@ usage: concoct [-h] [--coverage_file COVERAGE_FILE]
                [--no_cov_normalization] [--no_total_coverage]
 ```
 
-For a complete and up to date explanation of each parameter and option, the recommended way is to run
+For a complete explanation of each parameter and option, the recommended way is to run
 
 
 ```
 concoct --help
 ```
 
+For a complete example see [this link](https://github.com/BinPro/CONCOCT/blob/master/doc/complete_example.md).
 ##Dependencies##
 
 concoct requires python version 2.7 and the following packages:
