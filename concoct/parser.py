@@ -76,9 +76,14 @@ def arguments():
 
     #Input files
     parser.add_argument('--coverage_file',
-        help='specify the coverage file')
+        help=("specify the coverage file, containing a table where each row "
+              "correspond to a contig, and each column correspond to a sample. "
+              "The values are the average coverage for this contig in that sample. "
+              "All values are separated with tabs."))
     parser.add_argument('--composition_file',
-        help='specify the composition file')
+        help=("specify the composition file, containing sequences in fasta format. "
+              "It is named the composition file since it is used to calculate the "
+              "kmer composition (the genomic signature) of each contig."))
 
     #Handle cluster number parsing
     cluster_count = parser.add_mutually_exclusive_group()
