@@ -29,7 +29,10 @@ def load_composition(comp_file,kmer_len,threshold):
         for i,seq in enumerate(SeqIO.parse(comp_file,"fasta")):
             contigs_id.append(seq.id)
             for kmer_tuple in window(seq.seq.tostring().upper(),kmer_len):
-                composition[i,feature_mapping["".join(kmer_tuple)]] += 1
+                kmer = "".join(kmer_tuple)
+                if kmer in feature_mapping:
+                    composition[i,feature_mapping[kmer]] += 1
+		
         composition = p.DataFrame(composition,index=contigs_id,dtype=float)
     
         # save contig lengths, used for pseudo counts in coverage
