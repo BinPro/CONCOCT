@@ -88,4 +88,5 @@ To see possible parameter settings with a description run
 
     concoct --help
 
-We will only run concoct for some standard settings here.
+We will only run concoct for some standard settings here. First we need to parse the input table to just contain the mean coverage for each contig in each sample:
+        cut -f1,11-26 concoct_inputtable.tsv > concoct_inputtableR.tsv
