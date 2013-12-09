@@ -115,3 +115,19 @@ Then we can visualise the clusters in the first two PCA dimensions:
 
 <https://github.com/BinPro/CONCOCT-test-data/evaluation-output/ClusterPlot.pdf>
 
+We can also compare the clustering to species labels. For this test data set we know these labels, they are given in the file 'clustering_gt1000_s.csv'. For real data labels may be obtained through taxonomic classification, e.g. using:
+
+<https://github.com/umerijaz/TAXAassign>
+
+In either case we provide a script Validate.pl for computing basic metrics on the cluster quality:
+
+    Validate.pl --cfile=concoct-output/clustering_gt1000.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_conf.csv
+
+This script requires the clustering output by concoct `concoct-output/clustering_gt1000.csv` these have a simple format of a comma separated file listing each contig id followed by the cluster index and the species labels that have the same format but with a text label rather than a cluster index. The script should output:
+
+N	M	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+443	443	6	4	0.920993	0.963883	0.855371	0.933097	0.850947
+
+ 
+
+
