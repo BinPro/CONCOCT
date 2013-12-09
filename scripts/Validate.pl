@@ -132,7 +132,7 @@ foreach my $key(sort keys %hashC){
 close(OUTFILE);
 
 if($quiet eq ''){
-  printf("N\tM\tK\tC\tRec.\tPrec.\tNMI\tRand\tAdjRand\n");
+  printf("N\tM\tS\tK\tRec.\tPrec.\tNMI\tRand\tAdjRand\n");
 }
 printf("%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\n",$N,$S,$j,$maxt + 1,recall(@cluster),precision(@cluster),nmi(@cluster),randindex(@cluster),adjrandindex(@cluster));
 
