@@ -96,8 +96,15 @@ Then run concoct on 8 cores `-m 8` over a range of cluster sizes `-c 2,16,1`, fr
 
     concoct -m 8 -c 2,16,1 --coverage_file concoct_inputtableR.tsv --composition_file raynoscaf_31.fa
 
-In practice, you can chose the cluster range based on taxonomic classification or contigs but it is easy to determine if the optimum value lies outside the initial guess. When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory, this can be set with the `-b` command or is the present working directory by default. First we can examine the model selection based on BIC by running:
+In practice, you can chose the cluster range based on taxonomic classification or contigs but it is easy to determine if the optimum value lies outside the initial guess. When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory, this can be set with the `-b` command or is the present working directory by default. 
+
+Evaluate output
+---------------
+
+First we can examine the model selection based on BIC by running:
 
     Rscript BICPlot.R -b bic.csv -o bic.pdf
 
-This will require that you have added the CONCOCT/script directory to your path and have the R packages ggplot2,getopt and grid installed. 
+This will require that you have added the CONCOCT/script directory to your path and have the R packages ggplot2,getopt and grid installed. This generates a plot of the BIC as a function of the cluster number K. The best model minimises K. In this case that occurs for K = 12:
+
+<https://github.com/BinPro/CONCOCT-test-data/evaluation-output/bic.pdf> 
