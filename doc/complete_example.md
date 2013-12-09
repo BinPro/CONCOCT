@@ -105,6 +105,10 @@ First we can examine the model selection based on BIC by running:
 
     Rscript BICPlot.R -b bic.csv -o bic.pdf
 
-This will require that you have added the CONCOCT/script directory to your path and have the R packages ggplot2,getopt and grid installed. This generates a plot of the BIC as a function of the cluster number K. The best model minimises K. In this case that occurs for K = 12:
+This will require that you have added the CONCOCT/script directory to your path and have Rscript with the R packages ggplot2, ellipse, getopt and grid installed. This generates a plot of the BIC as a function of the cluster number K. The best model minimises K. In this case that occurs for K = 12:
 
-<https://github.com/BinPro/CONCOCT-test-data/evaluation-output/bic.pdf> 
+<https://github.com/BinPro/CONCOCT-test-data/evaluation-output/bic.pdf>
+
+Then we can visualise the clusters in the first two PCA dimensions:
+
+    Rscript ../CONCOCT_R5/CONCOCT/scripts/ClusterPlot.R -c clustering_gt1000.csv -p PCA_transformed_data_gt1000.csv -m pca_means_gt1000.csv -r pca_variances_gt1000_dim -l -o ClusterPlot.pdf  
