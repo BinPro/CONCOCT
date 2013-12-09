@@ -90,11 +90,11 @@ To see possible parameter settings with a description run
 
 We will only run concoct for some standard settings here. First we need to parse the input table to just contain the mean coverage for each contig in each sample:
 
-    cut -f1,11-26 concoct_inputtable.tsv > concoct_inputtableR.tsv
+    cut -f1,11-26 concoct-input/concoct_inputtable.tsv > concoct-input/concoct_inputtableR.tsv
 
 Then run concoct on 8 cores `-m 8` over a range of cluster sizes `-c 2,16,1`, from two to sixteen with a step size of one, that we guess is appropriate for this data set:
 
-    concoct -m 8 -c 2,16,1 --coverage_file concoct_inputtableR.tsv --composition_file raynoscaf_31.fa
+    concoct -m 8 -c 2,16,1 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/raynoscaf_31.fa -b concoct-output
 
 In practice, you can chose the cluster range based on taxonomic classification or contigs but it is easy to determine if the optimum value lies outside the initial guess. When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory, this can be set with the `-b` command or is the present working directory by default. 
 
@@ -103,7 +103,7 @@ Evaluate output
 
 First we can examine the model selection based on BIC by running:
 
-    BICPlot.R -b bic.csv -o bic.pdf
+    BICPlot.R -b concoct-output/bic.csv -o evaluation-output/bic.pdf
 
 This will require that you have added the CONCOCT/script directory to your path and have Rscript with the R packages ggplot2, ellipse, getopt and grid installed. This generates a plot of the BIC as a function of the cluster number K. The best model minimises K. In this case that occurs for K = 4:
 
@@ -111,6 +111,7 @@ This will require that you have added the CONCOCT/script directory to your path 
 
 Then we can visualise the clusters in the first two PCA dimensions:
 
-    ClusterPlot.R -c clustering_gt1000.csv -p PCA_transformed_data_gt1000.csv -m pca_means_gt1000.csv -r pca_variances_gt1000_dim -l -o ClusterPlot.pdf
+    ClusterPlot.R -c concoct-output/clustering_gt1000.csv -p concoct-output/PCA_transformed_data_gt1000.csv -m concoct-output/pca_means_gt1000.csv -r concoct-output/pca_variances_gt1000_dim -l -o evaluation-output/ClusterPlot.pdf
 
-  
+<https://github.com/BinPro/CONCOCT-test-data/evaluation-output/ClusterPlot.pdf>
+
