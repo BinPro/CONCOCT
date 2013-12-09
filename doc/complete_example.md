@@ -107,13 +107,13 @@ First we can examine the model selection based on BIC by running:
 
 This will require that you have added the CONCOCT/script directory to your path and have Rscript with the R packages gplots, ggplot2, ellipse, getopt and grid installed. This generates a plot of the BIC as a function of the cluster number K. The best model minimises K. In this case that occurs for K = 4:
 
-<https://github.com/BinPro/CONCOCT-test-data/evaluation-output/bic.pdf>
+<https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/bic.pdf>
 
 Then we can visualise the clusters in the first two PCA dimensions:
 
     ClusterPlot.R -c concoct-output/clustering_gt1000.csv -p concoct-output/PCA_transformed_data_gt1000.csv -m concoct-output/pca_means_gt1000.csv -r concoct-output/pca_variances_gt1000_dim -l -o evaluation-output/ClusterPlot.pdf
 
-<https://github.com/BinPro/CONCOCT-test-data/evaluation-output/ClusterPlot.pdf>
+<https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/ClusterPlot.pdf>
 
 We can also compare the clustering to species labels. For this test data set we know these labels, they are given in the file 'clustering_gt1000_s.csv'. For real data labels may be obtained through taxonomic classification, e.g. using:
 
@@ -134,7 +134,7 @@ This gives the no. of contigs N clustered, the number with labels M, the number 
 
 This generates a file with normalised frequencies of contigs from each cluster across species:
 
-<https://github.com/BinPro/CONCOCT-test-data/evaluation-output/clustering_gt1000_conf.pdf>
+<https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_conf.pdf>
 
  
 
