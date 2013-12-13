@@ -105,7 +105,7 @@ First we can examine the model selection based on BIC by running:
 
     BICPlot.R -b concoct-output/bic.csv -o evaluation-output/bic.pdf
 
-This will require that you have added the CONCOCT/script directory to your path and have Rscript with the R packages gplots, ggplot2, ellipse, getopt and grid installed. This generates a plot of the BIC as a function of the cluster number K. The best model minimises K. In this case that occurs for K = 4:
+This will require that you have added the CONCOCT/script directory to your path and have Rscript with the R packages gplots, reshape, ggplot2, ellipse, getopt and grid installed. This generates a plot of the BIC as a function of the cluster number K. The best model minimises K. In this case that occurs for K = 4:
 
 <https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/bic.pdf>
 
@@ -159,8 +159,11 @@ The output file is a tab-separated file with basic information about the cluster
 
 <https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_scg.tab>
 
-This can also be visualised graphically using the R script. First we trim a little extraneous information from the tab files:
+This can also be visualised graphically using the R script. First we trim a little extraneous information from the tab files and then we generate the plot with an R script:
 
     cut -f1,4- evaluation-output/clustering_gt1000_scg.tab > evaluation-output/clustering_gt1000_scg.tsv
+    COGPlot.R -s evaluation-output/clustering_gt1000_scg.tsv -o evaluation-output/clustering_gt1000_scg.pdf
 
+The plot is downloadable here:
 
+<https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_scg.pdf>
