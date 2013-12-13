@@ -136,7 +136,8 @@ This generates a file with normalised frequencies of contigs from each cluster a
 
 <https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_conf.pdf>
 
-
+Validation using single-copy core genes
+---------------------------------------
 
 We can also evaluate the clustering based on single-copy core genes. You first need to find genes on the contigs and functionally annotate these. Here we used prodigal (http://prodigal.ornl.gov/) for gene prediction, the corresponding protein sequences are here:
 
@@ -157,3 +158,9 @@ The parameter –s indicates a separator character in which case only the string
 The output file is a tab-separated file with basic information about the clusters (cluster id, ids of contigs in cluster and number of contigs in cluster) in the first three columns, and counts of the different SCGs in the following columns.
 
 <https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_scg.tab>
+
+This can also be visualised graphically using the R script. First we trim a little extraneous information from the tab files:
+
+    cut -f1,4- evaluation-output/clustering_gt1000_scg.tab > evaluation-output/clustering_gt1000_scg.tsv
+
+
