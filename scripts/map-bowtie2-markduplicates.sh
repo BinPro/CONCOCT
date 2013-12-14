@@ -79,7 +79,6 @@ then
 fi
 RNAME=$5
 OUTDIR=${6%/}
-CURDIR=`pwd`
 
 # Check if programs are installed
 function check_prog() {
@@ -101,7 +100,6 @@ if [ ! -e $MRKDUP ]; then
 fi
 
 mkdir -p $OUTDIR
-cd $OUTDIR
 
 if [[ ! -s $Q1 || ! -s $Q2 ]]; then
     echo "$Q1 or $Q2 is empty" >&2
@@ -115,28 +113,28 @@ then
 fi
 
 # Align Paired end and bam it
-bowtie2 ${BOWTIE2_OPT} -p $THREADS -x $REF -1 $Q1 -2 $Q2 -S ${RNAME}_${QNAME}.sam
+bowtie2 ${BOWTIE2_OPT} -p $THREADS -x $REF -1 $Q1 -2 $Q2 -S $OUTDIR/${RNAME}_${QNAME}.sam
 samtools faidx $REF
-samtools view -bt $REF.fai ${RNAME}_${QNAME}.sam > ${RNAME}_${QNAME}.bam
-samtools sort ${RNAME}_${QNAME}.bam ${RNAME}_${QNAME}-s
-samtools index ${RNAME}_${QNAME}-s.bam
+samtools view -bt $REF.fai $OUTDIR/${RNAME}_${QNAME}.sam > $OUTDIR/${RNAME}_${QNAME}.bam
+samtools sort $OUTDIR/${RNAME}_${QNAME}.bam $OUTDIR/${RNAME}_${QNAME}-s
+samtools index $OUTDIR/${RNAME}_${QNAME}-s.bam
 
 # Mark duplicates and sort
 java -Xms1g -Xmx24g -XX:ParallelGCThreads=$THREADS -XX:MaxPermSize=1g -XX:+CMSClassUnloadingEnabled \
     -jar $MRKDUP \
-    INPUT=${RNAME}_${QNAME}-s.bam \
-    OUTPUT=${RNAME}_${QNAME}-smd.bam \
-    METRICS_FILE=${RNAME}_${QNAME}-smd.metrics \
+    INPUT=$OUTDIR/${RNAME}_${QNAME}-s.bam \
+    OUTPUT=$OUTDIR/${RNAME}_${QNAME}-smd.bam \
+    METRICS_FILE=$OUTDIR/${RNAME}_${QNAME}-smd.metrics \
     AS=TRUE \
     VALIDATION_STRINGENCY=LENIENT \
     MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=1000 \
     REMOVE_DUPLICATES=TRUE
-samtools sort ${RNAME}_${QNAME}-smd.bam ${RNAME}_${QNAME}-smds
-samtools index ${RNAME}_${QNAME}-smds.bam
+samtools sort $OUTDIR/${RNAME}_${QNAME}-smd.bam $OUTDIR/${RNAME}_${QNAME}-smds
+samtools index $OUTDIR/${RNAME}_${QNAME}-smds.bam
 
 # Determine Genome Coverage and mean coverage per contig
 if $CALCCOV; then
-    genomeCoverageBed -ibam ${RNAME}_${QNAME}-smds.bam > ${RNAME}_${QNAME}-smds.coverage
+    genomeCoverageBed -ibam $OUTDIR/${RNAME}_${QNAME}-smds.bam > $OUTDIR/${RNAME}_${QNAME}-smds.coverage
     awk 'BEGIN {pc=""} 
     {
         c=$1;
@@ -146,16 +144,14 @@ if $CALCCOV; then
             print pc,cov;
             cov=$2*$5;
         pc=c}
-    } END {print pc,cov}' ${RNAME}_${QNAME}-smds.coverage | tail -n +2 > ${RNAME}_${QNAME}-smds.coverage.percontig
+    } END {print pc,cov}' $OUTDIR/${RNAME}_${QNAME}-smds.coverage | tail -n +2 > $OUTDIR/${RNAME}_${QNAME}-smds.coverage.percontig
 fi
 
 # Remove temp files
 if $RMTMPFILES; then
-    rm ${RNAME}_${QNAME}.sam \
-       ${RNAME}_${QNAME}.bam \
-       ${RNAME}_${QNAME}-smd.bam \
-       ${RNAME}_${QNAME}-s.bam \
-       ${RNAME}_${QNAME}-s.bam.bai
+    rm $OUTDIR/${RNAME}_${QNAME}.sam \
+       $OUTDIR/${RNAME}_${QNAME}.bam \
+       $OUTDIR/${RNAME}_${QNAME}-smd.bam \
+       $OUTDIR/${RNAME}_${QNAME}-s.bam \
+       $OUTDIR/${RNAME}_${QNAME}-s.bam.bai
 fi
-
-cd $CURDIR
