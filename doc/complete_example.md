@@ -5,54 +5,92 @@ This documentation page aims to be a complete example walk through for the usage
 
 Required software
 ----------------------
-To run the example you need the following software:
-* Ray version >= 2.1.0
+To run the entire example you need the following software:
+
+* Assembling Metagenomic Reads
+    * Ray version >= 2.1.0
+* Map the Reads onto the Contigs
+    * BEDTools version >= 2.15.0 (only genomeCoverageBed)
+    * Picard tools version >= 1.77
+    * samtools version >= 0.1.18
+    * bowtie2 version >= 2.1.0
+    * parallel version >= 20130422
+
+It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the test data repository: https://github.com/BinPro/CONCOCT-test-data.
 
 Downloading test data
 -----------------------
-Still have to upload the test data somewhere.
+Clone the test data repository of CONCOCT:
+
+    git clone https://github.com/BinPro/CONCOCT-test-data
+    
+It contains the reads that we start this example with as well as the output from each step. It could take a while to download.
 
 Assembling Metagenomic Reads
 ----------------------------
-After obtaining the test data we assemble the contigs with Ray.
-Go to the folder with the reads from the test data and run Ray:
+After obtaining the test data, create a folder where you want all the output from this example to go:
 
-    mpiexec -n 1 Ray -k 31 -o out_31 \
-        -p Sample118_s1e5_R1.fasta Sample118_s1e5_R2.fasta \
-        -p Sample120_s1e5_R1.fasta Sample120_s1e5_R2.fasta \
-        -p Sample127_s1e5_R1.fasta Sample127_s1e5_R2.fasta \
-        -p Sample134_s1e5_R1.fasta Sample134_s1e5_R2.fasta \
-        -p Sample177_s1e5_R1.fasta Sample177_s1e5_R2.fasta \
-        -p Sample215_s1e5_R1.fasta Sample215_s1e5_R2.fasta \
-        -p Sample230_s1e5_R1.fasta Sample230_s1e5_R2.fasta \
-        -p Sample234_s1e5_R1.fasta Sample234_s1e5_R2.fasta \
-        -p Sample244_s1e5_R1.fasta Sample244_s1e5_R2.fasta \
-        -p Sample261_s1e5_R1.fasta Sample261_s1e5_R2.fasta \
-        -p Sample263_s1e5_R1.fasta Sample263_s1e5_R2.fasta \
-        -p Sample290_s1e5_R1.fasta Sample290_s1e5_R2.fasta \
-        -p Sample302_s1e5_R1.fasta Sample302_s1e5_R2.fasta \
-        -p Sample321_s1e5_R1.fasta Sample321_s1e5_R2.fasta \
-        -p Sample330_s1e5_R1.fasta Sample330_s1e5_R2.fasta \
-        -p Sample343_s1e5_R1.fasta Sample343_s1e5_R2.fasta
+    mkdir CONCOCT-complete-example
+    cd CONCOCT-complete-example
+
+Set three variables with full paths. One pointing to the root directory of ```CONCOCT```, one pointing to the test data ```CONCOCT_TEST``` and one to the directory we just created e.g.
+
+    CONCOCT=/home/username/src/CONCOCT
+    CONCOCT_TEST=/home/username/src/CONCOCT-test-data
+    CONCOCT_EXAMPLE=/home/username/CONCOCT-complete-example
+
+Change the paths to the actual locations where we downloaded ```CONCOCT``` and ```CONCOCT-test-data```. After that run Ray on the reads:
+
+    cd $CONCOCT_EXAMPLE
+    mpiexec -n 1 Ray -k 31 -o ray_output_31 \
+        -p $CONCOCT_TEST/reads/Sample118_s1e5_R1.fa $CONCOCT_TEST/reads/Sample118_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample120_s1e5_R1.fa $CONCOCT_TEST/reads/Sample120_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample127_s1e5_R1.fa $CONCOCT_TEST/reads/Sample127_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample134_s1e5_R1.fa $CONCOCT_TEST/reads/Sample134_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample177_s1e5_R1.fa $CONCOCT_TEST/reads/Sample177_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample215_s1e5_R1.fa $CONCOCT_TEST/reads/Sample215_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample230_s1e5_R1.fa $CONCOCT_TEST/reads/Sample230_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample234_s1e5_R1.fa $CONCOCT_TEST/reads/Sample234_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample244_s1e5_R1.fa $CONCOCT_TEST/reads/Sample244_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample261_s1e5_R1.fa $CONCOCT_TEST/reads/Sample261_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample263_s1e5_R1.fa $CONCOCT_TEST/reads/Sample263_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample290_s1e5_R1.fa $CONCOCT_TEST/reads/Sample290_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample302_s1e5_R1.fa $CONCOCT_TEST/reads/Sample302_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample321_s1e5_R1.fa $CONCOCT_TEST/reads/Sample321_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample330_s1e5_R1.fa $CONCOCT_TEST/reads/Sample330_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample343_s1e5_R1.fa $CONCOCT_TEST/reads/Sample343_s1e5_R2.fa
+
+After the assembly is finished create a directory with the resulting contigs and copy the result of Ray there (this output is also in ```$CONCOCT_TEST/contigs```):
+
+    mkdir contigs
+    cp ray_output_31/Contigs.fasta contigs/raynoscaf_31.fa
+    
 
 Map the Reads onto the Contigs
 ------------------------------
-After assembly we map the reads of each sample back to the assembly using bowtie2 and remove PCR duplicates with MarkDuplicates. The coverage histogram for each bam file is computed with bedtools' genomeCoverageBed. The script that calls these programs is provided with CONCOCT. The following command is to be executed in the test data root dir. It creates a folder map and for each sample a subfolder with the alignment against the assembly.
+After assembly we map the reads of each sample back to the assembly using bowtie2 and remove PCR duplicates with MarkDuplicates. The coverage histogram for each bam file is computed with BEDTools' genomeCoverageBed. The script that calls these programs is provided with CONCOCT. All one needs to do is set the environment variable for MarkDuplicates ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
+
+    export MRKDUP=/home/username/src/picard-tools-1.77/MarkDuplicates.jar
+
+The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you created in the previous part. First create the index on the assembly for bowtie2:
+
+    cd $CONCOCT_EXAMPLE
+    bowtie2-build contigs/raynoscaf_31.fa contigs/raynoscaf_31.fa
+    
+Then create a folder map. The parallel command reates a folder for each sample, and runs ```map-bowtie2-markduplicates.sh``` for each sample:
 
     mkdir map
-    cd map
-    cp ../out_31/Contigs.fasta raynoscaf_31.fa
-    parallel -j 8 mkdir -p {/} '&&' \
-        cd {/} '&&' \
+    parallel mkdir -p map/{/} '&&' \
+        cd map/{/} '&&' \
         bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh \
-            -ct 1 -p '-f' ../{} '$('echo ../{} '|' sed s/R1/R2/')' pair \
-            ../raynoscaf_31.fa asm bowtie2 \
-        ::: ../*_R1.fasta
+            -ct 1 -p '-f' {} '$('echo {} '|' sed s/R1/R2/')' pair \
+            ../../contigs/raynoscaf_31.fa asm bowtie2 \
+        ::: $CONCOCT_TEST/reads/*_R1.fa
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
 
 * `-c` option to compute coverage histogram with genomeCoverageBed
-* `-t` option is number of threads
+* `-t` option is number of threads (1 since we are already running the ```map-bowtie2-markduplicates.sh``` script in parallel.
 * `-p` option is the extra parameters given to bowtie2. In this case `-f`.
 
 The five arguments are:
@@ -65,22 +103,30 @@ The five arguments are:
 
 Generate coverage table
 ------------------------
-Use the bam files of each sample to create a table with the coverage of each contig per sample. Again executed from the folder `map`:
+Use the bam files of each sample to create a table with the coverage of each contig per sample.
 
+    cd $CONCOCT_EXAMPLE/map
     python $CONCOCT/scripts/gen_input_table.py --isbedfiles \
         --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-        raynoscaf_31.fa */bowtie2/asm_pair-smds.coverage \
+        ../contigs/raynoscaf_31.fa */bowtie2/asm_pair-smds.coverage \
     > concoct_inputtable.tsv
+    mkdir $CONCOCT_EXAMPLE/concoct-input
+    mv concoct_inputtable.tsv $CONCOCT_EXAMPLE/concoct-input/
+
+Then 
 
 Generate linkage table
 ------------------------
 The same bam files can be used to give linkage per sample between contigs:
 
+    cd $CONCOCT_EXAMPLE/map
     python $CONCOCT/scripts/bam_to_linkage.py -m 8 \
         --regionlength 500 --fullsearch \
         --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-        raynoscaf_31.fa Sample*/bowtie2/asm_pair-smds.bam \
+        ../contigs/raynoscaf_31.fa Sample*/bowtie2/asm_pair-smds.bam \
     > concoct_linkage.tsv
+    mv concoct_linkage.tsv $CONCOCT_EXAMPLE/concoct-input/
+    
 
 Run concoct
 -----------
