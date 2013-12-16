@@ -113,8 +113,6 @@ Use the bam files of each sample to create a table with the coverage of each con
     mkdir $CONCOCT_EXAMPLE/concoct-input
     mv concoct_inputtable.tsv $CONCOCT_EXAMPLE/concoct-input/
 
-Then 
-
 Generate linkage table
 ------------------------
 The same bam files can be used to give linkage per sample between contigs:
