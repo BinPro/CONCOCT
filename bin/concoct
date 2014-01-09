@@ -83,49 +83,47 @@ def main(comp_file, cov_file, kmer_len, threshold,
     
     else:
         pool = multiprocessing.Pool(processes=max_n_processors.size)
-        results = pool.map(cluster,cluster_args)
+        results = pool.map(cluster, cluster_args)
 
     if main_node:
         bics = [(r[0],r[1]) for r in results]
         Output.write_bic(bics)
-        min_bic, optimal_c, converged = min(results,key=lambda x: x[0])
+        min_bic, optimal_c, converged, classifier = min(results,key=lambda x: x[0])
         if not converged:
             logging.error(("Optimal bic score was reached for non convergent "
                            "cluster number {0}, exiting without clustering "
                            "output").format(optimal_c))
             sys.exit(-1)
-        gmm = GMM(n_components=optimal_c, covariance_type=cv_type, n_init=inits,
-                  n_iter=iters,random_state=random_seed).fit(transform_filter)
-    
+
         if split_pca:
             # Transform both unfiltered datasets separately before joining
             joined_transform, _, _ = perform_split_pca(cov, composition, 
                                                        pca_components,
                                                        use_pcas = (cov_pca,comp_pca))
 
-            joined["clustering"] = gmm.predict(joined_transform)
+            joined["clustering"] = classifier.predict(joined_transform)
                         
         else:
-            joined["clustering"] = gmm.predict(pca.transform(joined))
-            Output.write_cluster_means(pca.inverse_transform(gmm.means_),
-                                       threshold,c)
+            joined["clustering"] = classifier.predict(pca.transform(joined))
+            Output.write_cluster_means(pca.inverse_transform(classifier.means_),
+                                       threshold, c)
         # Covariance matrix is three dimensional if full
         if cv_type == 'full':
-            for i,v in enumerate(gmm.covars_):
+            for i,v in enumerate(classifier.covars_):
                 if not split_pca:
                     Output.write_cluster_variance(pca.inverse_transform(v),
                                                   threshold,i)
                 Output.write_cluster_pca_variances(v,threshold,i)
         else:
             if not split_pca:
-                Output.write_cluster_variance(pca.inverse_transform(gmm.covars_),
+                Output.write_cluster_variance(pca.inverse_transform(classifier.covars_),
                                               threshold,0)
-            Output.write_cluster_pca_variances(gmm.covars_,threshold,0)
+            Output.write_cluster_pca_variances(classifier.covars_,threshold,0)
             
-        Output.write_clustering(joined,threshold_filter,threshold,c,pipe)
-        Output.write_cluster_pca_means(gmm.means_,threshold,c)
+        Output.write_clustering(joined, threshold_filter, threshold, c, pipe)
+        Output.write_cluster_pca_means(classifier.means_, threshold, c)
             
-        pp = gmm.predict_proba(transform_filter)
+        pp = classifier.predict_proba(transform_filter)
     
         Output.write_cluster_responsibilities(
             pp,

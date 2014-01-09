@@ -17,5 +17,5 @@ def cluster(args):
                          "converge, consider increasing the number "
                          "of iterations.").format(c))
         print >> sys.stderr, "Cluster {0} did not converge".format(c)
-    return bic,c, gmm.converged_
+    return bic, c, gmm.converged_, gmm
 
