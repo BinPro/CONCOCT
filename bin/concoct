@@ -13,7 +13,7 @@ from sklearn.mixture import GMM
 
 from concoct.output import Output
 from concoct.parser import arguments
-from concoct.cluster import cluster
+from concoct.cluster import cluster, cluster_vbgmm
 from concoct.input import load_composition, load_coverage
 from concoct.transform import perform_pca, perform_split_pca
 
@@ -70,12 +70,16 @@ def main(comp_file, cov_file, kmer_len, threshold,
         for c in clusters_range:
             cluster_args.append((c,cv_type,inits,iters,transform_filter,random_seed))
 
+    #Define cluster method
+    if args.variational:
+        cluster = cluster_vbgmm
+
     #This code should be executed by all threads
     if max_n_processors.use_mpi:
         if not main_node:
             cluster_args = []
         cluster_args = max_n_processors.comm.bcast(cluster_args, root=0)
-        result = map(cluster,cluster_args[max_n_processors.rank::max_n_processors.size])
+        result = map(cluster, cluster_args[max_n_processors.rank::max_n_processors.size])
         #Gather all results to root process again
         results = max_n_processors.comm.gather(result, root=0)
         if main_node:

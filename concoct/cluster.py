@@ -1,7 +1,7 @@
 import sys
 import logging
 
-from sklearn.mixture import GMM
+from sklearn.mixture import GMM, VBGMM
 
 def cluster(args):
     c, cv_type,inits,iters,transform_filter,random_seed= args
@@ -19,3 +19,18 @@ def cluster(args):
         print >> sys.stderr, "Cluster {0} did not converge".format(c)
     return bic, c, gmm.converged_, gmm
 
+
+def cluster_vbgmm(args):
+    c, cv_type, inits, iters, transform_filter, random_seed = args
+    vbgmm = VBGMM(n_components=c, covariance_type=cv_type, n_iter=iters,
+                  random_state=random_seed).fit(transform_filter)
+    bic = vbgmm.bic(transform_filter)
+    if vbgmm.converged_:
+        logging.info("Clustering into {0} clusters converged.".format(c))
+    else:
+        logging.warning(("Clustering into {0} clusters did not "
+                         "converge, consider increasing the number "
+                         "of iterations.").format(c))
+        print >> sys.stderr, "Cluster {0} did not converge".format(c)
+    return bic, c, vbgmm.converged_, vbgmm
+        
