@@ -24,6 +24,8 @@ sumCogs <- rowSums(ecogs)
 
 ecogs$sum <- sumCogs
 
+ecogs <- subset(ecogs,ecogs$sum > 0)
+
 ecogs.order <- ecogs[order(ecogs$sum),]
 
 names <- row.names(ecogs.order)
