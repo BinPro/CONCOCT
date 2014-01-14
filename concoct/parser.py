@@ -131,6 +131,14 @@ def arguments():
         help='How often to initialize each cluster count. default 5 times')
     parser.add_argument('-i', '--iterations',type=int, default=1000,
         help='Maximum number of iterations if convergance not achieved')
+    parser.add_argument('--alpha', type=float, default=10.0,
+                        help=("Choose the concentration parameter used in VBGMM and DPGMM"))
+    parser.add_argument('--algorithm', choices=["GMM", "VBGMM", "DPGMM"], default="GMM",
+                        help=('Choose algorithm to use for fitting the GMM model. '
+                              'The default GMM option uses the EM algorithm while '
+                              'VBGMM uses a variational bayes algorithm for fitting '
+                              'a finite GMM while DPGMM uses a variational bayes '
+                              'algorithm for fitting an infinite GMM.'))
     #Output
     parser.add_argument('-b', '--basename', default=os.curdir,
         help=("Specify the basename for files or directory where output"

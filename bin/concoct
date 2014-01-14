@@ -13,13 +13,13 @@ from sklearn.mixture import GMM
 
 from concoct.output import Output
 from concoct.parser import arguments
-from concoct.cluster import cluster, cluster_vbgmm
+from concoct.cluster import Clusterer, cluster
 from concoct.input import load_composition, load_coverage
 from concoct.transform import perform_pca, perform_split_pca
 
 def main(comp_file, cov_file, kmer_len, threshold, 
          read_length, clusters_range, 
-         split_pca, inits, iters, outdir, pipe,
+         split_pca, inits, iters, alpha, algorithm, outdir, pipe,
          max_n_processors, pca_components, random_seed,
          cv_type, no_cov_normalization, no_total_coverage,
          args=None):
@@ -68,11 +68,8 @@ def main(comp_file, cov_file, kmer_len, threshold,
         logging.info('PCA transformed data.')
         cluster_args = []
         for c in clusters_range:
-            cluster_args.append((c,cv_type,inits,iters,transform_filter,random_seed))
-
-    #Define cluster method
-    if args.variational:
-        cluster = cluster_vbgmm
+            cluster_args.append((Clusterer(algorithm=algorithm), c, cv_type, inits, 
+                                 iters, transform_filter, random_seed, alpha))
 
     #This code should be executed by all threads
     if max_n_processors.use_mpi:
@@ -106,23 +103,24 @@ def main(comp_file, cov_file, kmer_len, threshold,
                                                        use_pcas = (cov_pca,comp_pca))
 
             joined["clustering"] = classifier.predict(joined_transform)
-                        
+
         else:
             joined["clustering"] = classifier.predict(pca.transform(joined))
             Output.write_cluster_means(pca.inverse_transform(classifier.means_),
                                        threshold, c)
         # Covariance matrix is three dimensional if full
-        if cv_type == 'full':
-            for i,v in enumerate(classifier.covars_):
+        if algorithm == "GMM":
+            if cv_type == 'full':
+                for i,v in enumerate(classifier.covars_):
+                    if not split_pca:
+                        Output.write_cluster_variance(pca.inverse_transform(v),
+                                                      threshold,i)
+                    Output.write_cluster_pca_variances(v,threshold,i)
+            else:
                 if not split_pca:
-                    Output.write_cluster_variance(pca.inverse_transform(v),
-                                                  threshold,i)
-                Output.write_cluster_pca_variances(v,threshold,i)
-        else:
-            if not split_pca:
-                Output.write_cluster_variance(pca.inverse_transform(classifier.covars_),
-                                              threshold,0)
-            Output.write_cluster_pca_variances(classifier.covars_,threshold,0)
+                    Output.write_cluster_variance(pca.inverse_transform(classifier.covars_),
+                                                  threshold,0)
+                Output.write_cluster_pca_variances(classifier.covars_, threshold,0)
             
         Output.write_clustering(joined, threshold_filter, threshold, c, pipe)
         Output.write_cluster_pca_means(classifier.means_, threshold, c)
@@ -164,6 +162,8 @@ if __name__=="__main__":
                    args.split_pca, 
                    args.executions, 
                    args.iterations, 
+                   args.alpha,
+                   args.algorithm,
                    args.basename, 
                    args.pipe,
                    args.max_n_processors,
