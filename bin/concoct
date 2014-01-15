@@ -18,7 +18,7 @@ from concoct.input import load_composition, load_coverage
 from concoct.transform import perform_pca, perform_split_pca
 
 def main(comp_file, cov_file, kmer_len, threshold, 
-         read_length, clusters_range, 
+         read_length, cluster_count, 
          split_pca, inits, iters, outdir, pipe,
          max_n_processors, pca_components, random_seed,
          cv_type, no_cov_normalization, no_total_coverage,
@@ -67,8 +67,7 @@ def main(comp_file, cov_file, kmer_len, threshold,
                          threshold,cov[threshold_filter].index)
         logging.info('PCA transformed data.')
         cluster_args = []
-        for c in clusters_range:
-            cluster_args.append((c,cv_type,inits,iters,transform_filter,random_seed))
+        cluster_args.append((cluster_count,cv_type,inits,iters,transform_filter,random_seed))
 
     #This code should be executed by all threads
     if max_n_processors.use_mpi:

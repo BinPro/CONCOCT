@@ -41,22 +41,9 @@ def get_max_n_processors(n_procs):
 
     return MpiParams(comm,use_mpi,size,rank)
 
-def parse_cluster_list(cc_string):
-    ERROR="'" + cc_string + ("' is not a valid range of number. Expected "
-                             "forms like '20,100,2'.")
-    try:
-        first, last, step = map(int,cc_string.split(","))
-    except ValueError as e:
-        raise ArgumentTypeError(ERROR)
-    except Exception as e:
-        raise ArgumentTypeError(ERROR)
-    return xrange(first, last+1, step)
-
-
 def parse_taxonomy_cluster_list(tax_file):
     raise NotImplementedError(("This functionality has not been added yet. "
                                "Please use -c and specify range"))
-
 
 def parse_split_pca(s):
     ERROR="'" + s + ("' is not a valid split pca proportion tuple. "
@@ -86,18 +73,8 @@ def arguments():
               "kmer composition (the genomic signature) of each contig."))
 
     #Handle cluster number parsing
-    cluster_count = parser.add_mutually_exclusive_group()
-    cluster_count.add_argument('-c', '--clusters', default=range(20,101,2), 
-                               type=parse_cluster_list,
-                               help=('specify range of clusters to try out'
-                                     ' on format first,last,step.'
-                                     ' default 20,100,2.'))
-    #cluster_count.add_argument('-t', type=parse_taxonomy_cluster_list,
-    #help='specify a taxonomy file to estimate species number from (X). \
-    #      Will use range X*0.5,X*1.5,2')
-
-
-
+    parser.add_argument('-c', '--clusters', default=400, type=int,
+      help='specify initial number of clusters for VGMM, default 400.')
     #Kmer length, kmer count threshold and read length
     parser.add_argument('-k','--kmer_length', type=int, default=4,
         help='specify kmer length, defaults to tetramer')
