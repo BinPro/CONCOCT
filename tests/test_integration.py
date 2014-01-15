@@ -341,7 +341,7 @@ class TestCMD(object):
         assert_true(not (first_time==second_time),
                     msg='clustering.csv did not change')
         assert_true(not (first_file == second_file),
-                    msg='Clustering outcomes were the same with the different seeds')
+                    msg='Clustering outcomes were the same with the 0 seed')
 
     def test_log_coverage(self):
         self.run_command()
