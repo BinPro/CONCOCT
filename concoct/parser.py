@@ -3,7 +3,6 @@ from argparse import ArgumentParser, ArgumentTypeError
 from collections import namedtuple
 
 import numpy as np
-import multiprocessing
 
 def set_random_state(seed):
     ERROR="'{0}' should be converatable to integer".format(seed)
@@ -14,32 +13,6 @@ def set_random_state(seed):
         return seed
     except ValueError as e:
         raise ArgumentTypeError(ERROR)
-
-def get_max_n_processors(n_procs):
-    #-------------------------------------------------------------------------------
-    # MPI setup
-    #-------------------------------------------------------------------------------
-    MpiParams = namedtuple("MpiParams","comm use_mpi size rank")
-    if n_procs:
-        try:
-            n_procs = int(n_procs)
-        except ValueError:
-            raise ArgumentTypeError("{0} should be convertable to integer".format(n_procs))
-    try:
-        if not os.environ.has_key('OMPI_COMM_WORLD_RANK'):
-            raise ImportError
-        from mpi4py import MPI
-        comm = MPI.COMM_WORLD
-        use_mpi = True
-        size =  n_procs if n_procs else comm.Get_size() 
-        rank = comm.Get_rank()
-    except ImportError:
-        comm = None
-        use_mpi = False
-        rank = None
-        size = n_procs if n_procs else multiprocessing.cpu_count()
-
-    return MpiParams(comm,use_mpi,size,rank)
 
 def parse_taxonomy_cluster_list(tax_file):
     raise NotImplementedError(("This functionality has not been added yet. "
@@ -117,22 +90,12 @@ def arguments():
     parser.add_argument('-p', '--pipe', default=False, action="store_true",
                         help=('Add this tag if the main result file should be'
                               'printed to stdout. Useful for pipeline use'))
-    parser.add_argument('-m','--max_n_processors',type=get_max_n_processors, 
-                        default=get_max_n_processors(None),
-                        help=('Specify the maximum number of processors CONCOCT is allowed to use, '
-                            'if absent, all present processors will be used. Default is to  '
-                            'assume MPI execution, allowing execution over multiple nodes, '
-                            'with a fallback to standard python multiprocessing on a single '
-                            'machine using available cores. It is recommended to install mpi '
-                            'and mpi4py if execution over multiple '
-                            'nodes is required. To run with MPI use call it with mpirun -np N '
-                            'or equivalent'))
     parser.add_argument('-f','--force_seed',type=set_random_state, default=set_random_state(11),
                        help=('Specify an integer to use as seed for clustering. '
                              'You can specify 0 for random seed. The default seed '
                              'is 11.'))
     parser.add_argument('--covariance_type', default="full", 
-                        choices=['full','diag'], 
+                        choices=['full'], 
                         help=("Choose the shape of the covariance matrix for "
                               "the GMM:s used in clustering."))
 
