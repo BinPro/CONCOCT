@@ -285,12 +285,6 @@ class TestCMD(object):
 
     def test_seed(self):
         #Test default behaviour, seed = 11
-        first_file = None
-        second_file= None
-        first_time = None
-        second_time = None        
-
-        #Should both run with seed 11
         self.run_command()
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
         with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
@@ -302,8 +296,8 @@ class TestCMD(object):
             second_file=clustering.read()
         assert_true(not (first_time==second_time),
                     msg='clustering.csv did not change')
-#        assert_true(first_file == second_file,
-#                    msg='Clustering outcomes were not the same with same seeds')
+        assert_true(first_file == second_file,
+                    msg='Clustering outcomes were not the same with same seeds')
 
         #Should be equal to both above since default seed is 11
 	self.run_command(tags=["-f","11"])
@@ -316,12 +310,6 @@ class TestCMD(object):
                     msg='Clustering outcomes were not the same with same seeds')
 
         #Test that 0 gives random seed
-        first_file = None
-        second_file= None
-        first_time = None
-        second_time = None
-        
-        #Should give random clustering
         self.run_command(tags=['-f','0'])
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
         with open(tmp_basename_dir+'/clustering.csv','r') as clustering:
@@ -334,16 +322,11 @@ class TestCMD(object):
             second_file=clustering.read()
         assert_true(not (first_time==second_time),
                     msg='clustering.csv did not change')
-        assert_true(first_file == second_file,
+        assert_true(not (first_file == second_file),
                     msg='Clustering outcomes were the same with the different seeds')
 
 
         #Test that two differnet seeds give different clustering
-        first_file = None
-        second_file= None
-        first_time = None
-        second_time = None
-        
         #Should give clustering 2
         self.run_command(tags=['-f','2'])
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering.csv')
