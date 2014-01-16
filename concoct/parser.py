@@ -14,10 +14,6 @@ def set_random_state(seed):
     except ValueError as e:
         raise ArgumentTypeError(ERROR)
 
-def parse_taxonomy_cluster_list(tax_file):
-    raise NotImplementedError(("This functionality has not been added yet. "
-                               "Please use -c and specify range"))
-
 def parse_split_pca(s):
     ERROR="'" + s + ("' is not a valid split pca proportion tuple. "
                      "Expected two positive integers <100")
@@ -47,7 +43,7 @@ def arguments():
 
     #Handle cluster number parsing
     parser.add_argument('-c', '--clusters', default=400, type=int,
-      help='specify initial number of clusters for VGMM, default 400.')
+      help='specify maximal number of clusters for VGMM, default 400.')
     #Kmer length, kmer count threshold and read length
     parser.add_argument('-k','--kmer_length', type=int, default=4,
         help='specify kmer length, defaults to tetramer')
@@ -76,29 +72,16 @@ def arguments():
                               ' by the principal components for the'
                               ' combined data, only considered if '
                               ' split pca is NOT used'))
-    #Clustering Parameters
-    parser.add_argument('-e', '--executions',type=int, default=5,
-        help='How often to initialize each cluster count. default 5 times')
-    parser.add_argument('-i', '--iterations',type=int, default=1000,
-        help='Maximum number of iterations if convergance not achieved')
     #Output
     parser.add_argument('-b', '--basename', default=os.curdir,
         help=("Specify the basename for files or directory where output"
               "will be placed. Path to existing directory or basename"
               "with a trailing '/' will be interpreted as a directory."
               "If not provided, current directory will be used."))
-    parser.add_argument('-p', '--pipe', default=False, action="store_true",
-                        help=('Add this tag if the main result file should be'
-                              'printed to stdout. Useful for pipeline use'))
     parser.add_argument('-f','--force_seed',type=set_random_state, default=set_random_state(11),
                        help=('Specify an integer to use as seed for clustering. '
                              'You can specify 0 for random seed. The default seed '
                              'is 11.'))
-    parser.add_argument('--covariance_type', default="full", 
-                        choices=['full'], 
-                        help=("Choose the shape of the covariance matrix for "
-                              "the GMM:s used in clustering."))
-
     parser.add_argument('--no_cov_normalization', default=False, action="store_true",
                         help=("By default the coverage is normalized with regards to samples, "
                               "then normalized with regards of contigs and finally log transformed. "

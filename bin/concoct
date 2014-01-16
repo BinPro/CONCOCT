@@ -16,12 +16,19 @@ from concoct.cluster import cluster
 from concoct.input import load_composition, load_coverage
 from concoct.transform import perform_pca, perform_split_pca
 
-def main(comp_file, cov_file, kmer_len, threshold, 
-         read_length, cluster_count, 
-         split_pca, inits, iters, outdir, pipe,
-         pca_components, random_seed,
-         cv_type, no_cov_normalization, no_total_coverage,
-         args=None):
+def main(args):
+    comp_file = args.composition_file
+    cov_file = args.coverage_file
+    kmer_len = args.kmer_length
+    threshold = args.length_threshold
+    read_length = args.read_length
+    cluster_count = args.clusters 
+    split_pca = args.split_pca 
+    outdir = args.basename
+    pca_components = args.pca_components
+    random_seed =  args.force_seed
+    no_cov_normalization = args.no_cov_normalization
+    no_total_coverage = args.no_total_coverage
 
     # Initialize output handling
     Output(outdir,args)
@@ -57,7 +64,7 @@ def main(comp_file, cov_file, kmer_len, threshold,
                      threshold,cov[threshold_filter].index)
     logging.info('PCA transformed data.')
     cluster_args = []
-    cluster_args.append((cluster_count,cv_type,inits,iters,transform_filter,random_seed))
+    cluster_args.append((cluster_count,transform_filter,random_seed))
 
 #----------------------------------------------------------
 #HERE WE SHOULD CALL CHRIS'S C CODE AND QUIT
@@ -91,29 +98,14 @@ if __name__=="__main__":
             comp = "All"
         else:
             comp = args.composition_percentage_pca/100.0
-        pca_components = (cov,comp)
+        args.pca_components = (cov,comp)
                           
     else:
         if args.total_percentage_pca == 100:
-            pca_components = "All"
+            args.pca_components = "All"
         else:
-            pca_components = args.total_percentage_pca/100.0
+            args.pca_components = args.total_percentage_pca/100.0
 
-    results = main(args.composition_file, 
-                   args.coverage_file,
-                   args.kmer_length, 
-                   args.length_threshold, 
-                   args.read_length, 
-                   args.clusters, 
-                   args.split_pca, 
-                   args.executions, 
-                   args.iterations, 
-                   args.basename, 
-                   args.pipe,
-                   pca_components,
-                   args.force_seed,
-                   args.covariance_type,
-                   args.no_cov_normalization,
-                   args.no_total_coverage,
-                   args)
+    results = main(args)
+
     print >> sys.stderr, "CONCOCT Finished, the log shows how it went."

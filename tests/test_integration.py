@@ -44,7 +44,7 @@ class TestCMD(object):
 
     def run_command(self,cov_file='coverage',comp_file='composition.fa',
                     tags=[],basename='nose_tmp_output/1'):
-        call_string = "concoct --coverage_file test_data/{0} --composition_file test_data/{1} --basename {2} -c 3,5,1 --no_total_coverage 2> /dev/null".format(cov_file,comp_file,basename)
+        call_string = "concoct --coverage_file test_data/{0} --composition_file test_data/{1} --basename {2} -c 10 --no_total_coverage 2> /dev/null".format(cov_file,comp_file,basename)
         for tag in tags:
             call_string += " " + tag
         self.c = 0 # Exit code
@@ -122,6 +122,19 @@ class TestCMD(object):
         assert_true(len(L) == 16,
                     msg = "Wrong number of output files, observed {0}".format(L))
 
+    def test_prior_to_clustering(self):
+        self.run_command()
+        d_p = os.path.join(tmp_basename_dir)
+        assert_true(isfile(d_p+ '/args.txt'),
+                           msg="Args file is not created")
+        assert_true(isfile(d_p+ '/log.txt'),
+                           msg="Log file is not created")
+        assert_true(isfile(d_p+ '/original_data_gt1000.csv'),
+                           msg="Original data file is not created")
+        assert_true(isfile(d_p+ '/PCA_transformed_data_gt1000.csv'),
+                           msg="PCA transformed data file is not created")
+
+        
     def test_output_files_creation(self):
         # dir as basename
         self.run_command()
@@ -248,19 +261,6 @@ class TestCMD(object):
                     msg='Clustering files does not have the same lengths')
         assert_true(clust_gtl_2!=clustl_2,
                     msg='Filtered clustering file and full have the same lengths')
-
-    def test_piping_functionality(self):
-        f1 = tmp_basename_dir+'/stdout_capture'
-        self.run_command(tags=['--pipe','> {0}/stdout_capture'.format(tmp_basename_dir)])
-
-        f1 = open(tmp_basename_dir+'/stdout_capture','rb')
-        f1_content = f1.read()
-        f1.close()
-        f2 = open(tmp_basename_dir + '/clustering.csv','rb')
-        f2_content = f2.read()
-        f2.close()
-        assert_true(len(f1_content)==len(f2_content),
-                    msg='stdout and clustering file is not equal')
 
     def test_bic_sorted(self):
         self.run_command()
