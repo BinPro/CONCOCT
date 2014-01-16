@@ -105,27 +105,25 @@ int driver(const char* szFileStub)
 
   compressCluster(ptBestCluster);
 
-  /*should already be created by Python?*/
-  mkdir(tParams.szOutFileStub,S_IRWXU);
 
   calcCovarMatrices(ptBestCluster,&tData);
 
-  sprintf(szOFile,"%s/%s_clustering_gt%d.csv",tParams.szOutFileStub,tParams.szOutFileStub,tParams.nLMin);
+  sprintf(szOFile,"clustering_gt%d.csv",tParams.szOutFileStub,tParams.nLMin);
   writeClusters(szOFile,ptBestCluster,&tData);
 
-  sprintf(szOFile,"%s/%s_pca_means_gt%d.csv",tParams.szOutFileStub,tParams.szOutFileStub,tParams.nLMin);
+  sprintf(szOFile,"%spca_means_gt%d.csv",tParams.szOutFileStub,tParams.nLMin);
   writeMeans(szOFile,ptBestCluster);
 
-  sprintf(szOFile,"%s/%s_pca_tmeans_gt%d.csv",tParams.szOutFileStub,tParams.szOutFileStub,tParams.nLMin);
+  sprintf(szOFile,"%smeans_gt%d.csv",tParams.szOutFileStub,tParams.nLMin);
   writeTMeans(szOFile,ptBestCluster,&tData);
 
   for(k = 0; k < ptBestCluster->nK; k++){
-    sprintf(szOFile,"%s/%s_pca_variances_gt%d_dim%d.csv",tParams.szOutFileStub,tParams.szOutFileStub,tParams.nLMin,k);
+    sprintf(szOFile,"%spca_variances_gt%d_dim%d.csv",tParams.szOutFileStub,tParams.nLMin,k);
     
     writeSquareMatrix(szOFile, ptBestCluster->aptSigma[k], nD);
   }
 
-  sprintf(szOFile,"%s/%s_bic.csv",tParams.szOutFileStub,tParams.szOutFileStub);
+  sprintf(szOFile,"%sbic.csv",tParams.szOutFileStub);
 
   ofp = fopen(szOFile,"w");
   if(ofp){    
