@@ -29,7 +29,7 @@
 #include <Python.h>
 
 /*User includes*/
-#include "vgmmmodule.h"
+#include "vbgmmmodule.h"
 
 
 static PyObject *vbgmm_fit(PyObject *self, PyObject *args)
@@ -146,8 +146,6 @@ int driver(const char* szFileStub)
       }
       fprintf(ofp,"%f\n",ptBestCluster->aadZ[i][ptBestCluster->nK - 1]);
     }
-
-    fprintf(ofp,"%d,%f\n",ptBestCluster->nK,ptBestCluster->dVBL);
 
     fclose(ofp);
   }
