@@ -142,9 +142,9 @@ int driver(const char* szFileStub)
 
     for(i = 0; i < nN; i++){
       for(k = 0; k < ptBestCluster->nK - 1; k++){
-	printf("%f,",ptBestCluster->aadZ[i][k]);
+	fprintf(ofp,"%f,",ptBestCluster->aadZ[i][k]);
       }
-      printf("%f\n",ptBestCluster->aadZ[i][ptBestCluster->nK - 1]);
+      fprintf(ofp,"%f\n",ptBestCluster->aadZ[i][ptBestCluster->nK - 1]);
     }
 
     fprintf(ofp,"%d,%f\n",ptBestCluster->nK,ptBestCluster->dVBL);
