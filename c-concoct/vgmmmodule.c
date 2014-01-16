@@ -151,11 +151,6 @@ int driver(char* szFileStub)
   gsl_matrix_free(tVBParams.ptInvW0);
 
   return EXIT_SUCCESS;
-
- memoryError:
-  fprintf(stderr, "Failed allocating memory in driver\n");
-  fflush(stderr);
-  exit(EXIT_FAILURE);
 }
 
 void setParams(t_Params *ptParams, char *szFileStub)
@@ -282,7 +277,9 @@ void readInputData(const char *szFile, t_Data *ptData)
 
     for(i = 0; i < nN; i++){
     
-      fgets(szLine, MAX_LINE_LENGTH, ifp);
+      if(fgets(szLine, MAX_LINE_LENGTH, ifp) == NULL)
+	goto formatError;
+
       szTok = strtok(szLine, DELIM);
       ptData->aszSampleNames[i] = strdup(szTok);
       for(j = 0; j < nD; j++){
@@ -387,6 +384,11 @@ void readPInputData(const char *szFile, t_Data *ptData)
   fprintf(stderr, "Incorrectly formatted abundance data file\n");
   fflush(stderr);
   exit(EXIT_FAILURE);
+
+ memoryError:
+  fprintf(stderr, "Failed allocating memory in allocateCluster\n");
+  fflush(stderr);
+  exit(EXIT_FAILURE);
 }
 
 void destroyData(t_Data *ptData)
@@ -448,14 +450,6 @@ void destroyCluster(t_Cluster* ptCluster)
   free(ptCluster->aptSigma);
   free(ptCluster->aptCovar);
   return;
-<<<<<<< HEAD
-=======
- 
- memoryError:
-  fprintf(stderr, "Failed allocating memory in allocateCluster\n");
-  fflush(stderr);
-  exit(EXIT_FAILURE);
->>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
 }
 
 void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed)

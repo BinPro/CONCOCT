@@ -128,6 +128,8 @@ typedef struct s_Cluster
 #define INPUT_FILE       "PCA_transformed_data_gt"
 #define PINPUT_FILE      "PCA_components_data_gt"
 
+int driver(char* szFileStub);
+
 void setParams(t_Params *ptParams,char *szFileStub);
 
 void destroyParams(t_Params *ptParams);
