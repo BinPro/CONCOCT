@@ -1283,7 +1283,7 @@ double dWishartEntropy(gsl_matrix *ptW, double dNu, int nD)
 
 double calcVBL(t_Cluster* ptCluster)
 {
-  int i = 0, j = 0, k = 0, l = 0, nN = ptCluster->nN;
+  int i = 0, k = 0, l = 0, nN = ptCluster->nN;
   int nK = ptCluster->nK, nD = ptCluster->nD;
   double dBishop1 = 0.0, dBishop2 = 0.0, dBishop3 = 0.0, dBishop4 = 0.0, dBishop5 = 0.0; /*Bishop equations 10.71...*/
   gsl_matrix *ptRes  = gsl_matrix_alloc(nD,nD);
@@ -1582,6 +1582,8 @@ void* fitEM(void *pvCluster)
   gmmTrainVB(ptCluster, ptCluster->ptData);
 
   gsl_rng_free(ptGSLRNG);
+
+  return NULL;
 }
 
 void* runRThreads(void *pvpDCluster)
