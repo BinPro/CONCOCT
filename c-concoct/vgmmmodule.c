@@ -69,7 +69,8 @@ int driver(const char* szFileStub)
   FILE *ofp = NULL;
   t_VBParams tVBParams;
   t_Cluster  *ptBestCluster = NULL;
-
+  gsl_matrix *ptTemp = NULL;
+  gsl_matrix *ptTVar = NULL;
   /*initialise GSL RNG*/
   gsl_rng_env_setup();
 
@@ -90,6 +91,9 @@ int driver(const char* szFileStub)
   nD = tData.nD;
   nN = tData.nN;
 
+  ptTemp = gsl_matrix_alloc(ptData->nT,nD);
+  ptTVar = gsl_matrix_alloc(ptData->nT,ptData->nT);
+
   setVBParams(&tVBParams, &tData);
   
   ptBestCluster = (t_Cluster *) malloc(sizeof(t_Cluster));
@@ -105,10 +109,9 @@ int driver(const char* szFileStub)
 
   compressCluster(ptBestCluster);
 
-
   calcCovarMatrices(ptBestCluster,&tData);
 
-  sprintf(szOFile,"clustering_gt%d.csv",tParams.szOutFileStub,tParams.nLMin);
+  sprintf(szOFile,"%sclustering_gt%d.csv",tParams.szOutFileStub,tParams.nLMin);
   writeClusters(szOFile,ptBestCluster,&tData);
 
   sprintf(szOFile,"%spca_means_gt%d.csv",tParams.szOutFileStub,tParams.nLMin);
@@ -121,6 +124,15 @@ int driver(const char* szFileStub)
     sprintf(szOFile,"%spca_variances_gt%d_dim%d.csv",tParams.szOutFileStub,tParams.nLMin,k);
     
     writeSquareMatrix(szOFile, ptBestCluster->aptSigma[k], nD);
+  
+    /*not entirely sure this is correct?*/
+    gsl_blas_dgemm (CblasNoTrans,CblasNoTrans,1.0,ptData->ptTMatrix,ptBestCluster->aptSigma[k],0.0,ptTemp);
+  
+    gsl_blas_dgemm (CblasNoTrans,CblasTrans,1.0,ptTemp,ptData->ptTMatrix,0.0,ptTVar);
+
+    sprintf(szOFile,"%svariances_gt%d_dim%d.csv",tParams.szOutFileStub,tParams.nLMin,k);
+
+    writeSquareMatrix(szOFile, ptTVar, nD);
   }
 
   sprintf(szOFile,"%sbic.csv",tParams.szOutFileStub);
@@ -147,6 +159,8 @@ int driver(const char* szFileStub)
   destroyParams(&tParams);
   gsl_rng_free(ptGSLRNG);
   gsl_matrix_free(tVBParams.ptInvW0);
+  gsl_matrix_free(ptTemp);
+  gsl_matrix_free(ptTVar);
 
   return EXIT_SUCCESS;
 }
