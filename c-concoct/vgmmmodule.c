@@ -91,8 +91,8 @@ int driver(const char* szFileStub)
   nD = tData.nD;
   nN = tData.nN;
 
-  ptTemp = gsl_matrix_alloc(ptData->nT,nD);
-  ptTVar = gsl_matrix_alloc(ptData->nT,ptData->nT);
+  ptTemp = gsl_matrix_alloc(tData.nT,nD);
+  ptTVar = gsl_matrix_alloc(tData.nT,tData.nT);
 
   setVBParams(&tVBParams, &tData);
   
