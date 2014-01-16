@@ -125,7 +125,7 @@ int driver(char* szFileStub)
     writeSquareMatrix(szOFile, ptBestCluster->aptSigma[k], nD);
   }
 
-  sprintf(szOFile,"%s/%s_bic.csv",tParams.szOutFileStub,tParams.szOutFileStub,tParams.szOutFileStub);
+  sprintf(szOFile,"%s/%s_bic.csv",tParams.szOutFileStub,tParams.szOutFileStub);
 
   ofp = fopen(szOFile,"w");
   if(ofp){    
@@ -604,11 +604,6 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
   double **aadZ = ptCluster->aadZ,**aadX = ptData->aadX;
   double *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
   double **aadCovar = NULL, **aadInvWK = NULL;
-<<<<<<< HEAD
-=======
-  double dN = (double) nN;
-  int    status;
->>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
   t_VBParams *ptVBParams = ptCluster->ptVBParams;
 
   //gsl_matrix* ptSigmaMatrix = gsl_matrix_alloc(nD,nD);
