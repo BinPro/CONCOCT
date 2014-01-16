@@ -126,9 +126,9 @@ int driver(const char* szFileStub)
     writeSquareMatrix(szOFile, ptBestCluster->aptSigma[k], nD);
   
     /*not entirely sure this is correct?*/
-    gsl_blas_dgemm (CblasNoTrans,CblasNoTrans,1.0,ptData->ptTMatrix,ptBestCluster->aptSigma[k],0.0,ptTemp);
+    gsl_blas_dgemm (CblasNoTrans,CblasNoTrans,1.0,tData.ptTMatrix,ptBestCluster->aptSigma[k],0.0,ptTemp);
   
-    gsl_blas_dgemm (CblasNoTrans,CblasTrans,1.0,ptTemp,ptData->ptTMatrix,0.0,ptTVar);
+    gsl_blas_dgemm (CblasNoTrans,CblasTrans,1.0,ptTemp,tData.TMatrix,0.0,ptTVar);
 
     sprintf(szOFile,"%svariances_gt%d_dim%d.csv",tParams.szOutFileStub,tParams.nLMin,k);
 
