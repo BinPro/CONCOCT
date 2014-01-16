@@ -165,9 +165,9 @@ void setParams(t_Params *ptParams, const char *szFileStub)
   if(!ptParams->szInputFile)
     goto memoryError;
 
-  sprintf(ptParams->szInputFile,"%s/%s%s%d.csv",szFileStub,szFileStub,INPUT_FILE,ptParams->nLMin);
+  sprintf(ptParams->szInputFile,"%s%s%d.csv",szFileStub,INPUT_FILE,ptParams->nLMin);
 
-  sprintf(ptParams->szPInputFile,"%s/%s%s%d.csv",szFileStub,szFileStub,PINPUT_FILE,ptParams->nLMin);
+  sprintf(ptParams->szPInputFile,"%s%s%d.csv",szFileStub,PINPUT_FILE,ptParams->nLMin);
 
   ptParams->szOutFileStub = szFileStub;
 
