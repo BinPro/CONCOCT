@@ -64,7 +64,7 @@ int driver(const char* szFileStub)
   t_Data             tData;
   gsl_rng            *ptGSLRNG     = NULL;
   const gsl_rng_type *ptGSLRNGType = NULL;
-  int k = 0, nD = 0, nN = 0;
+  int i = 0, k = 0, nD = 0, nN = 0;
   char szOFile[MAX_LINE_LENGTH];
   FILE *ofp = NULL;
   t_VBParams tVBParams;
@@ -133,6 +133,27 @@ int driver(const char* szFileStub)
     sprintf(szOFile,"%svariances_gt%d_dim%d.csv",tParams.szOutFileStub,tParams.nLMin,k);
 
     writeSquareMatrix(szOFile, ptTVar, nD);
+  }
+
+  sprintf(szOFile,"%sresponsibilities.csv",tParams.szOutFileStub);
+
+  ofp = fopen(szOFile,"w");
+  if(ofp){    
+
+    for(i = 0; i < nN; i++){
+      for(k = 0; k < ptBestCluster->nK - 1; k++){
+	printf("%f,",ptBestCluster->aadZ[i][k]);
+      }
+      printf("%f\n",ptBestCluster->aadZ[i][ptBestCluster->nK - 1]);
+    }
+
+    fprintf(ofp,"%d,%f\n",ptBestCluster->nK,ptBestCluster->dVBL);
+
+    fclose(ofp);
+  }
+  else{
+    fprintf(stderr,"Failed openining %s in main\n", szOFile);
+    fflush(stderr);
   }
 
   sprintf(szOFile,"%sbic.csv",tParams.szOutFileStub);
