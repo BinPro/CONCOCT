@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
  
 module1 = Extension('vbgmm', 
 	libraries =['gsl',  'gslcblas'],
-	sources = ['vgmmmodule.c'])
+	sources = ['vbgmmmodule.c'])
  
 setup (name = 'vbgmm',
         version = '1.0',
