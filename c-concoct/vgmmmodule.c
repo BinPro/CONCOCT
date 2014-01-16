@@ -3,7 +3,11 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+<<<<<<< HEAD
 #include <sys/stat.h>vgmmmodule.h
+=======
+#include <sys/stat.h>
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
 #include <float.h>
 
 /*GSL includes*/
@@ -29,7 +33,11 @@
 #include <Python.h>
 
 /*User includes*/
+<<<<<<< HEAD
 #include "vgmmmodule.h"
+=======
+#include "VGMM.h"
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
 
 static PyObject *vbgmm_fit(PyObject *self, PyObject *args)
 {
@@ -57,7 +65,68 @@ initvbgmm(void)
     (void) Py_InitModule("vbgmm", VbgmmMethods);
 }
 
+<<<<<<< HEAD
 
+=======
+void setParams(t_Params *ptParams, char *szFileStub)
+{
+  ptParams->lSeed = DEF_SEED;
+  
+  ptParams->nLMin = DEF_LMIN;
+
+  ptParams->szInputFile = (char *) malloc(MAX_LINE_LENGTH*sizeof(char));
+  if(!ptParams->szInputFile)
+    goto memoryError;
+
+  ptParams->szPInputFile = (char *) malloc(MAX_LINE_LENGTH*sizeof(char));
+  if(!ptParams->szInputFile)
+    goto memoryError;
+
+  sprintf(ptParams->szInputFile,"%s/%s%s%d.csv",szFileStub,szFileStub,INPUT_FILE,ptParams->nLMin);
+
+  sprintf(ptParams->szPInputFile,"%s/%s%s%d.csv",szFileStub,szFileStub,PINPUT_FILE,ptParams->nLMin);
+
+  ptParams->szOutFileStub = szFileStub;
+
+  ptParams->nKStart = DEF_KSTART;
+
+  return;
+
+ memoryError:
+  fprintf(stderr, "Failed allocating memory in setParams\n");
+  fflush(stderr);
+  exit(EXIT_FAILURE);
+}
+
+void destroyParams(t_Params *ptParams)
+{
+
+  free(ptParams->szInputFile);
+
+  free(ptParams->szPInputFile);
+}
+
+void setVBParams(t_VBParams *ptVBParams, t_Data *ptData)
+{
+  int i = 0, nD = ptData->nD;
+  double adVar[nD], adMu[nD];
+
+  ptVBParams->dBeta0 = DEF_BETA0;
+  ptVBParams->dNu0 = (double) nD;
+  ptVBParams->ptInvW0 = gsl_matrix_alloc(nD,nD);
+    
+  calcSampleVar(ptData,adVar, adMu);
+  gsl_matrix_set_zero (ptVBParams->ptInvW0);
+    
+  for(i = 0; i < nD; i++){
+    double dRD = adVar[i]*((double) nD);
+    
+    gsl_matrix_set(ptVBParams->ptInvW0,i,i,dRD);
+  }
+
+  ptVBParams->dLogWishartB = dLogWishartB(ptVBParams->ptInvW0, nD, ptVBParams->dNu0, TRUE);
+}
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
 
 int driver(char* szFileStub)
 {
@@ -65,10 +134,21 @@ int driver(char* szFileStub)
   t_Data             tData;
   gsl_rng            *ptGSLRNG     = NULL;
   const gsl_rng_type *ptGSLRNGType = NULL;
+<<<<<<< HEAD
   int k = 0, nD = 0, nN = 0;
   char szOFile[MAX_LINE_LENGTH];
   FILE *ofp = NULL;
   t_VBParams tVBParams;
+=======
+  int i = 0, j = 0, k = 0, r = 0, nK = 0, nD = 0, nN = 0;
+  char szOFile[MAX_LINE_LENGTH];
+  FILE *ofp = NULL;
+  double dBestVBL = -DBL_MAX;
+  int    nKBest   = -1;
+  t_VBParams tVBParams;
+  double dRD = 1.0;
+  gsl_matrix *ptTMatrix = NULL;
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
   t_Cluster  *ptBestCluster = NULL;
 
   /*initialise GSL RNG*/
@@ -173,9 +253,13 @@ void readInputData(const char *szFile, t_Data *ptData)
     char* szTok   = NULL;
     char* pcError = NULL;
 
+<<<<<<< HEAD
     if(fgets(szLine, MAX_LINE_LENGTH, ifp) == NULL)
       goto formatError;
 
+=======
+    fgets(szLine, MAX_LINE_LENGTH, ifp);
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
     szTok = strtok(szLine, DELIM);
     /*count dimensions*/
     while(strtok(NULL, DELIM) != NULL){
@@ -190,8 +274,12 @@ void readInputData(const char *szFile, t_Data *ptData)
 
     /*reopen input file*/
     ifp = fopen(szFile, "r");	
+<<<<<<< HEAD
     if(fgets(szLine, MAX_LINE_LENGTH, ifp) == NULL)
       goto formatError;
+=======
+    fgets(szLine, MAX_LINE_LENGTH, ifp);
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
 
     /*allocate memory for dimension names*/
     ptData->aszDimNames = (char **) malloc(nD*sizeof(char*));
@@ -270,10 +358,14 @@ void readPInputData(const char *szFile, t_Data *ptData)
     char* szTok   = NULL;
     char* pcError = NULL;
     nT = 1;
+<<<<<<< HEAD
 
     if(fgets(szLine, MAX_LINE_LENGTH, ifp) == NULL)
       goto memoryError;
 
+=======
+    fgets(szLine, MAX_LINE_LENGTH, ifp);
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
     szTok = strtok(szLine, DELIM);
     /*count dimensions*/
     while(strtok(NULL, DELIM) != NULL){  
@@ -287,11 +379,19 @@ void readPInputData(const char *szFile, t_Data *ptData)
     /*reopen input file*/
     ifp = fopen(szFile, "r");	
     
+<<<<<<< HEAD
     for(i = 0; i < nD; i++){
       double dTemp = 0.0;
 
       if(fgets(szLine, MAX_LINE_LENGTH, ifp) == NULL)
 	goto formatError;
+=======
+
+    for(i = 0; i < nD; i++){
+      double dTemp = 0.0;
+
+      fgets(szLine, MAX_LINE_LENGTH, ifp);
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
 
       szTok = strtok(szLine, DELIM);
       
@@ -323,6 +423,7 @@ void readPInputData(const char *szFile, t_Data *ptData)
   ptData->nT = nT;
   return;
 
+<<<<<<< HEAD
  formatError:
   fprintf(stderr, "Incorrectly formatted abundance data file\n");
   fflush(stderr);
@@ -355,10 +456,20 @@ void setParams(t_Params *ptParams, char *szFileStub)
 
  memoryError:
   fprintf(stderr, "Failed allocating memory in setParams\n");
+=======
+ memoryError:
+  fprintf(stderr, "Failed allocating memory in readInputData\n");
+  fflush(stderr);
+  exit(EXIT_FAILURE);
+
+ formatError:
+  fprintf(stderr, "Incorrectly formatted abundance data file\n");
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
   fflush(stderr);
   exit(EXIT_FAILURE);
 }
 
+<<<<<<< HEAD
 void destroyParams(t_Params *ptParams)
 {
 
@@ -387,6 +498,9 @@ void setVBParams(t_VBParams *ptVBParams, t_Data *ptData)
 
   ptVBParams->dLogWishartB = dLogWishartB(ptVBParams->ptInvW0, nD, ptVBParams->dNu0, TRUE);
 }
+=======
+
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
 
 void destroyData(t_Data *ptData)
 {
@@ -447,6 +561,14 @@ void destroyCluster(t_Cluster* ptCluster)
   free(ptCluster->aptSigma);
   free(ptCluster->aptCovar);
   return;
+<<<<<<< HEAD
+=======
+ 
+ memoryError:
+  fprintf(stderr, "Failed allocating memory in allocateCluster\n");
+  fflush(stderr);
+  exit(EXIT_FAILURE);
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
 }
 
 void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed)
@@ -601,6 +723,11 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
   double **aadZ = ptCluster->aadZ,**aadX = ptData->aadX;
   double *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
   double **aadCovar = NULL, **aadInvWK = NULL;
+<<<<<<< HEAD
+=======
+  double dN = (double) nN;
+  int    status;
+>>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
   t_VBParams *ptVBParams = ptCluster->ptVBParams;
 
   //gsl_matrix* ptSigmaMatrix = gsl_matrix_alloc(nD,nD);
