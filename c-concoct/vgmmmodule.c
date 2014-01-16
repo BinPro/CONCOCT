@@ -58,7 +58,7 @@ initvbgmm(void)
     (void) Py_InitModule("vbgmm", VbgmmMethods);
 }
 
-int driver(char* szFileStub)
+int driver(const char* szFileStub)
 {
   t_Params           tParams;
   t_Data             tData;
@@ -1750,6 +1750,4 @@ void compressCluster(t_Cluster *ptCluster)
   fprintf(stderr, "Failed allocating memory in main\n");
   fflush(stderr);
   exit(EXIT_FAILURE);
-
 }
-
