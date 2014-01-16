@@ -153,7 +153,7 @@ int driver(const char* szFileStub)
   return EXIT_SUCCESS;
 }
 
-void setParams(t_Params *ptParams, char *szFileStub)
+void setParams(t_Params *ptParams, const char *szFileStub)
 {
   ptParams->lSeed = DEF_SEED;
   
@@ -799,11 +799,9 @@ void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData)
   int i = 0, j = 0, k = 0, l = 0, m = 0;
   int nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
   double **aadZ = ptCluster->aadZ,**aadX = ptData->aadX;
-  double *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
-  double **aadCovar = NULL;
+  double *adPi = ptCluster->adPi, **aadCovar = NULL;
   double dN = (double) nN;
-  int    status;
-  //gsl_matrix* ptSigmaMatrix = gsl_matrix_alloc(nD,nD);
+
 
   aadCovar = (double **) malloc(nD*sizeof(double*));
   if(!aadCovar)
@@ -893,8 +891,6 @@ void calcCovarMatricesVB(t_Cluster *ptCluster, t_Data *ptData){
   double **aadZ = ptCluster->aadZ,**aadX = ptData->aadX;
   double *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
   double **aadCovar = NULL, **aadInvWK = NULL;
-  double dN = (double) nN;
-  int    status;
   t_VBParams *ptVBParams = ptCluster->ptVBParams;
 
   aadCovar = (double **) malloc(nD*sizeof(double*));
@@ -1151,7 +1147,7 @@ void initKMeans(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData)
 {
   /*very simple initialisation assign each data point to random cluster*/
   int i = 0, k = 0, nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
-  double **aadMu = ptCluster->aadMu, **aadX = ptData->aadX, *adPi = ptCluster->adPi; 
+  double **aadMu = ptCluster->aadMu, **aadX = ptData->aadX; 
   int *anMaxZ = ptCluster->anMaxZ, *anW = ptCluster->anW, nChange = nN;
   int nIter = 0;
   for(i = 0; i < nN; i++){
@@ -1167,7 +1163,7 @@ void initKMeans(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData)
     nChange = 0;
     /*reassign vectors*/
     for(i = 0; i < nN; i++){
-      double dMinDist = DBL_MAX;//calcDist(adPi[i],aadX[i],aadMu[0],nD);
+      double dMinDist = DBL_MAX;
       int    nMinK = NOT_SET;
 
       for(k = 0; k < nK; k++){
@@ -1400,13 +1396,12 @@ double calcVBL(t_Cluster* ptCluster)
 
 void calcZ(t_Cluster* ptCluster, t_Data *ptData){
   double **aadX = ptData->aadX, **aadZ = ptCluster->aadZ;
-  int i = 0, j = 0, k = 0, l = 0, m = 0;
+  int i = 0, k = 0, l = 0;
   int nK = ptCluster->nK, nD = ptCluster->nD, nN = ptData->nN;
   gsl_vector *ptDiff = gsl_vector_alloc(nD);
   gsl_vector *ptRes = gsl_vector_alloc(nD);
   double adDist[nK], dD = (double) nD;
   double** aadM = ptCluster->aadM, *adPi = ptCluster->adPi;
-  t_VBParams *ptVBParams = ptCluster->ptVBParams;
 
   for(i = 0; i < nN; i++){
     double dMinDist = DBL_MAX;

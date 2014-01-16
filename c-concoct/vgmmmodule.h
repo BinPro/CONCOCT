@@ -10,7 +10,7 @@ typedef struct s_Params
   /*pca transformation*/
   char *szPInputFile;
   /*output file stub*/
-  char *szOutFileStub;
+  const char *szOutFileStub;
   /*initial cluster size*/
   int nKStart;
   /*min contig length*/
