@@ -3,11 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-<<<<<<< HEAD
-#include <sys/stat.h>vgmmmodule.h
-=======
 #include <sys/stat.h>
->>>>>>> d69ebe80d9f558752be53fb975ae00e169763dae
 #include <float.h>
 
 /*GSL includes*/
