@@ -24,7 +24,6 @@ def load_composition(comp_file,kmer_len,threshold):
     #and j features as columns
     composition = np.ones((seq_count,nr_features))
     
-    
     contigs_id = []
     for i,seq in enumerate(SeqIO.parse(comp_file,"fasta")):
         contigs_id.append(seq.id)

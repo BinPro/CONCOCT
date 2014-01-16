@@ -39,7 +39,6 @@ class Output(object):
             basename_path = os.path.abspath(basename)
             self.CONCOCT_PATH = basename+'_'
 
-        self.BIC_FILE = self.CONCOCT_PATH + "bic.csv"
         self.ARGS_FILE = self.CONCOCT_PATH + "args.txt"
         self.ORIGINAL_FILE_BASE = self.CONCOCT_PATH + "original_data_gt{0}.csv"
         self.PCA_FILE_BASE = self.CONCOCT_PATH + \

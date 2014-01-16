@@ -1,8 +1,5 @@
 import os
 from argparse import ArgumentParser, ArgumentTypeError
-from collections import namedtuple
-
-import numpy as np
 
 def set_random_state(seed):
     ERROR="'{0}' should be converatable to integer".format(seed)
@@ -13,19 +10,6 @@ def set_random_state(seed):
         return seed
     except ValueError as e:
         raise ArgumentTypeError(ERROR)
-
-def parse_split_pca(s):
-    ERROR="'" + s + ("' is not a valid split pca proportion tuple. "
-                     "Expected two positive integers <100")
-    try:
-        prop = s.split(",")
-    except ValueError as e:
-        raise ArgumentTypeError(ERROR)
-    if not len(prop) == 2:
-        raise ArgumentTypeError(ERROR)
-    cov_prop = int(prop[0])
-    comp_prop = int(prop([1]))
-    return (cov_prop,comp_prop)
 
 def arguments():
     parser = ArgumentParser()
@@ -53,25 +37,11 @@ def arguments():
               "in the final clustering results. Defaults to 1000"))
     parser.add_argument('-r','--read_length', type=int, default=100,
         help='specify read length for coverage, default 100')
-    #Joined PCA or seperate PCA
-    parser.add_argument('-s','--split_pca', action='store_true',
-              help=('specify this flag to perform PCA for the composition '
-               ' and coverage data seperately'))
-    parser.add_argument('--coverage_percentage_pca', default=90, type=int,
-                        help=('The percentatage of variance explained'
-                              ' by the principal components for the'
-                              ' coverage data, only considered if '
-                              ' split pca is used'))
-    parser.add_argument('--composition_percentage_pca', default=90, type=int,
-                        help=('The percentatage of variance explained'
-                              ' by the principal components for the'
-                              ' composiiton data, only considered if '
-                              ' split pca is used'))
+    #Joined PCA
     parser.add_argument('--total_percentage_pca', default=90, type=int,
                         help=('The percentage of variance explained'
                               ' by the principal components for the'
-                              ' combined data, only considered if '
-                              ' split pca is NOT used'))
+                              ' combined data.'))
     #Output
     parser.add_argument('-b', '--basename', default=os.curdir,
         help=("Specify the basename for files or directory where output"
