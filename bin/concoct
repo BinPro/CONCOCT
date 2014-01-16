@@ -17,64 +17,69 @@ from concoct.input import load_composition, load_coverage
 from concoct.transform import perform_pca, perform_split_pca
 
 def main(args):
-    comp_file = args.composition_file
-    cov_file = args.coverage_file
-    kmer_len = args.kmer_length
-    threshold = args.length_threshold
-    read_length = args.read_length
-    cluster_count = args.clusters 
-    split_pca = args.split_pca 
-    outdir = args.basename
-    pca_components = args.pca_components
-    random_seed =  args.force_seed
-    no_cov_normalization = args.no_cov_normalization
-    no_total_coverage = args.no_total_coverage
-
     # Initialize output handling
-    Output(outdir,args)
+    Output(args.basename,args)
 
-    composition, contig_lengths, threshold_filter = \
-        load_composition(comp_file, kmer_len, threshold)
-    cov, cov_range = load_coverage(cov_file, contig_lengths,no_cov_normalization, add_total_coverage=(not no_total_coverage))
+    composition, contig_lengths, args.length_threshold_filter = load_composition(
+        args.composition_file, 
+        args.kmer_length, 
+        args.length_threshold
+        )
+
+    cov, cov_range = load_coverage(
+        args.coverage_file, 
+        contig_lengths, 
+        args.no_cov_normalization, 
+        add_total_coverage=(not args.no_total_coverage)
+        )
 
     joined = composition.join(
-        cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
+        cov.ix[:,cov_range[0]:cov_range[1]],
+        how="inner"
+        )
 
-    if split_pca:
-        cov_d = cov[threshold_filter].ix[:,cov_range[0]:cov_range[1]]
+    if args.split_pca:
+        cov_d = cov[args.length_threshold_filter].ix[:, cov_range[0]:cov_range[1]]
             
-        # Fix special case in pca_components
-        if pca_components[0] == "All":
-            pca_components = (cov_d.shape[1],pca_components[1])
-        if pca_components[1] == "All":
-            pca_components = (pca_components[0],
-                              composition[threshold_filter].shape[1])
+        # Fix special case in args.pca_components
+        if args.pca_components[0] == "All":
+            args.pca_components = (cov_d.shape[1],args.pca_components[1])
+        if args.pca_components[1] == "All":
+            args.pca_components = (args.pca_components[0],
+                              composition[args.length_threshold_filter].shape[1])
 
-        transform_filter, cov_pca, comp_pca = \
-            perform_split_pca(cov_d, composition[threshold_filter], pca_components)
+        transform_filter, cov_pca, comp_pca = perform_args.split_pca(
+            cov_d, 
+            composition[args.length_threshold_filter], 
+            args.pca_components
+            )
     else:
-        # Fix special cas in pca_components
-        if pca_components == "All":
-            pca_components = joined[threshold_filter].shape[1]
-        #PCA on the contigs that have kmer count greater than threshold
-        transform_filter, pca = perform_pca(joined[threshold_filter], pca_components)
+        # Fix special cas in args.pca_components
+        if args.pca_components == "All":
+            args.pca_components = joined[args.length_threshold_filter].shape[1]
 
-    Output.write_original_data(joined[threshold_filter],threshold)
+        #PCA on the contigs that have kmer count greater than args.length_threshold
+        transform_filter, pca = perform_pca(
+            joined[args.length_threshold_filter], 
+            args.pca_components
+            )
+
+    Output.write_original_data(joined[args.length_threshold_filter],args.length_threshold)
     Output.write_pca(transform_filter,
-                     threshold,cov[threshold_filter].index)
+                     args.length_threshold,cov[args.length_threshold_filter].index)
     logging.info('PCA transformed data.')
     cluster_args = []
-    cluster_args.append((cluster_count,transform_filter,random_seed))
+    cluster_args.append((args.clusters,transform_filter,args.force_seed))
 
 #----------------------------------------------------------
 #HERE WE SHOULD CALL CHRIS'S C CODE AND QUIT
 #----------------------------------------------------------
 
 #WERE WE TO DO THIS HERE OR IN THE C CODE
-#    if split_pca:
+#    if args.split_pca:
 #        # Transform both unfiltered datasets separately before joining
-#        joined_transform, _, _ = perform_split_pca(cov, composition, 
-#                                                   pca_components,
+#        joined_transform, _, _ = perform_args.split_pca(cov, composition, 
+#                                                   args.pca_components,
 #                                                   use_pcas = (cov_pca,comp_pca))
 #
 #        joined["clustering"] = classifier.predict(joined_transform)
@@ -82,7 +87,7 @@ def main(args):
 #    else:
 #        joined["clustering"] = classifier.predict(pca.transform(joined))
 #        Output.write_cluster_means(pca.inverse_transform(classifier.means_),
-#                                   threshold, c)
+#                                   args.length_threshold, c)
 #    logging.info("CONCOCT Finished")
 
 
