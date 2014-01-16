@@ -130,7 +130,7 @@ typedef struct s_Cluster
 
 int driver(const char* szFileStub);
 
-void setParams(t_Params *ptParams,char *szFileStub);
+void setParams(t_Params *ptParams,const char *szFileStub);
 
 void destroyParams(t_Params *ptParams);
 

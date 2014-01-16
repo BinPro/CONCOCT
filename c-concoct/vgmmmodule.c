@@ -1068,12 +1068,11 @@ void calcCovarMatricesVB(t_Cluster *ptCluster, t_Data *ptData){
 }
 
 void updateMeans(t_Cluster *ptCluster, t_Data *ptData){
-  int i = 0, j = 0, k = 0, l = 0, m = 0;
+  int i = 0, j = 0, k = 0;
   int nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
   int *anMaxZ = ptCluster->anMaxZ;
   int *anW    = ptCluster->anW;
   double **aadX = ptData->aadX, **aadMu = ptCluster->aadMu;
-  double *adPi = ptCluster->adPi, dN = (double) nN;
 
   for(k = 0; k < nK; k++){
     
@@ -1497,10 +1496,6 @@ void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData)
   }
 
   return;
- memoryError:
-  fprintf(stderr, "Failed allocating memory in gmmTrain\n");
-  fflush(stderr);
-  exit(EXIT_FAILURE);
 }
 
 void writeClusters(char *szOutFile, t_Cluster *ptCluster, t_Data *ptData)
