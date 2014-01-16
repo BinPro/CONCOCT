@@ -1504,11 +1504,11 @@ void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData)
     ptCluster->dVBL = calcVBL(ptCluster);
     dDelta = fabs(ptCluster->dVBL - dLastVBL);
 
-    printf("%d %f %f",nIter, ptCluster->dVBL, dDelta);
-    for(k = 0; k < nK; k++){
-      printf("%f ",ptCluster->adPi[k]);
-    }
-    printf("\n");
+    //printf("%d %f %f",nIter, ptCluster->dVBL, dDelta);
+    //for(k = 0; k < nK; k++){
+    //printf("%f ",ptCluster->adPi[k]);
+    //}
+    //printf("\n");
     
     nIter++;
   }
