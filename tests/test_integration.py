@@ -161,7 +161,7 @@ class TestCMD(object):
             )
         
         assert_true(
-            isfile(d_p+ '/variance_gt1000_dim1.csv'),
+            isfile(d_p+ '/variances_gt1000_dim1.csv'),
             msg='Large contigs cluster variance file is not created'
             )
         assert_true(
@@ -261,20 +261,6 @@ class TestCMD(object):
                     msg='Clustering files does not have the same lengths')
         assert_true(clust_gtl_2!=clustl_2,
                     msg='Filtered clustering file and full have the same lengths')
-
-    def test_bic_sorted(self):
-        self.run_command()
-        bic = p.io.parsers.read_table(tmp_basename_dir+'/bic.csv',sep=',',index_col=0,header=None)
-        assert_true(max(bic.index) == 5,
-                    msg='BIC columns are probably mixed up')
-        index_l = list(bic.index)
-        assert_true(index_l==[3,4,5],
-                    msg='BIC file is not sorted')
-        # Run command again, to see that file is overwritten
-        self.run_command()
-        bic = p.io.parsers.read_table(tmp_basename_dir+'/bic.csv',sep=',',index_col=0,header=None)
-        assert_true(len(bic)==3,
-                    'BIC file is probably appended to')
 
     def test_logging(self):
         self.run_command()
