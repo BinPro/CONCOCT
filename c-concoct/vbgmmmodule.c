@@ -501,7 +501,7 @@ void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptDat
   if(!ptCluster->anMaxZ)
     goto memoryError;
 
-  ptCluster->anW = (int *) malloc(nN*sizeof(int)); /*destroyed*/
+  ptCluster->anW = (int *) malloc(nK*sizeof(int)); /*destroyed*/
   if(!ptCluster->anW)
     goto memoryError;
 
