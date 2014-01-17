@@ -8,7 +8,8 @@
 dist/*
 build/*
 *.egg*
-
+c-concoct/build/*
+c-concoct/dist/*
 #ignore screen file
 .screenrc
 #ignore test folder
