@@ -19,6 +19,7 @@ class Output(object):
     CONCOCT_PATH = None
     ARGS_FILE = None
     PCA_FILE_BASE = None
+    PCA_COMPONENTS_FILE_BASE = None
     FLOAT_FORMAT = '%1.8e'
 
     @classmethod
@@ -64,19 +65,27 @@ class Output(object):
             print >> fh, args
     
     @classmethod
-    def write_pca(self, transform, threshold, index, pca):
+    def write_pca(self, transform, threshold, index):
         transform_df = p.DataFrame(transform, index=index)
         transform_df.to_csv(
             self.PCA_FILE_BASE.format(threshold),
             float_format=self.FLOAT_FORMAT,
             index_label="contig_id"
             )
+        logging.info('Wrote PCA transformed file.')
 
-        np.savetxt(self.PCA_COMPONENTS_FILE_BASE.format(threshold),
-                   pca.components_,
-                   fmt = self.FLOAT_FORMAT,
-                   delimiter = ',')
-        
+    
+    @classmethod
+    def write_pca_components(self, components, threshold):
+        np.savetxt(
+            self.PCA_COMPONENTS_FILE_BASE.format(threshold),
+            components,
+            fmt=self.FLOAT_FORMAT,
+            delimiter=","
+        )
+        logging.info('Wrote PCA components file.')
+
     @classmethod
     def write_original_data(self,original,threshold):
         original.to_csv(self.ORIGINAL_FILE_BASE.format(threshold), float_format=self.FLOAT_FORMAT)
+        logging.info('Wrote original filtered data file.')

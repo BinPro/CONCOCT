@@ -3,6 +3,7 @@ from __future__ import division
 
 import sys
 import logging
+import vbgmm
 
 from concoct.output import Output
 from concoct.parser import arguments
@@ -36,6 +37,8 @@ def main(args):
         args.pca_components
         )
 
+    logging.info('Performed PCA, resulted in %s dimentions' % pca.n_components)
+    
     Output.write_original_data(
         joined[threshold_filter],
         args.length_threshold
@@ -48,9 +51,17 @@ def main(args):
         pca
         )
 
+    Output.write_pca_components(
+        pca.components_,
+        args.length_threshold
+        )
+
     logging.info('PCA transformed data.')
 
+    logging.info('Will call vbgmm with parameters: %s, %s' % (Output.CONCOCT_PATH, args.clusters))
+
     vbgmm.fit(Output.CONCOCT_PATH)
+
     logging.info("CONCOCT Finished")
 
         
