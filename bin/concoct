@@ -48,7 +48,6 @@ def main(args):
         transform_filter,
         args.length_threshold,
         joined[threshold_filter].index,
-        pca
         )
 
     Output.write_pca_components(
