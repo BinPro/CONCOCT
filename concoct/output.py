@@ -19,6 +19,7 @@ class Output(object):
     CONCOCT_PATH = None
     ARGS_FILE = None
     PCA_FILE_BASE = None
+    PCA_COMPONENTS_FILE_BASE = None
     FLOAT_FORMAT = '%1.8e'
 
     @classmethod
@@ -43,6 +44,8 @@ class Output(object):
         self.ORIGINAL_FILE_BASE = self.CONCOCT_PATH + "original_data_gt{0}.csv"
         self.PCA_FILE_BASE = self.CONCOCT_PATH + \
             "PCA_transformed_data_gt{0}.csv"
+        self.PCA_COMPONENTS_FILE_BASE = self.CONCOCT_PATH + \
+            "PCA_components_data_gt{0}.csv"
         self.LOG_FILE_BASE = self.CONCOCT_PATH + 'log.txt'
 
         logging.basicConfig(
@@ -69,7 +72,20 @@ class Output(object):
             float_format=self.FLOAT_FORMAT,
             index_label="contig_id"
             )
+        logging.info('Wrote PCA transformed file.')
+
     
+    @classmethod
+    def write_pca_components(self,components,threshold):
+        np.savetxt(
+            self.PCA_COMPONENTS_FILE_BASE.format(threshold),
+            components,
+            fmt=self.FLOAT_FORMAT,
+            delimiter=","
+        )
+        logging.info('Wrote PCA components file.')
+
     @classmethod
     def write_original_data(self,original,threshold):
         original.to_csv(self.ORIGINAL_FILE_BASE.format(threshold), float_format=self.FLOAT_FORMAT)
+        logging.info('Wrote original filtered data file.')
