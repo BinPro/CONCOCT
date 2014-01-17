@@ -43,6 +43,8 @@ class Output(object):
         self.ORIGINAL_FILE_BASE = self.CONCOCT_PATH + "original_data_gt{0}.csv"
         self.PCA_FILE_BASE = self.CONCOCT_PATH + \
             "PCA_transformed_data_gt{0}.csv"
+        self.PCA_COMPONENTS_FILE_BASE = self.CONCOCT_PATH + \
+            "PCA_components_data_gt{0}.csv"
         self.LOG_FILE_BASE = self.CONCOCT_PATH + 'log.txt'
 
         logging.basicConfig(
@@ -62,14 +64,19 @@ class Output(object):
             print >> fh, args
     
     @classmethod
-    def write_pca(self,transform,threshold,index):
-        transform_df = p.DataFrame(transform,index=index)
+    def write_pca(self, transform, threshold, index, pca):
+        transform_df = p.DataFrame(transform, index=index)
         transform_df.to_csv(
             self.PCA_FILE_BASE.format(threshold),
             float_format=self.FLOAT_FORMAT,
             index_label="contig_id"
             )
-    
+
+        np.savetxt(self.PCA_COMPONENTS_FILE_BASE.format(threshold),
+                   pca.components_,
+                   fmt = self.FLOAT_FORMAT,
+                   delimiter = ',')
+        
     @classmethod
     def write_original_data(self,original,threshold):
         original.to_csv(self.ORIGINAL_FILE_BASE.format(threshold), float_format=self.FLOAT_FORMAT)

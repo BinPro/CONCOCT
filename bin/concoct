@@ -10,6 +10,8 @@ from concoct.cluster import cluster
 from concoct.input import load_data
 from concoct.transform import perform_pca
 
+import vbgmm
+
 def main(args):
     # Initialize output handling
     Output(args.basename,args)
@@ -42,15 +44,14 @@ def main(args):
     Output.write_pca(
         transform_filter,
         args.length_threshold,
-        joined[threshold_filter].index
+        joined[threshold_filter].index,
+        pca
         )
 
     logging.info('PCA transformed data.')
 
-#----------------------------------------------------------
-#HERE WE SHOULD CALL CHRIS'S C CODE AND QUIT
-#----------------------------------------------------------
-#    logging.info("CONCOCT Finished")
+    vbgmm.fit(Output.CONCOCT_PATH)
+    logging.info("CONCOCT Finished")
 
         
 if __name__=="__main__":
