@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
 import sys, os
+from distutils.core import Extension
 
 version = '0.1'
+
+module1 = Extension('vbgmm',
+        libraries =['gsl',  'gslcblas'],
+        sources = ['c-concoct/vbgmmmodule.c'])
 
 setup(name='concoct',
       version=version,
@@ -21,9 +26,11 @@ To be done""",
       scripts=["bin/concoct"],
       include_package_data=True,
       zip_safe=False,
+      ext_modules = [module1],
       install_requires=['argparse==1.2.1',
                         'nose==1.3.0'],
       entry_points="""
       # -*- Entry points: -*-
       """,
       )
+
