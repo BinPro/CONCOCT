@@ -63,7 +63,7 @@ def arguments():
                               "log transformation. Use this tag to escape this behaviour."))
     args  = parser.parse_args()
     # This can be changed to an or case when input of either case is supported individually
-    if not (args.coverage_file and args.composition_file): 
+    if not (args.coverage_file or args.composition_file): 
         parser.error("No input data supplied, add file(s) using --coverage_file <cov_file> and/or "
                      "--composition_file <comp_file>")
 

@@ -64,7 +64,11 @@ class Output(object):
     @classmethod
     def write_pca(self,transform,threshold,index):
         transform_df = p.DataFrame(transform,index=index)
-        transform_df.to_csv(self.PCA_FILE_BASE.format(threshold),float_format=self.FLOAT_FORMAT)
+        transform_df.to_csv(
+            self.PCA_FILE_BASE.format(threshold),
+            float_format=self.FLOAT_FORMAT,
+            index_label="contig_id"
+            )
     
     @classmethod
     def write_original_data(self,original,threshold):

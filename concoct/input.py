@@ -8,6 +8,25 @@ from itertools import product, tee, izip
 
 from Bio import SeqIO
 
+def load_data(args):
+    composition, contig_lengths, threshold_filter = load_composition(
+        args.composition_file, 
+        args.kmer_length, 
+        args.length_threshold
+        )
+
+    if args.coverage_file:
+        cov, cov_range = load_coverage(
+            args.coverage_file,
+            contig_lengths,
+            args.no_cov_normalization,
+            add_total_coverage = (not args.no_total_coverage)
+            )
+    else:
+        cov, cov_range = None, None
+
+    return composition, contig_lengths, threshold_filter, cov, cov_range
+
 def load_composition(comp_file,kmer_len,threshold):
     #Composition
     #Generate kmer dictionary
@@ -51,8 +70,7 @@ def load_composition(comp_file,kmer_len,threshold):
 
 def load_coverage(cov_file, contig_lengths, no_cov_normalization, add_total_coverage=False):
     #Coverage import, file has header and contig ids as index
-    #Assume datafile is in coverage format without pseudo counts
-    cov = p.read_table(cov_file,header=0,index_col=0)
+    cov = p.read_table(cov_file, header=0, index_col=0)
 
     temp_cov_range = None
     # cov_range variable left here for historical reasons. Can be removed entirely

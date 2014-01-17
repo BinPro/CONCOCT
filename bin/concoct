@@ -7,30 +7,22 @@ import logging
 from concoct.output import Output
 from concoct.parser import arguments
 from concoct.cluster import cluster
-from concoct.input import load_composition, load_coverage
+from concoct.input import load_data
 from concoct.transform import perform_pca
 
 def main(args):
     # Initialize output handling
     Output(args.basename,args)
 
-    composition, contig_lengths, args.length_threshold_filter = load_composition(
-        args.composition_file, 
-        args.kmer_length, 
-        args.length_threshold
-        )
+    composition, contig_lengths, threshold_filter, cov, cov_range = load_data(args)
 
-    cov, cov_range = load_coverage(
-        args.coverage_file, 
-        contig_lengths, 
-        args.no_cov_normalization, 
-        add_total_coverage=(not args.no_total_coverage)
-        )
-
-    joined = composition.join(
-        cov.ix[:,cov_range[0]:cov_range[1]],
-        how="inner"
-        )
+    if cov:
+        joined = composition.join(
+            cov.ix[:,cov_range[0]:cov_range[1]],
+            how="inner"
+            )
+    else:
+        joined = composition
 
     # Fix special case in pca_components
     if args.pca_components == "All":
@@ -38,24 +30,22 @@ def main(args):
 
     #PCA on the contigs that have kmer count greater than length_threshold
     transform_filter, pca = perform_pca(
-        joined[args.length_threshold_filter], 
+        joined[threshold_filter], 
         args.pca_components
         )
 
     Output.write_original_data(
-        joined[args.length_threshold_filter],
+        joined[threshold_filter],
         args.length_threshold
         )
 
     Output.write_pca(
         transform_filter,
         args.length_threshold,
-        cov[args.length_threshold_filter].index
+        joined[threshold_filter].index
         )
 
     logging.info('PCA transformed data.')
-    cluster_args = []
-    cluster_args.append((args.clusters,transform_filter,args.force_seed))
 
 #----------------------------------------------------------
 #HERE WE SHOULD CALL CHRIS'S C CODE AND QUIT
