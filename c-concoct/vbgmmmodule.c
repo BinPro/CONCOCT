@@ -34,12 +34,13 @@
 
 static PyObject *vbgmm_fit(PyObject *self, PyObject *args)
 {
-    const char *szFileStub;
+    const char *szFileStub = NULL;
+    int nKStart = 0, nLMin = 0;
     int sts;
 
-    if (!PyArg_ParseTuple(args, "s", &szFileStub))
-        return NULL;
-    sts = driver(szFileStub);
+    if (!PyArg_ParseTuple(args, "sii", &szFileStub,&nKStart,&nLMin))
+    	return NULL;
+    sts = driver(szFileStub,nKStart,nLMin);
     return Py_BuildValue("i", sts);
 }
 
@@ -58,7 +59,14 @@ initvbgmm(void)
     (void) Py_InitModule("vbgmm", VbgmmMethods);
 }
 
-int driver(const char* szFileStub)
+//int main(int argc, char* argv[])
+//{
+//	driver("",400,1000);
+//	exit(EXIT_SUCCESS);
+//}
+
+
+int driver(const char* szFileStub, int nKStart, int nLMin)
 {
   t_Params           tParams;
   t_Data             tData;
@@ -80,7 +88,8 @@ int driver(const char* szFileStub)
   ptGSLRNG     = gsl_rng_alloc(ptGSLRNGType);
   
   /*get command line params*/
-
+  tParams.nKStart = nKStart;
+  tParams.nLMin   = nLMin;
   setParams(&tParams,szFileStub);
 
   /*read in input data*/
@@ -188,7 +197,7 @@ void setParams(t_Params *ptParams, const char *szFileStub)
 {
   ptParams->lSeed = DEF_SEED;
   
-  ptParams->nLMin = DEF_LMIN;
+  //ptParams->nLMin = DEF_LMIN;
 
   ptParams->szInputFile = (char *) malloc(MAX_LINE_LENGTH*sizeof(char));
   if(!ptParams->szInputFile)
@@ -204,7 +213,7 @@ void setParams(t_Params *ptParams, const char *szFileStub)
 
   ptParams->szOutFileStub = szFileStub;
 
-  ptParams->nKStart = DEF_KSTART;
+  //ptParams->nKStart = DEF_KSTART;
 
   return;
 
@@ -450,7 +459,7 @@ void destroyData(t_Data *ptData)
 
 void destroyCluster(t_Cluster* ptCluster)
 {
-  int i = 0, nN = ptCluster->nN, nK = ptCluster->nK;
+  int i = 0, nN = ptCluster->nN, nKSize = ptCluster->nKSize;
 
   free(ptCluster->anMaxZ);
 
@@ -466,7 +475,7 @@ void destroyCluster(t_Cluster* ptCluster)
   free(ptCluster->adBeta);
   free(ptCluster->adNu);
 
-  for(i = 0; i < nK; i++){
+  for(i = 0; i < nKSize; i++){
     free(ptCluster->aadMu[i]);
     free(ptCluster->aadM[i]);
   }
@@ -474,7 +483,7 @@ void destroyCluster(t_Cluster* ptCluster)
   free(ptCluster->aadMu);
   free(ptCluster->aadM);
 
-  for(i = 0; i < nK ; i++){
+  for(i = 0; i < nKSize ; i++){
     gsl_matrix_free(ptCluster->aptSigma[i]);
     gsl_matrix_free(ptCluster->aptCovar[i]);
   }
@@ -493,6 +502,7 @@ void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptDat
 
   ptCluster->nN = nN;
   ptCluster->nK = nK;
+  ptCluster->nKSize = nK;
   ptCluster->nD = nD;
 
   ptCluster->dVBL = 0.0;

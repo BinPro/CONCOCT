@@ -64,6 +64,8 @@ typedef struct s_Cluster
   t_Data *ptData;
   /*number of data points*/
   int nN;
+  /*size no. of clusters allocated*/
+  int nKSize;
   /*number of clusters*/
   int nK;
   /*number of dimensions*/
@@ -128,7 +130,7 @@ typedef struct s_Cluster
 #define INPUT_FILE       "PCA_transformed_data_gt"
 #define PINPUT_FILE      "PCA_components_data_gt"
 
-int driver(const char* szFileStub);
+int driver(const char* szFileStub, int nKStart, int nLMin);
 
 void setParams(t_Params *ptParams,const char *szFileStub);
 

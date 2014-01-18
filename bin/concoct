@@ -57,9 +57,9 @@ def main(args):
 
     logging.info('PCA transformed data.')
 
-    logging.info('Will call vbgmm with parameters: %s, %s' % (Output.CONCOCT_PATH, args.clusters))
+    logging.info('Will call vbgmm with parameters: %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold))
 
-    vbgmm.fit(Output.CONCOCT_PATH)
+    vbgmm.fit(Output.CONCOCT_PATH, args.clusters, args.length_threshold)
 
     logging.info("CONCOCT Finished")
 
