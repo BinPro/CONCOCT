@@ -19,7 +19,7 @@ def main(args):
 
     composition, contig_lengths, threshold_filter, cov, cov_range = load_data(args)
 
-    if cov:
+    if cov is not None:
         joined = composition.join(
             cov.ix[:,cov_range[0]:cov_range[1]],
             how="inner"

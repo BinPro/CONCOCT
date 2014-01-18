@@ -28,11 +28,6 @@ To be done""",
       zip_safe=False,
       ext_modules = [module1],
       install_requires=['argparse==1.2.1',
-                        'numpy==1.7.1',
-                        'scipy==0.13.0',
-                        'pandas==0.12.0',
-                        'scikit-learn==0.14.1',
-                        'biopython==1.62',
                         'nose==1.3.0'],
       entry_points="""
       # -*- Entry points: -*-
