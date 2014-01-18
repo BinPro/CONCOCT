@@ -1,4 +1,6 @@
 import os
+import sys
+from random import randint
 from argparse import ArgumentParser, ArgumentTypeError
 
 def set_random_state(seed):
@@ -7,6 +9,8 @@ def set_random_state(seed):
         seed = int(seed)
         if seed < 0:
             raise ArgumentTypeError("'" + seed + "' should be >= 0")
+        elif seed == 0:
+            seed = randint(2,10000)
         return seed
     except ValueError as e:
         raise ArgumentTypeError(ERROR)
@@ -44,24 +48,38 @@ def arguments():
                               ' combined data.'))
     #Output
     parser.add_argument('-b', '--basename', default=os.curdir,
-        help=("Specify the basename for files or directory where output"
-              "will be placed. Path to existing directory or basename"
-              "with a trailing '/' will be interpreted as a directory."
-              "If not provided, current directory will be used."))
-    parser.add_argument('-f','--force_seed',type=set_random_state, default=set_random_state(11),
-                       help=('Specify an integer to use as seed for clustering. '
-                             'You can specify 0 for random seed. The default seed '
-                             'is 11.'))
+      help=("Specify the basename for files or directory where output"
+            "will be placed. Path to existing directory or basename"
+            "with a trailing '/' will be interpreted as a directory."
+            "If not provided, current directory will be used."))
+    parser.add_argument('-s','--seed',type=set_random_state, default=set_random_state(1),
+      help=('Specify an integer to use as seed for clustering. '
+            '0 gives a random seed, 1 is the default seed and '
+            'any other positive integer can be used. Other values '
+            'give ArgumentTypeError.'))
+    parser.add_argument('-i','--iterations',type=int, default=500,
+      help=('Specify maximum number of iterations for the VBGMM. '
+            'Default value is 500'))
+    parser.add_argument('-e','--epsilon',type=float, default=1.0e-6,
+      help=('Specify the epsilon for VBGMM. '
+            'Default value is 1.0e-6'))
     parser.add_argument('--no_cov_normalization', default=False, action="store_true",
-                        help=("By default the coverage is normalized with regards to samples, "
-                              "then normalized with regards of contigs and finally log transformed. "
-                              "By setting this flag you skip the normalization and only do log "
-                              "transorm of the coverage."))
+      help=("By default the coverage is normalized with regards to samples, "
+            "then normalized with regards of contigs and finally log transformed. "
+            "By setting this flag you skip the normalization and only do log "
+            "transorm of the coverage."))
     parser.add_argument('--no_total_coverage', default=False, action="store_true",
-                        help=("By default, the total coverage is added as a new column in the coverage "
-                              "data matrix, independently of coverage normalization but previous to "
-                              "log transformation. Use this tag to escape this behaviour."))
+      help=("By default, the total coverage is added as a new column in the coverage "
+            "data matrix, independently of coverage normalization but previous to "
+            "log transformation. Use this tag to escape this behaviour."))
+    parser.add_argument('-d','--debug', default=False, action="store_true",
+      help=('Debug parameters. '))
+
     args  = parser.parse_args()
+
+    if args.debug:
+        print >> sys.stderr, args
+        sys.exit(0)
     # This can be changed to an or case when input of either case is supported individually
     if not (args.coverage_file or args.composition_file): 
         parser.error("No input data supplied, add file(s) using --coverage_file <cov_file> and/or "
