@@ -28,6 +28,7 @@ To be done""",
       zip_safe=False,
       ext_modules = [module1],
       install_requires=['argparse==1.2.1',
+			'pandas==0.12.0',
                         'nose==1.3.0'],
       entry_points="""
       # -*- Entry points: -*-
