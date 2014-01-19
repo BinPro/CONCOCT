@@ -72,7 +72,7 @@ def arguments():
       help=("By default, the total coverage is added as a new column in the coverage "
             "data matrix, independently of coverage normalization but previous to "
             "log transformation. Use this tag to escape this behaviour."))
-    parser.add_argument('-co','--converge_out', default=False, action="store_true",
+    parser.add_argument('-o','--converge_out', default=False, action="store_true",
       help=('Write convergence info to files.'))
 
     parser.add_argument('-d','--debug', default=False, action="store_true",
