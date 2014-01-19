@@ -37,7 +37,7 @@ my $minNLinks = 0; #number of links between two clusters necessary for it to be 
 
 my $maxPercent = 0.05; #minimum percent of inter cluster links necessary for clustering
 
-my $minOverlap = 0.8; #minimum overlap for clustering
+my $minOverlap = 0.7; #minimum overlap for clustering
 
 
 #read in clusterings
@@ -217,18 +217,28 @@ for(my $i = 0; $i < $nClusters; $i++){
 }
 
 for(my $i = 0; $i < $nClusters; $i++){
-  print "$i ";
+  #print "$i ";
   for(my $j = 0; $j < $nSites; $j++){
     $nmeans[$i][$j] /= $tmeans[$i];
-    print "$nmeans[$i][$j] "
+  #  print "$nmeans[$i][$j] "
   }
-  print"\n";
+  #print"\n";
 }
 
 #Calcaulate coverage overlaps
-my $overlapRef = calcOverlapMatrix(\@nmeans,$nClusters);
-my @overlaps = @{$overlapRef};
 
+my @overlaps = ();
+
+calcOverlapMatrix(\@nmeans,$nClusters);
+
+
+#for($i = 0; $i < $nClusters; $i++){
+  #print "$i ";
+  #for(my $j = 0; $j < $nClusters; $j++){
+   # print "$overlaps[$i][$j] "
+  #}
+  #print"\n";
+#}
 
 my $nClustered = $nClusters; #stores reduced cluster number
 my @clustered = (); #new cluster mapping
@@ -243,7 +253,7 @@ for(my $i = 0; $i < $nClusters; $i++){
 #writeTranArray(\@tranArray,$nClusters);
 #normalise link array and find largest diagonal element
 my ($maxI, $maxJ, $maxIJ)= normMaxOff(\@tranArray,\@totals,$nClusters);
-
+print "$maxIJ\n";
 while($maxIJ > $maxPercent){
   #cluster pair with largest off diagonal
   my $iString = join(",",@{$clustered[$maxI]});
@@ -296,9 +306,7 @@ while($maxIJ > $maxPercent){
   }
   
   #Calcaulate coverage overlaps
-  $overlapRef = calcOverlapMatrix(\@nmeans,$nClusters);
-  @overlaps = @{$overlapRef};
-
+  calcOverlapMatrix(\@nmeans,$nClusters);
 
   $nClustered --;
   
@@ -383,7 +391,6 @@ sub calcOverlapMatrix(){ #Calculates coverage overlaps
     }
   }
 
-  return \@overlaps;
 }
 
 sub normMaxOff(){
