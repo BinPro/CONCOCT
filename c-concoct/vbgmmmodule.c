@@ -38,11 +38,12 @@ static PyObject *vbgmm_fit(PyObject *self, PyObject *args)
     int nKStart = 0, nLMin = 0, nMaxIter;
     unsigned long lSeed;
     double dEpsilon;
+    int    bCout = 0;
     int sts;
 
-    if (!PyArg_ParseTuple(args, "siikid", &szFileStub,&nKStart,&nLMin,&lSeed,&nMaxIter,&dEpsilon))
+    if (!PyArg_ParseTuple(args, "siikidi", &szFileStub,&nKStart,&nLMin,&lSeed,&nMaxIter,&dEpsilon,&bCout))
     	return NULL;
-    sts = driver(szFileStub,nKStart,nLMin,lSeed,nMaxIter,dEpsilon);
+    sts = driver(szFileStub,nKStart,nLMin,lSeed,nMaxIter,dEpsilon,bCout);
     return Py_BuildValue("i", sts);
 }
 
@@ -62,7 +63,7 @@ initvbgmm(void)
 }
 
 
-int driver(const char* szFileStub, int nKStart, int nLMin, unsigned long lSeed, int nMaxIter, double dEpsilon)
+int driver(const char* szFileStub, int nKStart, int nLMin, unsigned long lSeed, int nMaxIter, double dEpsilon, int bCOut)
 {
   t_Params           tParams;
   t_Data             tData;
@@ -116,6 +117,12 @@ int driver(const char* szFileStub, int nKStart, int nLMin, unsigned long lSeed, 
   ptBestCluster->nMaxIter = tParams.nMaxIter;
   ptBestCluster->dEpsilon = tParams.dEpsilon;
 
+  if(bCOut > 0){
+	ptBestCluster->szCOutFile = szFileStub;
+  }
+  else{
+	ptBestCluster->szCOutFile = NULL;
+  }
   runRThreads((void *) &ptBestCluster);
 
   compressCluster(ptBestCluster);
@@ -165,11 +172,11 @@ int driver(const char* szFileStub, int nKStart, int nLMin, unsigned long lSeed, 
     fflush(stderr);
   }
 
-  sprintf(szOFile,"%sbic.csv",tParams.szOutFileStub);
+  sprintf(szOFile,"%svbl.csv",tParams.szOutFileStub);
 
   ofp = fopen(szOFile,"w");
   if(ofp){    
-    fprintf(ofp,"%d,%f\n",ptBestCluster->nK,ptBestCluster->dVBL);
+    fprintf(ofp,"%d,%f,%d\n",ptBestCluster->nK,ptBestCluster->dVBL,ptBestCluster->nThread);
 
     fclose(ofp);
   }
@@ -457,6 +464,10 @@ void destroyData(t_Data *ptData)
 void destroyCluster(t_Cluster* ptCluster)
 {
   int i = 0, nN = ptCluster->nN, nKSize = ptCluster->nKSize;
+  
+  if(ptCluster->szCOutFile != NULL){
+	  free(ptCluster->szCOutFile);
+  }
 
   free(ptCluster->anMaxZ);
 
@@ -489,10 +500,11 @@ void destroyCluster(t_Cluster* ptCluster)
   return;
 }
 
-void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed, int nMaxIter, double dEpsilon)
+void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed, int nMaxIter, double dEpsilon, char *szCOutFile)
 {
   int i = 0, j = 0, k = 0;
 
+  ptCluster->szCOutFile = szCOutFile;
   ptCluster->ptVBParams = NULL;
   ptCluster->lSeed = lSeed;
   ptCluster->nMaxIter = nMaxIter;
@@ -1498,6 +1510,15 @@ void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData)
   double   **aadZ = ptCluster->aadZ;
   int    nMaxIter = ptCluster->nMaxIter;
   double dEpsilon = ptCluster->dEpsilon;
+  FILE   *ofp = NULL;
+
+  if(ptCluster->szCOutFile){
+	ofp = fopen(ptCluster->szCOutFile,"w");
+	if(!ofp){
+		fprintf(stderr, "Failed to open file %s in gmmTrainVB\n",ptCluster->szCOutFile);
+		fflush(stderr);
+	}
+  }
 
   /*calculate data likelihood*/
   calcZ(ptCluster,ptData);
@@ -1515,13 +1536,19 @@ void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData)
     ptCluster->dVBL = calcVBL(ptCluster);
     dDelta = fabs(ptCluster->dVBL - dLastVBL);
 
-    //printf("%d %f %f",nIter, ptCluster->dVBL, dDelta);
-    //for(k = 0; k < nK; k++){
-    //printf("%f ",ptCluster->adPi[k]);
-    //}
-    //printf("\n");
-    
+    if(ofp){
+    	fprintf(ofp,"%d,%f,%f,",nIter, ptCluster->dVBL, dDelta);
+    	for(k = 0; k < nK-1; k++){
+    		fprintf(ofp,"%f,",ptCluster->adPi[k]);
+    	}
+    	fprintf(ofp,"%f\n",ptCluster->adPi[nK - 1]);
+	fflush(ofp);
+    }
     nIter++;
+  }
+
+  if(ofp){
+	fclose(ofp);
   }
 
   /*assign to best clusters*/
@@ -1637,17 +1664,22 @@ void* runRThreads(void *pvpDCluster)
   pthread_t   atRestarts[N_RTHREADS]; /*run each restart on a separate thread*/
   int         iret[N_RTHREADS];
   int         r = 0, nBestR = -1;
-
+  char        *szCOutFile = NULL;
   aptCluster = (t_Cluster **) malloc(N_RTHREADS*sizeof(t_Cluster*));
   if(!aptCluster)
     goto memoryError;
 
   for(r = 0; r < N_RTHREADS; r++){
+    if(ptDCluster->szCOutFile != NULL){
+	szCOutFile = (char *) malloc(sizeof(char)*MAX_LINE_LENGTH);
+	sprintf(szCOutFile,"%sr%d.csv",ptDCluster->szCOutFile,r);
+    }
+
     aptCluster[r] = (t_Cluster *) malloc(sizeof(t_Cluster));
 
-    allocateCluster(aptCluster[r],ptDCluster->nN,ptDCluster->nK,ptDCluster->nD,ptDCluster->ptData,ptDCluster->lSeed + r*R_PRIME,ptDCluster->nMaxIter,ptDCluster->dEpsilon);
+    allocateCluster(aptCluster[r],ptDCluster->nN,ptDCluster->nK,ptDCluster->nD,ptDCluster->ptData,ptDCluster->lSeed + r*R_PRIME,ptDCluster->nMaxIter,ptDCluster->dEpsilon,szCOutFile);
     aptCluster[r]->ptVBParams = ptDCluster->ptVBParams;
-
+    aptCluster[r]->nThread = r;
     iret[r] = pthread_create(&atRestarts[r], NULL, fitEM, (void*) aptCluster[r]);
   }
 

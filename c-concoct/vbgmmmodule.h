@@ -19,6 +19,8 @@ typedef struct s_Params
   int nKStart;
   /*min contig length*/
   int nLMin;
+  /*output convergence*/
+  int bConvergeOut;
 } t_Params;
 
 
@@ -58,6 +60,8 @@ typedef struct s_VBParams
 
 typedef struct s_Cluster
 {
+  /*output file for convergence if not null*/
+  char *szCOutFile;
   /*parameters for variational Bayes*/
   t_VBParams *ptVBParams;
   /*start seed*/
@@ -126,7 +130,7 @@ typedef struct s_Cluster
 #define INPUT_FILE       "PCA_transformed_data_gt"
 #define PINPUT_FILE      "PCA_components_data_gt"
 
-int driver(const char* szFileStub, int nKStart, int nLMin, unsigned long lSeed, int nMaxIter, double dEpsilon);
+int driver(const char* szFileStub, int nKStart, int nLMin, unsigned long lSeed, int nMaxIter, double dEpsilon, int bCOut);
 
 void setParams(t_Params *ptParams,const char *szFileStub);
 
@@ -140,7 +144,7 @@ void readPInputData(const char *szFile, t_Data *ptData);
 
 void destroyData(t_Data *ptData);
 
-void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed, int nMaxIter, double dEpsilon);
+void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed, int nMaxIter, double dEpsilon, char *szCOutFile);
 
 void performMStep(t_Cluster *ptCluster, t_Data *ptData);
 
