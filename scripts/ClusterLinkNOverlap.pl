@@ -1,4 +1,4 @@
-#!/opt/local/bin/perl
+#!/usr/bin/perl
 
 use strict;
 use Getopt::Long;
@@ -11,7 +11,7 @@ my $quiet = '';
 my $outFile = "Clustering_l.csv";
 
 my $USAGE = <<"USAGE";
-Usage: ./Validate.pl --cfile=clustering.csv --lfile=linkage.tsv --covfile=coverage.tsv
+Usage: ./ClusterLinkOverlapN.pl --cfile=clustering.csv --lfile=linkage.tsv --covfile=coverage.tsv
 
 Regular options:
 
