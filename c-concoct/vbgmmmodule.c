@@ -35,12 +35,14 @@
 static PyObject *vbgmm_fit(PyObject *self, PyObject *args)
 {
     const char *szFileStub = NULL;
-    int nKStart = 0, nLMin = 0;
+    int nKStart = 0, nLMin = 0, nMaxIter;
+    unsigned long lSeed;
+    double dEpsilon;
     int sts;
 
-    if (!PyArg_ParseTuple(args, "sii", &szFileStub,&nKStart,&nLMin))
+    if (!PyArg_ParseTuple(args, "siikid", &szFileStub,&nKStart,&nLMin,&lSeed,&nMaxIter,&dEpsilon))
     	return NULL;
-    sts = driver(szFileStub,nKStart,nLMin);
+    sts = driver(szFileStub,nKStart,nLMin,lSeed,nMaxIter,dEpsilon);
     return Py_BuildValue("i", sts);
 }
 
@@ -59,14 +61,8 @@ initvbgmm(void)
     (void) Py_InitModule("vbgmm", VbgmmMethods);
 }
 
-//int main(int argc, char* argv[])
-//{
-//	driver("",400,1000);
-//	exit(EXIT_SUCCESS);
-//}
 
-
-int driver(const char* szFileStub, int nKStart, int nLMin)
+int driver(const char* szFileStub, int nKStart, int nLMin, unsigned long lSeed, int nMaxIter, double dEpsilon)
 {
   t_Params           tParams;
   t_Data             tData;
@@ -88,8 +84,12 @@ int driver(const char* szFileStub, int nKStart, int nLMin)
   ptGSLRNG     = gsl_rng_alloc(ptGSLRNGType);
   
   /*get command line params*/
-  tParams.nKStart = nKStart;
-  tParams.nLMin   = nLMin;
+  tParams.nKStart  = nKStart;
+  tParams.nLMin    = nLMin;
+  tParams.nMaxIter = nMaxIter;
+  tParams.dEpsilon = dEpsilon;
+  tParams.lSeed    = lSeed;
+
   setParams(&tParams,szFileStub);
 
   /*read in input data*/
@@ -113,6 +113,8 @@ int driver(const char* szFileStub, int nKStart, int nLMin)
   ptBestCluster->ptData = &tData;
   ptBestCluster->ptVBParams = &tVBParams;
   ptBestCluster->lSeed = tParams.lSeed;
+  ptBestCluster->nMaxIter = tParams.nMaxIter;
+  ptBestCluster->dEpsilon = tParams.dEpsilon;
 
   runRThreads((void *) &ptBestCluster);
 
@@ -195,9 +197,6 @@ int driver(const char* szFileStub, int nKStart, int nLMin)
 
 void setParams(t_Params *ptParams, const char *szFileStub)
 {
-  ptParams->lSeed = DEF_SEED;
-  
-  //ptParams->nLMin = DEF_LMIN;
 
   ptParams->szInputFile = (char *) malloc(MAX_LINE_LENGTH*sizeof(char));
   if(!ptParams->szInputFile)
@@ -212,8 +211,6 @@ void setParams(t_Params *ptParams, const char *szFileStub)
   sprintf(ptParams->szPInputFile,"%s%s%d.csv",szFileStub,PINPUT_FILE,ptParams->nLMin);
 
   ptParams->szOutFileStub = szFileStub;
-
-  //ptParams->nKStart = DEF_KSTART;
 
   return;
 
@@ -426,7 +423,7 @@ void readPInputData(const char *szFile, t_Data *ptData)
   exit(EXIT_FAILURE);
 
  memoryError:
-  fprintf(stderr, "Failed allocating memory in allocateCluster\n");
+  fprintf(stderr, "Failed allocating memory in readPInputFile\n");
   fflush(stderr);
   exit(EXIT_FAILURE);
 }
@@ -492,12 +489,14 @@ void destroyCluster(t_Cluster* ptCluster)
   return;
 }
 
-void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed)
+void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed, int nMaxIter, double dEpsilon)
 {
   int i = 0, j = 0, k = 0;
 
   ptCluster->ptVBParams = NULL;
   ptCluster->lSeed = lSeed;
+  ptCluster->nMaxIter = nMaxIter;
+  ptCluster->dEpsilon = dEpsilon;
   ptCluster->ptData = ptData;
 
   ptCluster->nN = nN;
@@ -1189,7 +1188,7 @@ void initKMeans(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData)
   int i = 0, k = 0, nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
   double **aadMu = ptCluster->aadMu, **aadX = ptData->aadX; 
   int *anMaxZ = ptCluster->anMaxZ, *anW = ptCluster->anW, nChange = nN;
-  int nIter = 0;
+  int nIter = 0, nMaxIter = ptCluster->nMaxIter;
   for(i = 0; i < nN; i++){
     int nIK = gsl_rng_uniform_int (ptGSLRNG, nK);
 
@@ -1199,7 +1198,7 @@ void initKMeans(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData)
   
   updateMeans(ptCluster, ptData);
   
-  while(nChange > 0 && nIter < MAX_ITER){
+  while(nChange > 0 && nIter < nMaxIter){
     nChange = 0;
     /*reassign vectors*/
     for(i = 0; i < nN; i++){
@@ -1496,13 +1495,15 @@ void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData)
   int nN = ptData->nN, nK = ptCluster->nK;
   /*change in log-likelihood*/
   double dLastVBL = 0.0, dDelta = DBL_MAX;
-  double **aadZ = ptCluster->aadZ;
+  double   **aadZ = ptCluster->aadZ;
+  int    nMaxIter = ptCluster->nMaxIter;
+  double dEpsilon = ptCluster->dEpsilon;
 
   /*calculate data likelihood*/
   calcZ(ptCluster,ptData);
   ptCluster->dVBL = calcVBL(ptCluster);
 
-  while(nIter < MAX_ITER && dDelta > MIN_CHANGE_VBL){
+  while(nIter < nMaxIter && dDelta > dEpsilon){
    
     /*update parameter estimates*/
     performMStep(ptCluster, ptData);
@@ -1644,7 +1645,7 @@ void* runRThreads(void *pvpDCluster)
   for(r = 0; r < N_RTHREADS; r++){
     aptCluster[r] = (t_Cluster *) malloc(sizeof(t_Cluster));
 
-    allocateCluster(aptCluster[r],ptDCluster->nN,ptDCluster->nK,ptDCluster->nD,ptDCluster->ptData,ptDCluster->lSeed + r*R_PRIME);
+    allocateCluster(aptCluster[r],ptDCluster->nN,ptDCluster->nK,ptDCluster->nD,ptDCluster->ptData,ptDCluster->lSeed + r*R_PRIME,ptDCluster->nMaxIter,ptDCluster->dEpsilon);
     aptCluster[r]->ptVBParams = ptDCluster->ptVBParams;
 
     iret[r] = pthread_create(&atRestarts[r], NULL, fitEM, (void*) aptCluster[r]);

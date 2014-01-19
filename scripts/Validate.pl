@@ -26,12 +26,13 @@ if ($help ne '') {print $USAGE;}
 
 die $USAGE unless ($tFile ne '' && $zFile ne '');
 
-
 my @t = ();
 my $maxt = 0;
 my $N = 0;
 my $S = 0;
 my %hashCluster = {};
+my @ctotals = ();
+
 
 open(FILE, $tFile) or die "Can't open $tFile";
 
@@ -43,7 +44,7 @@ while(my $line = <FILE>){
 
   my $name = $tokens[0];
   my $cluster = $tokens[1];
-
+  $ctotals[$cluster]++;
   $hashCluster{$name} = $cluster;
   #print "$name $cluster\n";
   if($cluster > $maxt){
@@ -101,28 +102,42 @@ open(OUTFILE,">$outFile") or die "Can't open $outFile\n";
 
 printf OUTFILE "Taxa,";
 
-for(my $i = 0; $i < $maxt; $i++){
-  printf OUTFILE "D%d,",$i;
+my @names = ();
+
+for(my $i = 0; $i < $maxt + 1; $i++){
+  if($ctotals[$i] > 0){
+	push(@names,"D$i");
+  }
 }
-printf OUTFILE "D%d\n",$maxt;
+
+my $nameString = join(",",@names);
+
+printf OUTFILE "$nameString\n";
+
+my $nJ = 0;
+my $nI = 0;
 
 foreach my $key(sort keys %hashC){
   if($hashC{$key} ne undef){
     my @temp = @{$hashC{$key}};
     my $ptotal = 0;
-    
+    $nI = 0;    
     for(my $i = 0; $i < $maxt + 1; $i++){
       $ptotal += $temp[$i];
     }
 
     if($ptotal > 0){
-
+      my @vals = ();
       for(my $i = 0; $i < $maxt + 1; $i++){
-	$cluster[$i][$j] = $temp[$i];
+	if($ctotals[$i] > 0){
+		$cluster[$nI][$nJ] = $temp[$i];
+		push(@vals,$temp[$i]);
+		$nI++;
+	}
       }
-      $j++;
+      $nJ++;
 
-      my $cTemp = join(",",@temp);
+      my $cTemp = join(",",@vals);
 
       print OUTFILE "$key,$cTemp\n";
     }
@@ -134,7 +149,11 @@ close(OUTFILE);
 if($quiet eq ''){
   printf("N\tM\tS\tK\tRec.\tPrec.\tNMI\tRand\tAdjRand\n");
 }
-printf("%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\n",$N,$S,$j,$maxt + 1,recall(@cluster),precision(@cluster),nmi(@cluster),randindex(@cluster),adjrandindex(@cluster));
+
+my $NK = scalar(@cluster);;
+my $NS = scalar(@{$cluster[0]});
+
+printf("%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\n",$N,$S,$NS,$NK,recall(@cluster),precision(@cluster),nmi(@cluster),randindex(@cluster),adjrandindex(@cluster));
 
 sub precision(){
    my @cluster = @_;
