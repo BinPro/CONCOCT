@@ -1,15 +1,15 @@
-Complete Example
-================
-This documentation page aims to be a complete example walk through for the usage of the CONCOCT package.
+Complete Example V0.2
+=====================
+This documentation page aims to be a complete example walk through for the usage of the CONCOCT package version 0.2.
 
 
 Required software
 ----------------------
 To run the entire example you need the following software:
 
-* Assembling Metagenomic Reads
+    * Assembling Metagenomic Reads
     * Ray version >= 2.1.0
-* Map the Reads onto the Contigs
+    * Map the Reads onto the Contigs
     * BEDTools version >= 2.15.0 (only genomeCoverageBed)
     * Picard tools version >= 1.77
     * samtools version >= 0.1.18
@@ -26,8 +26,8 @@ Clone the test data repository of CONCOCT:
     
 It contains the reads that we start this example with as well as the output from each step. It could take a while to download.
 
-Assembling Metagenomic Reads
-----------------------------
+Setting up the test environment
+-------------------------------
 After obtaining the test data, create a folder where you want all the output from this example to go:
 
     mkdir CONCOCT-complete-example
@@ -39,7 +39,11 @@ Set three variables with full paths. One pointing to the root directory of ```CO
     CONCOCT_TEST=/home/username/src/CONCOCT-test-data
     CONCOCT_EXAMPLE=/home/username/CONCOCT-complete-example
 
-Change the paths to the actual locations where we downloaded ```CONCOCT``` and ```CONCOCT-test-data```. After that run Ray on the reads:
+Change the paths to the actual locations where we downloaded ```CONCOCT``` and ```CONCOCT-test-data```. 
+
+Assembling Metagenomic Reads
+----------------------------
+After that run Ray on the reads:
 
     cd $CONCOCT_EXAMPLE
     mpiexec -n 1 Ray -k 31 -o ray_output_31 \
