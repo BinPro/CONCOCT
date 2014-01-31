@@ -7,9 +7,9 @@ Required software
 ----------------------
 To run the entire example you need the following software:
 
-    * Assembling Metagenomic Reads
+* Assembling Metagenomic Reads
     * Ray version >= 2.1.0
-    * Map the Reads onto the Contigs
+* Map the Reads onto the Contigs
     * BEDTools version >= 2.15.0 (only genomeCoverageBed)
     * Picard tools version >= 1.77
     * samtools version >= 0.1.18
