@@ -47,22 +47,22 @@ After that run Ray on the reads:
 
     cd $CONCOCT_EXAMPLE
     mpiexec -n 1 Ray -k 31 -o ray_output_31 \
-        -p $CONCOCT_TEST/reads/Sample118_s1e5_R1.fa $CONCOCT_TEST/reads/Sample118_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample120_s1e5_R1.fa $CONCOCT_TEST/reads/Sample120_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample127_s1e5_R1.fa $CONCOCT_TEST/reads/Sample127_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample134_s1e5_R1.fa $CONCOCT_TEST/reads/Sample134_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample177_s1e5_R1.fa $CONCOCT_TEST/reads/Sample177_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample215_s1e5_R1.fa $CONCOCT_TEST/reads/Sample215_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample230_s1e5_R1.fa $CONCOCT_TEST/reads/Sample230_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample234_s1e5_R1.fa $CONCOCT_TEST/reads/Sample234_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample244_s1e5_R1.fa $CONCOCT_TEST/reads/Sample244_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample261_s1e5_R1.fa $CONCOCT_TEST/reads/Sample261_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample263_s1e5_R1.fa $CONCOCT_TEST/reads/Sample263_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample290_s1e5_R1.fa $CONCOCT_TEST/reads/Sample290_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample302_s1e5_R1.fa $CONCOCT_TEST/reads/Sample302_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample321_s1e5_R1.fa $CONCOCT_TEST/reads/Sample321_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample330_s1e5_R1.fa $CONCOCT_TEST/reads/Sample330_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample343_s1e5_R1.fa $CONCOCT_TEST/reads/Sample343_s1e5_R2.fa
+        -p $CONCOCT_TEST/reads/Sample118_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample118_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample120_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample120_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample127_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample127_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample134_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample134_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample177_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample177_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample215_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample215_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample230_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample230_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample234_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample234_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample244_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample244_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample261_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample261_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample263_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample263_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample290_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample290_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample302_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample302_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample321_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample321_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample330_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample330_s1e5_R2.fasta \
+        -p $CONCOCT_TEST/reads/Sample343_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample343_s1e5_R2.fasta
 
 After the assembly is finished create a directory with the resulting contigs and copy the result of Ray there (this output is also in ```$CONCOCT_TEST/contigs```):
 
