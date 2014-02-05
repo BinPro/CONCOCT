@@ -16,7 +16,7 @@ To run the entire example you need the following software:
     * bowtie2 version >= 2.1.0
     * parallel version >= 20130422
 
-It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the test data repository: https://github.com/BinPro/CONCOCT-test-data.
+It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the test data repository: https://github.com/BinPro/CONCOCT-test-data. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
 Downloading test data
 -----------------------
