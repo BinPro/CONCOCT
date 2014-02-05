@@ -53,22 +53,22 @@ The first step in the analysis is to assemble all reads into contigs, here we us
 
     cd $CONCOCT_EXAMPLE
     mpiexec -n 1 Ray -k 31 -o ray_output_31 \
-        -p $CONCOCT_TEST/reads/Sample118_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample118_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample120_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample120_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample127_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample127_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample134_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample134_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample177_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample177_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample215_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample215_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample230_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample230_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample234_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample234_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample244_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample244_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample261_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample261_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample263_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample263_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample290_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample290_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample302_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample302_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample321_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample321_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample330_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample330_s1e5_R2.fasta \
-        -p $CONCOCT_TEST/reads/Sample343_s1e5_R1.fasta $CONCOCT_TEST/reads/Sample343_s1e5_R2.fasta
+        -p $CONCOCT_TEST/reads/Sample118_s1e5_R1.fa $CONCOCT_TEST/reads/Sample118_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample120_s1e5_R1.fa $CONCOCT_TEST/reads/Sample120_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample127_s1e5_R1.fa $CONCOCT_TEST/reads/Sample127_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample134_s1e5_R1.fa $CONCOCT_TEST/reads/Sample134_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample177_s1e5_R1.fa $CONCOCT_TEST/reads/Sample177_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample215_s1e5_R1.fa $CONCOCT_TEST/reads/Sample215_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample230_s1e5_R1.fa $CONCOCT_TEST/reads/Sample230_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample234_s1e5_R1.fa $CONCOCT_TEST/reads/Sample234_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample244_s1e5_R1.fa $CONCOCT_TEST/reads/Sample244_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample261_s1e5_R1.fa $CONCOCT_TEST/reads/Sample261_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample263_s1e5_R1.fa $CONCOCT_TEST/reads/Sample263_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample290_s1e5_R1.fa $CONCOCT_TEST/reads/Sample290_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample302_s1e5_R1.fa $CONCOCT_TEST/reads/Sample302_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample321_s1e5_R1.fa $CONCOCT_TEST/reads/Sample321_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample330_s1e5_R1.fa $CONCOCT_TEST/reads/Sample330_s1e5_R2.fa \
+        -p $CONCOCT_TEST/reads/Sample343_s1e5_R1.fa $CONCOCT_TEST/reads/Sample343_s1e5_R2.fa
 
 After the assembly is finished create a directory with the resulting contigs and copy the result of Ray there (this output is also in ```$CONCOCT_TEST/contigs```):
 
@@ -97,7 +97,7 @@ Then create a folder map. The parallel command reates a folder for each sample, 
         bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh \
             -ct 1 -p '-f' {} '$('echo {} '|' sed s/R1/R2/')' pair \
             ../../contigs/raynoscaf_31.fa asm bowtie2 \
-        ::: $CONCOCT_TEST/reads/*_R1.fasta
+        ::: $CONCOCT_TEST/reads/*_R1.fa
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
 
