@@ -149,10 +149,10 @@ We will only run concoct for some standard settings here. First we need to parse
     cd $CONCOCT_EXAMPLE
     cut -f1,3-26 concoct-input/concoct_inputtable.tsv > concoct-input/concoct_inputtableR.tsv
 
-Then run concoct with 400 as the maximum number of cluster `-c 400`, that we guess is appropriate for this data set:
+Then run concoct with 40 as the maximum number of cluster `-c 40`, that we guess is appropriate for this data set:
 
     cd $CONCOCT_EXAMPLE
-    concoct -c 400 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/raynoscaf_31.fa -b concoct-output/
+    concoct -c 40 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/raynoscaf_31.fa -b concoct-output/
 
 When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory that can be set with the `-b` parameter and will be the present working directory by default. 
 
