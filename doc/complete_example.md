@@ -181,8 +181,8 @@ In either case we provide a script Validate.pl for computing basic metrics on th
 
 This script requires the clustering output by concoct `concoct-output/clustering_gt1000.csv` these have a simple format of a comma separated file listing each contig id followed by the cluster index and the species labels that have the same format but with a text label rather than a cluster index. The script should output:
 
-    N	M	S	K	Rec.	Prec.	NMI	Rand	AdjRand  
-    443	443	6	4	0.920993	0.963883	0.855371	0.933097	0.850947  
+    N	M	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+    443	443	6	9	0.948081	0.990971	0.906913	0.958847	0.909084
 
 This gives the no. of contigs N clustered, the number with labels M, the number of unique labels S, the number of clusters K, the recall, the precision, the normalised mutual information (NMI), the Rand index, and the adjusted Rand index. It also generates a file called a `confusion matrix` with the frequencies of each species in each cluster. We provide a further script for visualising this as a heatmap:
 
