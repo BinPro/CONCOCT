@@ -146,21 +146,27 @@ To see possible parameter settings with a description run
 
 We will only run concoct for some standard settings here. First we need to parse the input table to just contain the mean coverage for each contig in each sample:
 
-    cut -f1,11-26 concoct-input/concoct_inputtable.tsv > concoct-input/concoct_inputtableR.tsv
+    cd $CONCOCT_EXAMPLE
+    cut -f1,3-26 concoct-input/concoct_inputtable.tsv > concoct-input/concoct_inputtableR.tsv
 
 Then run concoct with 400 as the maximum number of cluster `-c 400`, that we guess is appropriate for this data set:
 
+    cd $CONCOCT_EXAMPLE
     concoct -c 400 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/raynoscaf_31.fa -b concoct-output/
 
 When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory that can be set with the `-b` parameter and will be the present working directory by default. 
 
 Evaluate output
 ---------------
-This will require that you have added the CONCOCT/script directory to your path and have Rscript with the R packages gplots, reshape, ggplot2, ellipse, getopt and grid installed.
+This will require that you have Rscript with the R packages gplots, reshape, ggplot2, ellipse, getopt and grid installed.
+
+ggplot2, ellipse, getopt
 
 First we can visualise the clusters in the first two PCA dimensions:
 
-    ClusterPlot.R -c concoct-output/clustering_gt1000.csv -p concoct-output/PCA_transformed_data_gt1000.csv -m concoct-output/pca_means_gt1000.csv -r concoct-output/pca_variances_gt1000_dim -l -o evaluation-output/ClusterPlot.pdf
+    cd $CONCOCT_EXAMPLE
+    mkdir evaluation-output
+    Rscript $CONCOCT/scripts/ClusterPlot.R -c concoct-output/clustering_gt1000.csv -p concoct-output/PCA_transformed_data_gt1000.csv -m concoct-output/pca_means_gt1000.csv -r concoct-output/pca_variances_gt1000_dim -l -o evaluation-output/ClusterPlot.pdf
 
 <https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/ClusterPlot.pdf>
 
@@ -170,7 +176,9 @@ We can also compare the clustering to species labels. For this test data set we 
 
 In either case we provide a script Validate.pl for computing basic metrics on the cluster quality:
 
-    Validate.pl --cfile=concoct-output/clustering_gt1000.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_conf.csv
+    cd $CONCOCT_EXAMPLE
+    cp $CONCOCT_TEST/evaluation-output/clustering_gt1000_s.csv evaluation-output/
+    $CONCOCT/scripts/Validate.pl --cfile=concoct-output/clustering_gt1000.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_conf.csv
 
 This script requires the clustering output by concoct `concoct-output/clustering_gt1000.csv` these have a simple format of a comma separated file listing each contig id followed by the cluster index and the species labels that have the same format but with a text label rather than a cluster index. The script should output:
 
