@@ -33,17 +33,23 @@ After obtaining the test data, create a folder where you want all the output fro
     mkdir CONCOCT-complete-example
     cd CONCOCT-complete-example
 
-Set three variables with full paths. One pointing to the root directory of ```CONCOCT```, one pointing to the test data ```CONCOCT_TEST``` and one to the directory we just created e.g.
+Set three variables with full paths. One pointing to the root directory of the ```CONCOCT``` software, one pointing to the test data repository, named ```CONCOCT_TEST``` and one to the directory we just created e.g.
 
     CONCOCT=/home/username/src/CONCOCT
     CONCOCT_TEST=/home/username/src/CONCOCT-test-data
     CONCOCT_EXAMPLE=/home/username/CONCOCT-complete-example
 
-Change the paths to the actual locations where we downloaded ```CONCOCT``` and ```CONCOCT-test-data```. 
+Change the paths to the actual locations where we downloaded ```CONCOCT``` and ```CONCOCT-test-data```, e.g.
+
+    CONCOCT=/home/alneberg/src/CONCOCT
+    CONCOCT_TEST=/home/alneberg/src/CONCOCT-test-data
+    CONCOCT_EXAMPLE=/home/alneberg/CONCOCT-complete-example
+
+You can see the full path of a directory you are located in by running the command ```pwd```.
 
 Assembling Metagenomic Reads
 ----------------------------
-After that run Ray on the reads:
+The first step in the analysis is to assemble all reads into contigs, here we use the software [Ray](https://github.com/sebhtml/ray) for this. This step is computationaly heavy and even though this example is a lot smaller than any realistic case, this command could still take a few hours to execute. If you do not wish to execute this step, the resulting contigs are already in the test data repository, and you can copy them from there insted. The command for running Ray is:
 
     cd $CONCOCT_EXAMPLE
     mpiexec -n 1 Ray -k 31 -o ray_output_31 \
@@ -72,9 +78,11 @@ After the assembly is finished create a directory with the resulting contigs and
 
 Map the Reads onto the Contigs
 ------------------------------
-After assembly we map the reads of each sample back to the assembly using bowtie2 and remove PCR duplicates with MarkDuplicates. The coverage histogram for each bam file is computed with BEDTools' genomeCoverageBed. The script that calls these programs is provided with CONCOCT. All one needs to do is set the environment variable for MarkDuplicates ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
+After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools'](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. One does need to set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
 
     export MRKDUP=/home/username/src/picard-tools-1.77/MarkDuplicates.jar
+
+It is typically located within your picard-tools installation.
 
 The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you created in the previous part. First create the index on the assembly for bowtie2:
 
@@ -89,7 +97,7 @@ Then create a folder map. The parallel command reates a folder for each sample, 
         bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh \
             -ct 1 -p '-f' {} '$('echo {} '|' sed s/R1/R2/')' pair \
             ../../contigs/raynoscaf_31.fa asm bowtie2 \
-        ::: $CONCOCT_TEST/reads/*_R1.fa
+        ::: $CONCOCT_TEST/reads/*_R1.fasta
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
 
@@ -140,24 +148,17 @@ We will only run concoct for some standard settings here. First we need to parse
 
     cut -f1,11-26 concoct-input/concoct_inputtable.tsv > concoct-input/concoct_inputtableR.tsv
 
-Then run concoct on 8 cores `-m 8` over a range of cluster sizes `-c 2,16,1`, from two to sixteen with a step size of one, that we guess is appropriate for this data set:
+Then run concoct with 400 as the maximum number of cluster `-c 400`, that we guess is appropriate for this data set:
 
-    concoct -m 8 -c 2,16,1 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/raynoscaf_31.fa -b concoct-output
+    concoct -c 400 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/raynoscaf_31.fa -b concoct-output/
 
-In practice, you can chose the cluster range based on taxonomic classification or contigs but it is easy to determine if the optimum value lies outside the initial guess. When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory, this can be set with the `-b` command or is the present working directory by default. 
+When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory that can be set with the `-b` parameter and will be the present working directory by default. 
 
 Evaluate output
 ---------------
+This will require that you have added the CONCOCT/script directory to your path and have Rscript with the R packages gplots, reshape, ggplot2, ellipse, getopt and grid installed.
 
-First we can examine the model selection based on BIC by running:
-
-    BICPlot.R -b concoct-output/bic.csv -o evaluation-output/bic.pdf
-
-This will require that you have added the CONCOCT/script directory to your path and have Rscript with the R packages gplots, reshape, ggplot2, ellipse, getopt and grid installed. This generates a plot of the BIC as a function of the cluster number K. The best model minimises K. In this case that occurs for K = 4:
-
-<https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/bic.pdf>
-
-Then we can visualise the clusters in the first two PCA dimensions:
+First we can visualise the clusters in the first two PCA dimensions:
 
     ClusterPlot.R -c concoct-output/clustering_gt1000.csv -p concoct-output/PCA_transformed_data_gt1000.csv -m concoct-output/pca_means_gt1000.csv -r concoct-output/pca_variances_gt1000_dim -l -o evaluation-output/ClusterPlot.pdf
 
