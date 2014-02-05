@@ -205,7 +205,7 @@ and GFF3 file:
 
 And we used RPS-Blast to COG annotate the protein sequences using (PROKKA_RPSBLAST.sh). With the following command on eight cores:
 
-   $CONCOCT/scripts/PROKKA_RPSBLAST.sh -f annotations/proteins/raynoscaf_31.faa -p -c 8 -r 1
+    $CONCOCT/scripts/PROKKA_RPSBLAST.sh -f annotations/proteins/raynoscaf_31.faa -p -c 8 -r 1
 
 To run this yourself the file raynoscaf_31.faa will have to be copied into the test directory. The blast output has been placed in:
 
@@ -213,7 +213,7 @@ To run this yourself the file raynoscaf_31.faa will have to be copied into the t
 
 Finally, we filtered for COGs representing a majority of the subject to ensure fragmented genes are not over-counted.
 
-   $CONCOCT/scripts/PROKKA_COG.py -g annotations/proteins/raynoscaf_31.gff -b annotations/cog-annotations/raynoscaf_31.out > annotations/cog-annotations/raynoscaf_31.cog
+    $CONCOCT/scripts/PROKKA_COG.py -g annotations/proteins/raynoscaf_31.gff -b annotations/cog-annotations/raynoscaf_31.out > annotations/cog-annotations/raynoscaf_31.cog
 
 Again noting that the respective files have to be copied into the working directory. The output file is here:
 
