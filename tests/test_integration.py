@@ -14,7 +14,6 @@ tmp_dir_path = test_dir_path + '/nose_tmp_output'
 tmp_basename_dir = tmp_dir_path + '/1'
 tmp_basename_dir2 = tmp_dir_path + '/2'
 tmp_basename_file = tmp_dir_path + '/file'
-mpi_support=False
 
 CWD = os.getcwd()
 
@@ -55,22 +54,6 @@ class TestCMD(object):
         except subprocess.CalledProcessError as exc:
             self.c = exc.returncode
 
-    def run_command_mpi(self,cov_file='coverage',comp_file='composition.fa',
-                    tags=[],basename='nose_tmp_output/1'):
-        call_string = "mpirun -np 8 concoct --coverage_file test_data/{0} --composition_file test_data/{1} --basename {2} -c 3,5,1 --no_total_coverage 2> /dev/null".format(cov_file,comp_file,basename)
-        for tag in tags:
-            call_string += " " + tag
-        self.c = 0 # Exit code
-        try:
-            self.op = subprocess.check_output(
-                call_string,
-                shell=True)
-            print >> sys.stderr, "You have mpi support"
-	    mpi_support=True
-        except subprocess.CalledProcessError as exc:
-            self.c = exc.returncode
-            print >> sys.stderr, "You do not have mpi support"
-
     def file_len(self,fh):
         i=0
         with open(fh) as f:
@@ -90,14 +73,6 @@ class TestCMD(object):
         self.run_command()
         assert_equal(self.c,0,
                      msg = "Command exited with nonzero status")
-        try:
-            import mpi4py
-        except ImportError:
-            print >> sys.stderr, "Missing module mpi4py"
-        if mpi_support:
-            self.run_command_mpi()
-            assert_equal(self.c,0,
-                         msg = "Command exited with nonzero status")
 
     def test_directory_creation(self):
         self.run_command()
@@ -179,10 +154,6 @@ class TestCMD(object):
         # dir as file
         self.run_command(basename=tmp_basename_file)
         d_p = tmp_basename_file +'_'
-        assert_true(
-            isfile(d_p +'bic.csv'),
-            msg='Bic file is not created'
-            )
         assert_true(
             isfile(d_p+ 'clustering_gt1000.csv'),
             msg='Large contigs clustering file is not created'
