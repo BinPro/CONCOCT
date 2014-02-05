@@ -160,7 +160,6 @@ Evaluate output
 ---------------
 This will require that you have Rscript with the R packages gplots, reshape, ggplot2, ellipse, getopt and grid installed.
 
-ggplot2, ellipse, getopt
 
 First we can visualise the clusters in the first two PCA dimensions:
 
