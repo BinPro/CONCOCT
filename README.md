@@ -77,7 +77,10 @@ pandas==0.11.0
 scikit-learn==0.13.1
 scipy==0.12.0
 ```
-It also requires a c compiler, e.g. ```gcc``` and the GNU Scientific Library ```gsl```.
+It also requires a c compiler, e.g. ```gcc``` and the GNU Scientific Library ```gsl```. For linux (ubuntu) this is installed through:
+```
+apt-get install build-essential gsl-bin
+```
 
 If mpi will be used for parallelization, also add the python package <pre>mpi4py==1.3.1</pre> and linux (ubuntu) repositories:
 ```
