@@ -33,11 +33,6 @@ git clone https://github.com/BinPro/CONCOCT.git
 cd CONCOCT
 python setup.py install
 ```
-And if you want MPI execution:
-```
-sudo apt-get install python-pip openmpi1.6-bin libopenmpi1.6 libopenmpi1.6-dev
-sudo pip install mpi4py
-```
 
 ##Execute concoct##
 The script concoct takes two input files. The first file, the coverage
@@ -80,11 +75,5 @@ scipy==0.12.0
 It also requires a c compiler, e.g. ```gcc``` and the GNU Scientific Library ```gsl```. For linux (ubuntu) this is installed through:
 ```
 apt-get install build-essential gsl-bin
-```
-
-If mpi will be used for parallelization, also add the python package <pre>mpi4py==1.3.1</pre> and linux (ubuntu) repositories:
-```
-openmpi1.6-bin 
-libopenmpi1.6-dev
 ```
 
