@@ -1,17 +1,22 @@
-#CONCOCT [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)#
+#CONCOCT 0.2.0 [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)#
 
 A program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
 coverage data in multiple samples and linkage data from paired end reads.
 
-Warning! This software is to be considered unstable and under heavy development. Functionality can not yet be guaranteed and the user interface may change significantly. 
-If you still want to use this software, please stay up to date with the list of known issues:
+Warning! This software is to be considered under development. Functionality and the user interface may still change significantly from one version to another.
+If you want to use this software, please stay up to date with the list of known issues:
 https://github.com/BinPro/CONCOCT/issues
 
 ##Install##
 ###Short version###
 Installs the package concoct in default python path, and adds script concoct to bin. You can use sudo if needed.
 
-Resolve all dependencies, see below and then clone the repository and execute:
+Download the CONCOCT distribution from https://github.com/BinPro/CONCOCT/releases and extract the files, or clone the repository with github
+```
+git clone https://github.com/BinPro/CONCOCT.git
+```
+
+Resolve all dependencies, see below and then execute:
 ```
 cd CONCOCT
 python setup.py install
@@ -46,13 +51,10 @@ Here is a list of all parameters available for the concoct script.
 ```
 usage: concoct [-h] [--coverage_file COVERAGE_FILE]
                [--composition_file COMPOSITION_FILE] [-c CLUSTERS]
-               [-k KMER_LENGTH] [-l LENGTH_THRESHOLD] [-r READ_LENGTH] [-s]
-               [--coverage_percentage_pca COVERAGE_PERCENTAGE_PCA]
-               [--composition_percentage_pca COMPOSITION_PERCENTAGE_PCA]
-               [--total_percentage_pca TOTAL_PERCENTAGE_PCA] [-e EXECUTIONS]
-               [-i ITERATIONS] [-b BASENAME] [-p] [-m MAX_N_PROCESSORS]
-               [-f FORCE_SEED] [--covariance_type {full,diag}]
-               [--no_cov_normalization] [--no_total_coverage]
+               [-k KMER_LENGTH] [-l LENGTH_THRESHOLD] [-r READ_LENGTH]
+               [--total_percentage_pca TOTAL_PERCENTAGE_PCA] [-b BASENAME]
+               [-s SEED] [-i ITERATIONS] [-e EPSILON] [--no_cov_normalization]
+               [--no_total_coverage] [-o] [-d]
 ```
 
 For a complete explanation of each parameter and option, the recommended way is to run
@@ -65,7 +67,7 @@ concoct --help
 For a complete example see [this link](https://github.com/BinPro/CONCOCT/blob/master/doc/complete_example.md).
 ##Dependencies##
 
-concoct requires python version 2.7 and the following packages:
+concoct requires python version 2.7.* and the following python packages:
 ```
 argparse==1.2.1
 biopython==1.62b
@@ -75,6 +77,8 @@ pandas==0.11.0
 scikit-learn==0.13.1
 scipy==0.12.0
 ```
+It also requires a c compiler, e.g. ```gcc``` and the GNU Scientific Library ```gsl```.
+
 If mpi will be used for parallelization, also add the python package <pre>mpi4py==1.3.1</pre> and linux (ubuntu) repositories:
 ```
 openmpi1.6-bin 
