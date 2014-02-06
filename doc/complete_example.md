@@ -74,7 +74,7 @@ It is typically located within your picard-tools installation.
 The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you created in the previous part. First create the index on the assembly for bowtie2:
 
     cd $CONCOCT_EXAMPLE
-    bowtie2-build contigs/raynoscaf_31.fa contigs/raynoscaf_31.fa
+    bowtie2-build contigs/velvet_71.fa contigs/velvet_71.fa
     
 Then create a folder map. The parallel command reates a folder for each sample, and runs ```map-bowtie2-markduplicates.sh``` for each sample:
 
@@ -83,7 +83,7 @@ Then create a folder map. The parallel command reates a folder for each sample, 
         cd map/{/} '&&' \
         bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh \
             -ct 1 -p '-f' {} '$('echo {} '|' sed s/R1/R2/')' pair \
-            ../../contigs/raynoscaf_31.fa asm bowtie2 \
+            ../../contigs/velvet_71.fa asm bowtie2 \
         ::: $CONCOCT_TEST/reads/*_R1.fa
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
@@ -107,7 +107,7 @@ Use the bam files of each sample to create a table with the coverage of each con
     cd $CONCOCT_EXAMPLE/map
     python $CONCOCT/scripts/gen_input_table.py --isbedfiles \
         --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-        ../contigs/raynoscaf_31.fa */bowtie2/asm_pair-smds.coverage \
+        ../contigs/velvet_71.fa */bowtie2/asm_pair-smds.coverage \
     > concoct_inputtable.tsv
     mkdir $CONCOCT_EXAMPLE/concoct-input
     mv concoct_inputtable.tsv $CONCOCT_EXAMPLE/concoct-input/
@@ -120,7 +120,7 @@ The same bam files can be used to give linkage per sample between contigs:
     python $CONCOCT/scripts/bam_to_linkage.py -m 8 \
         --regionlength 500 --fullsearch \
         --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-        ../contigs/raynoscaf_31.fa Sample*/bowtie2/asm_pair-smds.bam \
+        ../contigs/velvet_71.fa Sample*/bowtie2/asm_pair-smds.bam \
     > concoct_linkage.tsv
     mv concoct_linkage.tsv $CONCOCT_EXAMPLE/concoct-input/
     
