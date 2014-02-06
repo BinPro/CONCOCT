@@ -229,3 +229,18 @@ This can also be visualised graphically using the R script. First we trim a litt
 The plot is downloadable here:
 
 <https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_scg.pdf>
+
+Incorporating linkage information
+---------------------------------
+
+To perform a hierarchical clustering of the clusters based on linkage we simply run:
+
+    $CONCOCT/scripts/ClusterLinkNOverlap.pl --cfile=concoct-output/clustering_gt1000.csv --lfile=concoct-input/concoct_linkage.tsv --covfile=concoct-input/concoct_inputtableR.tsv --ofile=concoct-output/clustering_gt1000_l.csv
+
+The output indicates that the clusters have been reduced from four to three. The new clustering is given by concoct-output/clustering_gt1000_l.csv. This is a significant improvement in recall:
+
+    $CONCOCT/scripts/Validate.pl --cfile=concoct-output/clustering_gt1000_l.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_con
+f.csv
+
+    N	M	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+    88	88	4	3	1.000000	0.988636	0.976458	0.999478	0.998515
