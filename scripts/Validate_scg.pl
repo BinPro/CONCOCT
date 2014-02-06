@@ -81,7 +81,8 @@ $_ =~ s/\R//g;
 if ($contig_id_separator) {
 #@subfields = split(/\./, $fields[0]);
 @subfields = split(/$contig_id_separator/, $fields[0]);
-$contig = $subfields[0];
+pop(@subfields);
+$contig = join($contig_id_separator,@subfields);
 } else {
 $contig = $fields[0];
 }
