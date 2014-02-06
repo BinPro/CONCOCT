@@ -8,7 +8,7 @@ Required software
 To run the entire example you need the following software:
 
 * Assembling Metagenomic Reads
-    * Ray version >= 2.1.0
+    * Velvet version >= 1.2.08
 * Map the Reads onto the Contigs
     * BEDTools version >= 2.15.0 (only genomeCoverageBed)
     * Picard tools version >= 1.77
@@ -49,33 +49,20 @@ You can see the full path of a directory you are located in by running the comma
 
 Assembling Metagenomic Reads
 ----------------------------
-The first step in the analysis is to assemble all reads into contigs, here we use the software [Ray](https://github.com/sebhtml/ray) for this. This step is computationaly heavy and even though this example is a lot smaller than any realistic case, this command could still take a few hours to execute. If you do not wish to execute this step, the resulting contigs are already in the test data repository, and you can copy them from there insted. The command for running Ray is:
+The first step in the analysis is to assemble all reads into contigs, here we use the software [Velvet](http://www.ebi.ac.uk/~zerbino/velvet/) for this. This step can be computationaly intensive but for this small data set comprising a synthetic community of four species and 16 samples (100,000 reads per sample) it can be performed in a few minutes. If you do not wish to execute this step, the resulting contigs are already in the test data repository, and you can copy them from there insted. The commands for running Velvet are:
 
     cd $CONCOCT_EXAMPLE
-    mpiexec -n 1 Ray -k 31 -o ray_output_31 \
-        -p $CONCOCT_TEST/reads/Sample118_s1e5_R1.fa $CONCOCT_TEST/reads/Sample118_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample120_s1e5_R1.fa $CONCOCT_TEST/reads/Sample120_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample127_s1e5_R1.fa $CONCOCT_TEST/reads/Sample127_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample134_s1e5_R1.fa $CONCOCT_TEST/reads/Sample134_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample177_s1e5_R1.fa $CONCOCT_TEST/reads/Sample177_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample215_s1e5_R1.fa $CONCOCT_TEST/reads/Sample215_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample230_s1e5_R1.fa $CONCOCT_TEST/reads/Sample230_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample234_s1e5_R1.fa $CONCOCT_TEST/reads/Sample234_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample244_s1e5_R1.fa $CONCOCT_TEST/reads/Sample244_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample261_s1e5_R1.fa $CONCOCT_TEST/reads/Sample261_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample263_s1e5_R1.fa $CONCOCT_TEST/reads/Sample263_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample290_s1e5_R1.fa $CONCOCT_TEST/reads/Sample290_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample302_s1e5_R1.fa $CONCOCT_TEST/reads/Sample302_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample321_s1e5_R1.fa $CONCOCT_TEST/reads/Sample321_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample330_s1e5_R1.fa $CONCOCT_TEST/reads/Sample330_s1e5_R2.fa \
-        -p $CONCOCT_TEST/reads/Sample343_s1e5_R1.fa $CONCOCT_TEST/reads/Sample343_s1e5_R2.fa
+    cat $CONCOCT_TEST/reads/Sample*_R1.fa > All_R1.fa
+    cat $CONCOCT_TEST/reads/Sample*_R2.fa > All_R2.fa
+    velveth velveth_k71 71 -fasta -shortPaired -separate All_R1.fa All_R2.fa
+    velvetg velveth_k71 -ins_length 400 -exp_cov auto -cov_cutoff auto	
 
-After the assembly is finished create a directory with the resulting contigs and copy the result of Ray there (this output is also in ```$CONCOCT_TEST/contigs```):
+After the assembly is finished create a directory with the resulting contigs and copy the result of Velvet there (this output is also in ```$CONCOCT_TEST/contigs```):
 
     mkdir contigs
-    cp ray_output_31/Contigs.fasta contigs/raynoscaf_31.fa
-    
-
+    cp velveth_k71/contigs.fa contigs/velvet_71.fa
+    rm All_R1.fa
+    rm All_R2.fa
 Map the Reads onto the Contigs
 ------------------------------
 After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools'](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. One does need to set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
