@@ -18,6 +18,12 @@ To run the entire example you need the following software:
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the test data repository: https://github.com/BinPro/CONCOCT-test-data. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
+Configurations
+----------------------
+
+In velvet installation directory Makefile, set 'MAXKMERLENGTH=128', if
+this value is smaller in the default installation.
+
 Downloading test data
 -----------------------
 Clone the test data repository of CONCOCT:
