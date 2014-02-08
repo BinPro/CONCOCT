@@ -8,13 +8,13 @@ Required software
 To run the entire example you need the following software:
 
 * Assembling Metagenomic Reads
-    * Velvet version >= 1.2.08
+    * [Velvet](https://launchpad.net/ubuntu/+source/velvet) version >= 1.2.08
 * Map the Reads onto the Contigs
-    * BEDTools version >= 2.15.0 (only genomeCoverageBed)
-    * Picard tools version >= 1.77
-    * samtools version >= 0.1.18
-    * bowtie2 version >= 2.1.0
-    * parallel version >= 20130422
+    * [BEDTools](https://github.com/arq5x/bedtools2/releases) version >= 2.15.0 (only genomeCoverageBed)
+    * [Picard](https://launchpad.net/ubuntu/+source/picard-tools/) tools version >= 1.77
+    * [samtools](http://samtools.sourceforge.net/) version >= 0.1.18
+    * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml) version >= 2.1.0
+    * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the test data repository: https://github.com/BinPro/CONCOCT-test-data. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
@@ -33,17 +33,11 @@ After obtaining the test data, create a folder where you want all the output fro
     mkdir CONCOCT-complete-example
     cd CONCOCT-complete-example
 
-Set three variables with full paths. One pointing to the root directory of the ```CONCOCT``` software, one pointing to the test data repository, named ```CONCOCT_TEST``` and one to the directory we just created e.g.
+Set three variables with full paths. One pointing to the root directory of the ```CONCOCT``` software, one pointing to the test data repository, named ```CONCOCT_TEST``` and one to the directory we just created. If you now have these in the folder ```/home/username/src/```, for instance, then use:
 
     CONCOCT=/home/username/src/CONCOCT
     CONCOCT_TEST=/home/username/src/CONCOCT-test-data
     CONCOCT_EXAMPLE=/home/username/CONCOCT-complete-example
-
-Change the paths to the actual locations where we downloaded ```CONCOCT``` and ```CONCOCT-test-data```, e.g.
-
-    CONCOCT=/home/alneberg/src/CONCOCT
-    CONCOCT_TEST=/home/alneberg/src/CONCOCT-test-data
-    CONCOCT_EXAMPLE=/home/alneberg/CONCOCT-complete-example
 
 You can see the full path of a directory you are located in by running the command ```pwd```.
 
@@ -76,14 +70,15 @@ The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you cr
     cd $CONCOCT_EXAMPLE
     bowtie2-build contigs/velvet_71.fa contigs/velvet_71.fa
     
-Then create a folder map. The parallel command reates a folder for each sample, and runs ```map-bowtie2-markduplicates.sh``` for each sample:
+Then create a folder map. The parallel command creates a folder for each sample, and runs ```map-bowtie2-markduplicates.sh``` for each sample:
 
     mkdir map
     parallel mkdir -p map/{/} '&&' \
         cd map/{/} '&&' \
         bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh \
             -ct 1 -p '-f' {} '$('echo {} '|' sed s/R1/R2/')' pair \
-            ../../contigs/velvet_71.fa asm bowtie2 \
+            #../../contigs/velvet_71.fa asm bowtie2 \
+	    $CONCOCT_TEST/contigs/velvet_71.fa asm bowtie2 \
         ::: $CONCOCT_TEST/reads/*_R1.fa
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
