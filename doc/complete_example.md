@@ -83,8 +83,7 @@ Then create a folder map. The parallel command creates a folder for each sample,
         cd map/{/} '&&' \
         bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh \
             -ct 1 -p '-f' {} '$('echo {} '|' sed s/R1/R2/')' pair \
-            #../../contigs/velvet_71.fa asm bowtie2 \
-	    $CONCOCT_TEST/contigs/velvet_71.fa asm bowtie2 \
+            $CONCOCT_EXAMPLE/contigs/velvet_71.fa asm bowtie2 \
         ::: $CONCOCT_TEST/reads/*_R1.fa
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
