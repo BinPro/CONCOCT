@@ -31,10 +31,10 @@ To run the entire example you need the following software:
 
 * PROKKA
   * [BCBio](https://bcbio-nextgen.readthedocs.org/en/latest/) In Ubuntu, you can use:
-    git clone git://github.com/chapmanb/bcbb.git
-    cd bcbb/gff
-    python setup.py build
-    sudo python setup.py install
+    git clone git://github.com/chapmanb/bcbb.git  
+    cd bcbb/gff  
+    python setup.py build  
+    sudo python setup.py install  
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
