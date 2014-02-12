@@ -7,6 +7,7 @@ version = '0.2'
 
 module1 = Extension('vbgmm',
         libraries =['gsl',  'gslcblas'],
+        include_dirs = ['c-concoct'],
         sources = ['c-concoct/vbgmmmodule.c'])
 
 setup(name='concoct',
