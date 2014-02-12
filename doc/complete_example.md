@@ -8,7 +8,7 @@ Required software
 To run the entire example you need the following software:
 
 * Assembling Metagenomic Reads
-    * [Velvet](https://launchpad.net/ubuntu/+source/velvet) >= 1.2.08; also change MAXKMERLENGTH=128 into the Makefile in velvet installation directory before the installation
+    * [Velvet](https://launchpad.net/ubuntu/+source/velvet) version >= 1.2.08; change MAXKMERLENGTH=128 into the Makefile in velvet installation directory before the installation
 
 * Map the Reads onto the Contigs
     * [BEDTools](https://github.com/arq5x/bedtools2/releases) version >= 2.15.0 (only genomeCoverageBed)
@@ -25,16 +25,16 @@ To run the entire example you need the following software:
 
 * concoct
    * [scikit-learn](http://scikit-learn.org/stable/install.html)
-     >=0.14.1; In Ubuntu you can install with "sudo pip install -U
+     (>=0.14.1); In Ubuntu you can do this with "sudo pip install -U
      scikit-learn"
-   * [pandas](http://pandas.pydata.org/getpandas.html) >=0.13.0
+   * [pandas](http://pandas.pydata.org/getpandas.html) (>=0.13.0)
 
 * PROKKA
-  * [BCBio](https://bcbio-nextgen.readthedocs.org/en/latest/) In Ubuntu, you can use:  
-    git clone git://github.com/chapmanb/bcbb.git  
-    cd bcbb/gff  
-    python setup.py build  
-    sudo python setup.py install  
+  * [BCBio](https://bcbio-nextgen.readthedocs.org/en/latest/) In Ubuntu, you can use:
+    git clone git://github.com/chapmanb/bcbb.git
+    cd bcbb/gff
+    python setup.py build
+    sudo python setup.py install
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
@@ -154,6 +154,13 @@ Install concoct (you may need to do this with sudo permissions):
     cd $CONCOCT
     python setup.py install
 
+Install dependencies
+
+    * [scikit-learn](http://scikit-learn.org/stable/install.html)
+      (>=0.14.1); In Ubuntu you can do this with "sudo pip install -U
+      scikit-learn"
+
+    * [pandas](http://pandas.pydata.org/getpandas.html) (>=0.13.0)
 
 Run concoct
 -----------
@@ -213,7 +220,7 @@ This generates a file with normalised frequencies of contigs from each cluster a
 Validation using single-copy core genes
 ---------------------------------------
 
-We can also evaluate the clustering based on single-copy core genes. You first need to find genes on the contigs and functionally annotate these. Here we used [prokka](http://www.vicbioinformatics.com/software.prokka.shtml) for gene prediction and annotation, the corresponding protein sequences are here:
+We can also evaluate the clustering based on single-copy core genes. You first need to find genes on the contigs and functionally annotate these. Here we used prokka (http://www.vicbioinformatics.com/software.prokka.shtml) for gene prediction and annotation, the corresponding protein sequences are here:
 
     $CONCOCT_TEST/annotations/proteins/velvet_71.faa
 
