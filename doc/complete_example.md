@@ -1,7 +1,7 @@
 Complete Example V0.2
 =====================
 This documentation page aims to be a complete example walk through for the usage of the CONCOCT package version 0.2.
-
+It assumes you have successfully gone through the installation description found in the README. 
 
 Required software
 ----------------------
@@ -17,17 +17,6 @@ To run the entire example you need the following software:
     * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml) version >= 2.1.0
     * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
 
-* Generating the Coverage Table
-    * [Biopython](http://biopython.org/wiki/Download) version >=1.60
-
-* Generating the Linkage Table
-    * [pysam](https://pypi.python.org/pypi/pysam)
-
-* concoct
-   * [scikit-learn](http://scikit-learn.org/stable/install.html)
-     (>=0.14.1); In Ubuntu you can do this with "sudo pip install -U
-     scikit-learn"
-   * [pandas](http://pandas.pydata.org/getpandas.html) (>=0.13.0)
 
 * PROKKA
   * [BCBio](https://bcbio-nextgen.readthedocs.org/en/latest/) In Ubuntu, you can use:
@@ -122,7 +111,7 @@ The five arguments are:
 
 Generate coverage table
 ------------------------
-Use the bam files of each sample to create a table with the coverage of each contig per sample. Requires [Biopython](http://biopython.org/wiki/Download).
+Use the bam files of each sample to create a table with the coverage of each contig per sample.
 
     cd $CONCOCT_EXAMPLE/map
     python $CONCOCT/scripts/gen_input_table.py --isbedfiles \
@@ -134,7 +123,7 @@ Use the bam files of each sample to create a table with the coverage of each con
 
 Generate linkage table
 ------------------------
-The same bam files can be used to give linkage per sample between contigs. Requires [pysam](https://pypi.python.org/pypi/pysam):
+The same bam files can be used to give linkage per sample between contigs:
 
     cd $CONCOCT_EXAMPLE/map
     python $CONCOCT/scripts/bam_to_linkage.py -m 8 \
@@ -144,22 +133,6 @@ The same bam files can be used to give linkage per sample between contigs. Requi
     > concoct_linkage.tsv
     mv concoct_linkage.tsv $CONCOCT_EXAMPLE/concoct-input/
     
-
-Set up concoct
---------------
-
-Install concoct (you may need to do this with sudo permissions):
-	
-    cd $CONCOCT
-    python setup.py install
-
-Install dependencies
-
-    * [scikit-learn](http://scikit-learn.org/stable/install.html)
-      (>=0.14.1); In Ubuntu you can do this with "sudo pip install -U
-      scikit-learn"
-
-    * [pandas](http://pandas.pydata.org/getpandas.html) (>=0.13.0)
 
 Run concoct
 -----------
