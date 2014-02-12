@@ -8,7 +8,8 @@ Required software
 To run the entire example you need the following software:
 
 * Assembling Metagenomic Reads
-    * [Velvet](https://launchpad.net/ubuntu/+source/velvet) version >= 1.2.08
+    * [Velvet](https://launchpad.net/ubuntu/+source/velvet) version >= 1.2.08; change MAXKMERLENGTH=128 into the Makefile in velvet installation directory before the installation
+
 * Map the Reads onto the Contigs
     * [BEDTools](https://github.com/arq5x/bedtools2/releases) version >= 2.15.0 (only genomeCoverageBed)
     * [Picard](https://launchpad.net/ubuntu/+source/picard-tools/) tools version >= 1.77
@@ -16,7 +17,26 @@ To run the entire example you need the following software:
     * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml) version >= 2.1.0
     * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
 
-It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the test data repository: https://github.com/BinPro/CONCOCT-test-data. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
+* Generating the Coverage Table
+    * [Biopython](http://biopython.org/wiki/Download) version >=1.60
+
+* Generating the Linkage Table
+    * [pysam](https://pypi.python.org/pypi/pysam)
+
+* concoct
+   * [scikit-learn](http://scikit-learn.org/stable/install.html)
+     (>=0.14.1); In Ubuntu you can do this with "sudo pip install -U
+     scikit-learn"
+   * [pandas](http://pandas.pydata.org/getpandas.html) (>=0.13.0)
+
+* PROKKA
+  * [BCBio](https://bcbio-nextgen.readthedocs.org/en/latest/) In Ubuntu, you can use:
+    git clone git://github.com/chapmanb/bcbb.git
+    cd bcbb/gff
+    python setup.py build
+    sudo python setup.py install
+
+It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
 Configurations
 ----------------------
@@ -24,13 +44,13 @@ Configurations
 In velvet installation directory Makefile, set 'MAXKMERLENGTH=128', if
 this value is smaller in the default installation.
 
+
 Downloading test data
 -----------------------
-Clone the test data repository of CONCOCT:
 
-    git clone https://github.com/BinPro/CONCOCT-test-data
-    
-It contains the reads that we start this example with as well as the output from each step. It could take a while to download.
+First download the test data repository of CONCOCT corresponding to the version of CONCOCT, that you have installed. The test data repository can be downloaded [here](https://github.com/BinPro/CONCOCT-test-data/releases). Then extract it in a suitable location.
+
+If you are running the current unstable master branch of concoct, you need to clone the latest version of the test-data-repository as well.
 
 Setting up the test environment
 -------------------------------
@@ -63,6 +83,7 @@ After the assembly is finished create a directory with the resulting contigs and
     cp velveth_k71/contigs.fa contigs/velvet_71.fa
     rm All_R1.fa
     rm All_R2.fa
+
 Map the Reads onto the Contigs
 ------------------------------
 After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. One does need to set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
@@ -83,8 +104,7 @@ Then create a folder map. The parallel command creates a folder for each sample,
         cd map/{/} '&&' \
         bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh \
             -ct 1 -p '-f' {} '$('echo {} '|' sed s/R1/R2/')' pair \
-            #../../contigs/velvet_71.fa asm bowtie2 \
-	    $CONCOCT_TEST/contigs/velvet_71.fa asm bowtie2 \
+            $CONCOCT_EXAMPLE/contigs/velvet_71.fa asm bowtie2 \
         ::: $CONCOCT_TEST/reads/*_R1.fa
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
@@ -103,7 +123,7 @@ The five arguments are:
 
 Generate coverage table
 ------------------------
-Use the bam files of each sample to create a table with the coverage of each contig per sample.
+Use the bam files of each sample to create a table with the coverage of each contig per sample. Requires [Biopython](http://biopython.org/wiki/Download).
 
     cd $CONCOCT_EXAMPLE/map
     python $CONCOCT/scripts/gen_input_table.py --isbedfiles \
@@ -115,7 +135,7 @@ Use the bam files of each sample to create a table with the coverage of each con
 
 Generate linkage table
 ------------------------
-The same bam files can be used to give linkage per sample between contigs:
+The same bam files can be used to give linkage per sample between contigs. Requires [pysam](https://pypi.python.org/pypi/pysam):
 
     cd $CONCOCT_EXAMPLE/map
     python $CONCOCT/scripts/bam_to_linkage.py -m 8 \
@@ -126,11 +146,28 @@ The same bam files can be used to give linkage per sample between contigs:
     mv concoct_linkage.tsv $CONCOCT_EXAMPLE/concoct-input/
     
 
+Set up concoct
+--------------
+
+Install concoct (you may need to do this with sudo permissions):
+	
+    cd $CONCOCT
+    python setup.py install
+
+Install dependencies
+
+    * [scikit-learn](http://scikit-learn.org/stable/install.html)
+      (>=0.14.1); In Ubuntu you can do this with "sudo pip install -U
+      scikit-learn"
+
+    * [pandas](http://pandas.pydata.org/getpandas.html) (>=0.13.0)
+
 Run concoct
 -----------
+
 To see possible parameter settings with a description run
 
-    concoct --help
+    $CONCOCT/bin/concoct --help
 
 We will only run concoct for some standard settings here. First we need to parse the input table to just contain the mean coverage for each contig in each sample:
 
@@ -146,8 +183,8 @@ When concoct has finished the message "CONCOCT Finished, the log shows how it we
 
 Evaluate output
 ---------------
-This will require that you have Rscript with the R packages gplots, reshape, ggplot2, ellipse, getopt and grid installed.
 
+This will require that you have Rscript with the R packages [gplots](http://cran.r-project.org/web/packages/gplots/index.html), [reshape](http://cran.r-project.org/web/packages/reshape/index.html), [ggplot2](http://cran.r-project.org/web/packages/ggplot2/index.html), [ellipse](http://cran.r-project.org/web/packages/ellipse/index.html), [getopt](http://cran.r-project.org/web/packages/getopt/index.html) and [grid](http://cran.r-project.org/web/packages/grid/index.html) installed.
 
 First we can visualise the clusters in the first two PCA dimensions:
 
@@ -185,34 +222,40 @@ Validation using single-copy core genes
 
 We can also evaluate the clustering based on single-copy core genes. You first need to find genes on the contigs and functionally annotate these. Here we used prokka (http://www.vicbioinformatics.com/software.prokka.shtml) for gene prediction and annotation, the corresponding protein sequences are here:
 
-<https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/annotations/proteins/velvet_71.faa>
+    $CONCOCT_TEST/annotations/proteins/velvet_71.faa
 
 and GFF3 file:
 
-<https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/annotations/proteins/velvet_71.gff>
-
+    $CONCOCT_TEST/annotations/proteins/velvet_71.gff
+    
 And we used RPS-Blast to COG annotate the protein sequences using (PROKKA_RPSBLAST.sh). With the following command on eight cores:
 
     $CONCOCT/scripts/PROKKA_RPSBLAST.sh -f annotations/proteins/velvet_71.faa -p -c 8 -r 1
 
 To run this yourself the file ```velvet_71.faa``` will have to be copied into the test directory i.e.
+
     mkdir $CONCOCT_EXAMPLE/annotations
     mkdir $CONCOCT_EXAMPLE/annotations/proteins
-    cp $CONCOCT_TEST/CONCOCT-test-data/annotations/proteins/* $CONCOCT_EXAMPLE/annotations/proteins/
+    mkdir $CONCOCT_EXAMPLE/annotations/cog-annotations 
+    cp $CONCOCT_TEST/annotations/proteins/* $CONCOCT_EXAMPLE/annotations/proteins/
 The blast output has been placed in:
 
-<https://github.com/BinPro/CONCOCT-test-data/CONCOCT-test-data/annotations/cog-annotations/velvet_71.out>
+    $CONCOCT_TEST/annotations/cog-annotations/velvet_71.out
 
+
+    
 Finally, we filtered for COGs representing a majority of the subject to ensure fragmented genes are not over-counted.
 
+    cd $CONCOCT_EXAMPLE
     $CONCOCT/scripts/PROKKA_COG.py -g annotations/proteins/velvet_71.gff -b annotations/cog-annotations/velvet_71.out > annotations/cog-annotations/velvet_71.cog
 
-Again noting that the respective files have to be copied into the working directory. The output file is here:
+Again noting that the respective files have to be copied into the working directory if you did not run the preceeding step. The output file is here:
 
-<https://github.com/BinPro/CONCOCT-test-data/tree/master/annotations/cog-annotations/velvet_71.cog>
+    $CONCOCT_EXAMPLE/annotations/cog-annotations/velvet_71.cog
 
 We can now run the script Validate_scg.pl to generate a table of counts of single-copy core genes in the different clusters generated by CONCOCT. 
 
+    cd $CONCOCT_EXAMPLE
     $CONCOCT/scripts/Validate_scg.pl -s "_" -c concoct-output/clustering_gt1000.csv -a annotations/cog-annotations/velvet_71.cog -m $CONCOCT/scripts/scg_cogs_min0.97_max1.03_unique_genera.txt > evaluation-output/clustering_gt1000_scg.tab
 
 The script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv```, an annotation file ```annotations/cog-annoations/cogs.txt```, a tab-separated file with contig ids in the first and gene ids in the second column (one contig can appear on multiple lines), and a file listing a set of SCGs (e.g. a set of COG ids) to use ```scgs/scg_cogs_min0.97_max1.03_unique_genera.txt```.
@@ -221,10 +264,9 @@ The parameter –s indicates a separator character in which case only the string
 
 The output file is a tab-separated file with basic information about the clusters (cluster id, ids of contigs in cluster and number of contigs in cluster) in the first three columns, and counts of the different SCGs in the following columns.
 
-<https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_scg.tab>
-
 This can also be visualised graphically using the R script. First we trim a little extraneous information from the tab files and then we generate the plot with an R script:
 
+    cd $CONCOCT_EXAMPLE
     cut -f1,4- evaluation-output/clustering_gt1000_scg.tab > evaluation-output/clustering_gt1000_scg.tsv
     $CONCOCT/scripts/COGPlot.R -s evaluation-output/clustering_gt1000_scg.tsv -o evaluation-output/clustering_gt1000_scg.pdf
 
