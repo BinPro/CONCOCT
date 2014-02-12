@@ -7,28 +7,45 @@ Warning! This software is to be considered under development. Functionality and 
 If you want to use this software, please stay up to date with the list of known issues:
 https://github.com/BinPro/CONCOCT/issues
 
-##Install##
-###Short version###
-Installs the package concoct in default python path, and adds script concoct to bin. You can use sudo if needed.
+##Dependencies##
 
-Download the CONCOCT distribution from https://github.com/BinPro/CONCOCT/releases and extract the files, or clone the repository with github
+In order to install concoct, it requires python version 2.7.* and the python package installer ```pip```. It also requires a c compiler, e.g. ```gcc``` and the GNU Scientific Library ```gsl```. For linux (ubuntu) this is installed through:
+```
+apt-get install build-essential gsl-bin
+```
+
+Before or during the installation of concoct, several other python packages will be downloaded and installed by pip.
+
+##Install##
+Install the package concoct in default python path, and adds script concoct to bin. You can use sudo if needed.
+
+###Using pip###
+Download the CONCOCT distribution from https://github.com/BinPro/CONCOCT/releases (stable) and extract the files, or clone the repository with github (potentially unstable)
 ```
 git clone https://github.com/BinPro/CONCOCT.git
 ```
 
-Resolve all dependencies, see below and then execute:
+Resolve all dependencies, see above and then execute:
 ```
 cd CONCOCT
+pip install -r requirements.txt
 python setup.py install
 ```
 
-###Detailed version###
-Installs the package concoct in default python path, and adds script concoct to bin. You can use sudo if needed.
+###Using apt-get###
+Another way to get the dependencies (given Ubuntu / Debian, similar for other distros) is through ```apt-get```. However, for some packages, only deprecated versions are available. Make sure that the requirements for these packages are fulfilled:
 
-The simplest way to get the dependencies (given Ubuntu / Debian, similar for other distros):
+    biopython>=1.62b
+    numpy>=1.7.1
+    pandas>=0.11.0
+    scikit-learn>=0.13.1
+    scipy>=0.12.0
+
+The actual commands for installing is then
 ```
 sudo apt-get install git python-setuptools python-biopython python-nose \
-                     python-numpy python-pandas python-scikits-learn python-scipy
+                     python-numpy python-pandas python-scikits-learn python-scipy \
+                     build-essential gsl-bin
 git clone https://github.com/BinPro/CONCOCT.git
 cd CONCOCT
 python setup.py install
@@ -59,21 +76,6 @@ For a complete explanation of each parameter and option, the recommended way is 
 concoct --help
 ```
 
-For a complete example see [this link](https://github.com/BinPro/CONCOCT/blob/master/doc/complete_example.md).
-##Dependencies##
-
-concoct requires python version 2.7.* and the following python packages:
-```
-argparse==1.2.1
-biopython==1.62b
-nose==1.3.0
-numpy==1.7.1
-pandas==0.11.0
-scikit-learn==0.13.1
-scipy==0.12.0
-```
-It also requires a c compiler, e.g. ```gcc``` and the GNU Scientific Library ```gsl```. For linux (ubuntu) this is installed through:
-```
-apt-get install build-essential gsl-bin
-```
+### Complete Example ###
+After having installed concoct, a complete workflow can be found [here](https://github.com/BinPro/CONCOCT/blob/master/doc/complete_example.md).
 

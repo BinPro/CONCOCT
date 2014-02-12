@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # ***************************************************************
 # Name:      PROKKA_COG.py
 # Purpose:   This script integrates with PROKKA and generates Cogs assignments for the protein sequences.

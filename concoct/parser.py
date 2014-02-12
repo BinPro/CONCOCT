@@ -34,11 +34,10 @@ def arguments():
       help='specify maximal number of clusters for VGMM, default 400.')
     #Kmer length, kmer count threshold and read length
     parser.add_argument('-k','--kmer_length', type=int, default=4,
-        help='specify kmer length, defaults to tetramer')
+        help='specify kmer length, default 4.')
     parser.add_argument('-l','--length_threshold', type=int, default=1000,
         help=("specify the sequence length threshold, contigs shorter than this "
-              "value will not be used for fitting the model, but will be included "
-              "in the final clustering results. Defaults to 1000"))
+              "value will not be included. Defaults to 1000."))
     parser.add_argument('-r','--read_length', type=int, default=100,
         help='specify read length for coverage, default 100')
     #Joined PCA

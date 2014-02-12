@@ -47,7 +47,6 @@ this value is smaller in the default installation.
 
 Downloading test data
 -----------------------
-
 First download the test data repository of CONCOCT corresponding to the version of CONCOCT, that you have installed. The test data repository can be downloaded [here](https://github.com/BinPro/CONCOCT-test-data/releases). Then extract it in a suitable location.
 
 If you are running the current unstable master branch of concoct, you need to clone the latest version of the test-data-repository as well.
@@ -241,8 +240,6 @@ To run this yourself the file ```velvet_71.faa``` will have to be copied into th
 The blast output has been placed in:
 
     $CONCOCT_TEST/annotations/cog-annotations/velvet_71.out
-
-
     
 Finally, we filtered for COGs representing a majority of the subject to ensure fragmented genes are not over-counted.
 
