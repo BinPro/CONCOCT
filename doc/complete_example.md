@@ -18,7 +18,8 @@ To run the entire example you need the following software:
     * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
 
 
-* PROKKA
+* Validation using single-copy core genes
+  * [PROKKA](http://www.vicbioinformatics.com/software.prokka.shtml) 
   * [BCBio](https://bcbio-nextgen.readthedocs.org/en/latest/) In Ubuntu, you can use:
     git clone git://github.com/chapmanb/bcbb.git  
     cd bcbb/gff  
