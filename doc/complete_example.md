@@ -26,6 +26,7 @@ To run the entire example you need the following software:
     python setup.py build  
     sudo python setup.py install  
 
+
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
 Configurations
@@ -211,6 +212,7 @@ To run this yourself the file ```velvet_71.faa``` will have to be copied into th
     mkdir $CONCOCT_EXAMPLE/annotations/proteins
     mkdir $CONCOCT_EXAMPLE/annotations/cog-annotations 
     cp $CONCOCT_TEST/annotations/proteins/* $CONCOCT_EXAMPLE/annotations/proteins/
+
 The blast output has been placed in:
 
     $CONCOCT_TEST/annotations/cog-annotations/velvet_71.out
