@@ -7,6 +7,11 @@ Warning! This software is to be considered under development. Functionality and 
 If you want to use this software, please stay up to date with the list of known issues:
 https://github.com/BinPro/CONCOCT/issues
 
+##Mailing List##
+Feel free to contact our mailing list concoct-support@lists.sourceforge.net for questions regarding the installation procedure and/or the usage of concoct that you feel is not sufficiently described in the online documentation. 
+
+If you would like subscribe to concoct-support mailing list, you can do so [here](https://lists.sourceforge.net/lists/listinfo/concoct-support)
+
 ##Dependencies##
 
 In order to install concoct, it requires python version 2.7.* and the python package installer ```pip```. It also requires a c compiler, e.g. ```gcc``` and the GNU Scientific Library ```gsl```. For linux (ubuntu) this is installed through:
