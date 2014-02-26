@@ -71,7 +71,7 @@ usage: concoct [-h] [--coverage_file COVERAGE_FILE]
                [-k KMER_LENGTH] [-l LENGTH_THRESHOLD] [-r READ_LENGTH]
                [--total_percentage_pca TOTAL_PERCENTAGE_PCA] [-b BASENAME]
                [-s SEED] [-i ITERATIONS] [-e EPSILON] [--no_cov_normalization]
-               [--no_total_coverage] [-o] [-d]
+               [--no_total_coverage] [-o] [-d] [-v]
 ```
 
 For a complete explanation of each parameter and option, the recommended way is to run
