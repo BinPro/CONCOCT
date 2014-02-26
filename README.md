@@ -1,4 +1,4 @@
-#CONCOCT 0.2.0 [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)#
+#CONCOCT 0.2.1 [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)#
 
 A program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
 coverage data in multiple samples and linkage data from paired end reads.
@@ -71,7 +71,7 @@ usage: concoct [-h] [--coverage_file COVERAGE_FILE]
                [-k KMER_LENGTH] [-l LENGTH_THRESHOLD] [-r READ_LENGTH]
                [--total_percentage_pca TOTAL_PERCENTAGE_PCA] [-b BASENAME]
                [-s SEED] [-i ITERATIONS] [-e EPSILON] [--no_cov_normalization]
-               [--no_total_coverage] [-o] [-d]
+               [--no_total_coverage] [-o] [-d] [-v]
 ```
 
 For a complete explanation of each parameter and option, the recommended way is to run

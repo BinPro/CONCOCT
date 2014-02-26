@@ -15,6 +15,10 @@ def set_random_state(seed):
     except ValueError as e:
         raise ArgumentTypeError(ERROR)
 
+def get_version():
+  from concoct import __version__
+  return '%(prog)s {version}'.format(version=__version__)
+
 def arguments():
     parser = ArgumentParser()
 
@@ -76,6 +80,8 @@ def arguments():
 
     parser.add_argument('-d','--debug', default=False, action="store_true",
       help=('Debug parameters. '))
+    parser.add_argument('-v','--version', action='version',
+      version=get_version())
 
     args  = parser.parse_args()
 
