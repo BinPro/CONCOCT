@@ -30,7 +30,11 @@ setup(name='concoct',
       include_package_data=True,
       zip_safe=False,
       ext_modules = [module1],
-      install_requires=['argparse==1.2.1',
+      install_requires=['numpy>=1.7.1',
+                        'scipy>=0.12.0',
+                        'pandas>=0.11.0',
+                        'biopython>=1.62b',
+                        'scikit-learn>=0.13.1',
                         'nose==1.3.0'],
       entry_points="""
       # -*- Entry points: -*-
