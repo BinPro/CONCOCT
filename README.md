@@ -13,13 +13,28 @@ Feel free to contact our mailing list concoct-support@lists.sourceforge.net for 
 If you would like subscribe to concoct-support mailing list, you can do so [here](https://lists.sourceforge.net/lists/listinfo/concoct-support)
 
 ##Dependencies##
+###Main dependencies###
+```
+python v2.7.*
+gcc
+gsl
+```
 
-In order to install concoct, it requires python version 2.7.* and the python package installer ```pip```. It also requires a c compiler, e.g. ```gcc``` and the GNU Scientific Library ```gsl```. For linux (ubuntu) this is installed through:
+In order to install concoct, it requires python version 2.7.*. 
+
+A c-compiler, e.g. ```gcc```, is needed to compile the c parts of concoct that uses the GNU Scientific Library ```gsl```. For linux (ubuntu) this is installed through:
 ```
 apt-get install build-essential gsl-bin
 ```
-
-Before or during the installation of concoct, several other python packages will be downloaded and installed by pip.
+###Python packages###
+```
+numpy>=1.7.1
+scipy>=0.12.0
+pandas>=0.11.0
+biopython>=1.62b
+scikit-learn>=0.13.1
+```
+These are the python packages that need to be installed in order to run concoct. If you follow the installation instructions below, these will be installed automatically. 
 
 ##Install##
 Install the package concoct in default python path, and adds script concoct to bin. You can use sudo if needed.
