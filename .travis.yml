@@ -7,15 +7,17 @@ python:
 virtualenv:
   system_site_packages: true
 before_install:
+   #Uses miniconda installation of scientific python packages instead of building from source
+   #or using old versions supplied by apt-get. Source: https://gist.github.com/dan-blanchard/7045057
+   - if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then wget http://repo.continuum.io/miniconda/Miniconda-3.3.0-Linux-x86_64.sh -O miniconda.sh; else wget http://repo.continuum.io/miniconda/Miniconda3-3.3.0-Linux-x86_64.sh -O miniconda.sh; fi
+   - chmod +x miniconda.sh
+   - ./miniconda.sh -b
+   - export PATH=/home/travis/anaconda/bin:$PATH
+   - conda update --yes conda
    - sudo apt-get update -qq
-   - sudo apt-get install -qq cython libatlas-dev liblapack-dev gfortran python-numpy python-scipy python-biopython build-essential libgsl0-dev
+   - sudo apt-get install -qq libatlas-dev liblapack-dev gfortran build-essential libgsl0-dev
 install:
-#Test with packages from binary install, takes a long time to build numpy and scipy
-#  - pip install -q -U numpy --use-mirrors
-#  - pip install scipy
-#  - pip install -q biopython --use-mirrors 
-  - pip install pandas
-  - pip install scikit-learn
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION cython numpy scipy biopython pandas pip scikit-learn
   - python setup.py install
 # command to run tests
 script: nosetests
@@ -24,3 +26,4 @@ branches:
   only:
     - master
     - travis_tryout
+    - develop
