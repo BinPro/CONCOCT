@@ -21,8 +21,11 @@ RUN apt-get update -qq;\
 RUN cd /opt;\
     wget http://repo.continuum.io/miniconda/Miniconda-3.3.0-Linux-x86_64.sh -O miniconda.sh;\
     chmod +x miniconda.sh;\
-    ./miniconda.sh -p /opt/miniconda -b;\
-    export PATH=/opt/miniconda/bin:$PATH;\
+    ./miniconda.sh -p /opt/miniconda -b
+
+ENV PATH /opt/miniconda/bin:$PATH
+
+RUN cd /opt;\
     conda update --yes conda;\
     conda install --yes python=2.7 cython numpy scipy biopython pandas pip scikit-learn;\
     git clone https://github.com/BinPro/CONCOCT.git;\
