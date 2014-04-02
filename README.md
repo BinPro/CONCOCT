@@ -24,6 +24,35 @@ Before or during the installation of concoct, several other python packages will
 ##Install##
 Install the package concoct in default python path, and adds script concoct to bin. You can use sudo if needed.
 
+###Using Docker and Anaconda###
+Docker provides a very nice way to get a virtual machine with concoct and all dependencies installed. You need to get Docker installed (see https://www.docker.io/gettingstarted/ and specially if you have Ubuntu http://docs.docker.io/en/latest/installation/ubuntulinux/). When Docker is installed you need to download and log into the virtual machine which can be done in one command. We also want to map a folder from the host (/home/user/MyData) to a folder in the virtual machine (/opt/MyData). To get all this working we execute one command:
+```
+sudo docker run -v /home/user/MyData:/opt/MyData -i -t binnisb/concoct_0.2.1 bash
+```
+This downloads the VM (about 1.2G) and logs you into a bash shell. To test concoct you can then do:
+```
+$ cd /opt/CONCOCT
+$ nosetests
+```
+Which should execute all tests without errors. Then to run concoct on your data (stored in /home/user/MyData on host) you can do:
+```
+$ cd /opt/MyData
+$ concoct --coverage_file coverage.csv --composition_file composition.fa -b output_folder/
+```
+
+###Using Ubuntu and Anaconda###
+On Ubuntu this will install all dependencies and the anaconda environment
+```
+apt-get update -qq
+apt-get install -qq wget git build-essential libgsl0-dev gsl-bin
+wget http://repo.continuum.io/miniconda/Miniconda-3.3.0-Linux-x86_64.sh -O miniconda.sh
+chmod +x miniconda.sh
+./miniconda.sh -p /home/travis/miniconda -b
+export PATH=/opt/miniconda/bin:$PATH
+conda update --yes conda
+conda install --yes python=2.7 atlas cython numpy scipy biopython pandas pip scikit-learn
+```
+
 ###Using pip###
 Download the CONCOCT distribution from https://github.com/BinPro/CONCOCT/releases (stable) and extract the files, or clone the repository with github (potentially unstable)
 ```
