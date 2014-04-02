@@ -37,6 +37,20 @@ scikit-learn>=0.13.1
 ```
 These are the python packages that need to be installed in order to run concoct. If you follow the installation instructions below, these will be installed automatically. 
 
+###Optional dependencies###
+
+* Create input table (containing average coverage per sample and contig)
+    * [BEDTools](https://github.com/arq5x/bedtools2/releases) version >= 2.15.0 (only genomeCoverageBed)
+    * [Picard](https://launchpad.net/ubuntu/+source/picard-tools/) tools version >= 1.77
+    * [samtools](http://samtools.sourceforge.net/) version >= 0.1.18
+    * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml) version >= 2.1.0
+    * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
+
+* Validation of clustering using single-copy core genes
+    * [PROKKA](http://www.vicbioinformatics.com/software.prokka.shtml)
+    * Python packages:
+      ```bcbio-gff>=0.4```
+
 ##Install##
 Install the package concoct in default python path, and adds script concoct to bin. You can use sudo if needed.
 
