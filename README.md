@@ -69,9 +69,9 @@ then install the concoct dependencies into this environment:
 ```
 conda install cython numpy scipy biopython pandas pip scikit-learn
 ```
-Finally, install concoct using pip:
+Finally, download the CONCOCT distribution from https://github.com/BinPro/CONCOCT/releases (stable) and extract the files, or clone the repository with github (potentially unstable). Resolve all dependencies, see above and then execute within the CONCOCT directory:
 ```
-pip install concoct
+python setup.py install
 ```
 
 ###Using Docker###
@@ -91,38 +91,6 @@ $ cd /opt/MyData
 $ concoct --coverage_file coverage.csv --composition_file composition.fa -b output_folder/
 ```
 
-
-###Using pip###
-Download the CONCOCT distribution from https://github.com/BinPro/CONCOCT/releases (stable) and extract the files, or clone the repository with github (potentially unstable)
-```
-git clone https://github.com/BinPro/CONCOCT.git
-```
-
-Resolve all dependencies, see above and then execute:
-```
-cd CONCOCT
-pip install -r requirements.txt
-python setup.py install
-```
-
-###Using apt-get###
-Another way to get the dependencies (given Ubuntu / Debian, similar for other distros) is through ```apt-get```. However, for some packages, only deprecated versions are available. Make sure that the requirements for these packages are fulfilled:
-
-    biopython>=1.62b
-    numpy>=1.7.1
-    pandas>=0.11.0
-    scikit-learn>=0.13.1
-    scipy>=0.12.0
-
-The actual commands for installing is then
-```
-sudo apt-get install git python-setuptools python-biopython python-nose \
-                     python-numpy python-pandas python-scikits-learn python-scipy \
-                     build-essential gsl-bin
-git clone https://github.com/BinPro/CONCOCT.git
-cd CONCOCT
-python setup.py install
-```
 
 ##Execute concoct##
 The script concoct takes two input files. The first file, the coverage
