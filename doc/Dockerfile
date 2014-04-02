@@ -16,7 +16,7 @@ FROM ubuntu:13.10
 MAINTAINER CONCOCT developer group, concoct-support@lists.sourceforge.net
 
 RUN apt-get update -qq;\
-    apt-get install -qq wget git libatlas-dev liblapack-dev gfortran build-essential libgsl0-dev gsl-bin
+    apt-get install -qq wget git build-essential libgsl0-dev gsl-bin
 
 RUN cd /opt;\
     wget http://repo.continuum.io/miniconda/Miniconda-3.3.0-Linux-x86_64.sh -O miniconda.sh;\
@@ -27,7 +27,7 @@ ENV PATH /opt/miniconda/bin:$PATH
 
 RUN cd /opt;\
     conda update --yes conda;\
-    conda install --yes python=2.7 cython numpy scipy biopython pandas pip scikit-learn;\
+    conda install --yes python=2.7  atlas cython numpy scipy biopython pandas pip scikit-learn;\
     git clone https://github.com/BinPro/CONCOCT.git;\
     cd CONCOCT;\
     git checkout tags/0.2.1;\
