@@ -15,6 +15,8 @@
 FROM ubuntu:13.10
 MAINTAINER CONCOCT developer group, concoct-support@lists.sourceforge.net
 
+ENV PATH /opt/CONCOCT/bin:/opt/miniconda/bin:$PATH
+
 RUN apt-get update -qq;\
     apt-get install -qq wget git build-essential libgsl0-dev gsl-bin
 
@@ -22,8 +24,6 @@ RUN cd /opt;\
     wget http://repo.continuum.io/miniconda/Miniconda-3.3.0-Linux-x86_64.sh -O miniconda.sh;\
     chmod +x miniconda.sh;\
     ./miniconda.sh -p /opt/miniconda -b
-
-ENV PATH /opt/miniconda/bin:$PATH
 
 RUN cd /opt;\
     conda update --yes conda;\
