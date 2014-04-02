@@ -11,29 +11,29 @@
 # This environment does not set up the assembler and preprocessing
 # for concoct. We will be creating another docker for that.
 
-
 FROM ubuntu:13.10
 MAINTAINER CONCOCT developer group, concoct-support@lists.sourceforge.net
 
-ENV PATH /opt/CONCOCT/bin:/opt/miniconda/bin:$PATH
+ENV PATH /opt/miniconda/bin:$PATH
 
+# Get basic ubuntu packages needed
 RUN apt-get update -qq;\
-    apt-get install -qq wget git build-essential libgsl0-dev gsl-bin
+    apt-get install -qq wget build-essential libgsl0-dev 
 
+# Set up Miniconda environment for python2
 RUN cd /opt;\
     wget http://repo.continuum.io/miniconda/Miniconda-3.3.0-Linux-x86_64.sh -O miniconda.sh;\
     chmod +x miniconda.sh;\
     ./miniconda.sh -p /opt/miniconda -b
 
+# Install python dependencies and fetch and install CONCOCT 0.2.1
 RUN cd /opt;\
     conda update --yes conda;\
     conda install --yes python=2.7  atlas cython numpy scipy biopython pandas pip scikit-learn;\
-    git clone https://github.com/BinPro/CONCOCT.git;\
-    cd CONCOCT;\
-    git checkout tags/0.2.1;\
+    wget --no-check-certificate https://github.com/BinPro/CONCOCT/archive/0.2.1.tar.gz;\
+    tar xf 0.2.1.tar.gz;\
+    cd CONCOCT-0.2.1;\
     python setup.py install
-
-
 
 
 
