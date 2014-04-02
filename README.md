@@ -22,16 +22,15 @@ apt-get install build-essential gsl-bin
 Before or during the installation of concoct, several other python packages will be downloaded and installed by pip.
 
 ##Install##
-Install the package concoct in default python path, and adds script concoct to bin. You can use sudo if needed.
-
 ###Using Docker and Anaconda###
-Docker provides a very nice way to get a virtual machine with concoct and all dependencies installed. You need to get Docker installed (see https://www.docker.io/gettingstarted/ and specially if you have Ubuntu http://docs.docker.io/en/latest/installation/ubuntulinux/). When Docker is installed you need to download and log into the virtual machine which can be done in one command. We also want to map a folder from the host (/home/user/MyData) to a folder in the virtual machine (/opt/MyData). To get all this working we execute one command:
+If you have root access where you want to install concoct and storage for roughly 1.2G "virtual machine" then Docker provides a very nice way to get a Docker image with concoct and its dependencies installed. This way the only thing you install on your host system is Docker, the rest is contained in an Docker image. This allows you to install and run programs in that image without it affecting your host system. You should get to know Docker here: https://www.docker.io/the_whole_story/
+You need to get Docker installed (see https://www.docker.io/gettingstarted/ and specially if you have Ubuntu http://docs.docker.io/en/latest/installation/ubuntulinux/). When Docker is installed you need to download and log into the concoct image which can be done in one command. We also want to map a folder from the host (/home/user/MyData) to a folder in the image (/opt/MyData). To get all this working we execute one command:
 ```
 sudo docker run -v /home/user/MyData:/opt/MyData -i -t binnisb/concoct_0.2.1 bash
 ```
-This downloads the VM (about 1.2G) and logs you into a bash shell. To test concoct you can then do:
+This downloads the image (about 1.2G) and logs you into a bash shell. To test concoct you can then do:
 ```
-$ cd /opt/CONCOCT
+$ cd /opt/CONCOCT-0.2.1
 $ nosetests
 ```
 Which should execute all tests without errors. Then to run concoct on your data (stored in /home/user/MyData on host) you can do:
@@ -40,11 +39,12 @@ $ cd /opt/MyData
 $ concoct --coverage_file coverage.csv --composition_file composition.fa -b output_folder/
 ```
 
+
 ###Using Ubuntu and Anaconda###
 On Ubuntu this will install all dependencies and the anaconda environment
 ```
 apt-get update -qq
-apt-get install -qq wget git build-essential libgsl0-dev gsl-bin
+apt-get install -qq wget git build-essential libgsl0-dev
 wget http://repo.continuum.io/miniconda/Miniconda-3.3.0-Linux-x86_64.sh -O miniconda.sh
 chmod +x miniconda.sh
 ./miniconda.sh -p /home/travis/miniconda -b
