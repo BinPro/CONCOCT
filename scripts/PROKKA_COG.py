@@ -21,11 +21,12 @@
 #            You should have received a copy of the GNU General Public License
 #            along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # **************************************************************/
-import sys, getopt, urllib
-from xml.dom import minidom
+import sys
 from BCBio import GFF
+import argparse
+from Bio import Entrez
 
-def get_record_from_cdd(query):
+def get_records_from_cdd(queries, email):
     # We need CDD accession to COG accession mapping. For this we will use NCBI eutils and parse the returned XML
     # file. For example,
     #
@@ -43,31 +44,16 @@ def get_record_from_cdd(query):
     #			<Item Name="LivePssmID" Type="Integer">0</Item>
     #		</DocSum>
     #	</eSummaryResult>
-
-    params = {
-        'db':'cdd',
-    }
-
-    params['id'] = query
-    # get citation info:
-    url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?' + urllib.urlencode(params)
-    data = urllib.urlopen(url).read()
-    xmldoc = minidom.parseString(data)
-    items=xmldoc.getElementsByTagName("Item")	
-    r={}
-    for i in range(items.length):	
-	r[items[i].getAttribute('Name')]=items[i].firstChild.data
-    return r
+    Entrez.email = email # Always tell ncbi who you are.
+    search_result = Entrez.read(Entrez.epost("cdd", id=",".join(queries)))
+    records = Entrez.read(Entrez.efetch(db="cdd",
+            rettype='docsum',
+            webenv=search_result['WebEnv'],
+            query_key=search_result['QueryKey']))
+    return records
 
 def usage():
     print '\n'.join([
-	   'Usage:',
-           '\t./PROKKA_COG.py -g <gfffile> -b <blastoutfile>',
-           '',
-	   'Optional parameters:',
-	   '\t-s (--scovs-threshold)\t\tsubject coverage threshold (Default:60)',
-           '\t-p (--pident-threshold)\t\tpident threshold (Default:0)',
-	   '',
            'Example usage:',
 	   '',   			
            '\tStep 1: Run PROKKA_XXXXXXXX.faa with rpsblast against the  Cog database',
@@ -77,16 +63,19 @@ def usage():
            '\t\t\tsstart send length slen\" -out blast_output.out',
            '',
            '\tStep 2: Run this script to generate COG anotations:',
-           '\t\t\t./PROKKA_COG.py -g PROKKA_XXXXXXXX.gff -b blast_output.out', 
+           '\t\t\t./PROKKA_COG.py -g PROKKA_XXXXXXXX.gff -b blast_output.out -e mail@example.com',
            '\t\t\t > annotation.cog',
 	   '',	
-           'Refer to rpsblast tutorial: http://www2.warwick.ac.uk/fac/sci/moac/people/students/peter_cock/python/rpsblast/'])
+           'Refer to rpsblast tutorial: http://www2.warwick.ac.uk/fac/sci/moac/people/students/peter_cock/python/rpsblast/',
+           ''])
 
-def main(argv):
+def main(args):
+   blastoutfile = args.blastoutfile
+   gfffile = args.gfffile
+   RPSBLAST_SCOVS_THRESHOLD = args.scovs_threshold
+   RPSBLAST_PIDENT_THRESHOLD = args.pident_threshold
 
    # = Parameters to set ============== #
-   RPSBLAST_SCOVS_THRESHOLD=60.0
-   RPSBLAST_PIDENT_THRESHOLD=0.0	
    RPSBLAST_QSEQID_FIELD=0
    RPSBLAST_SSEQID_FIELD=1
    RPSBLAST_EVALUE_FIELD=2
@@ -101,52 +90,40 @@ def main(argv):
    # = /Parameters to set ============= #
 
 
-   gfffile = ''
-   blastoutfile=''
-			
-   try:
-      opts, args = getopt.getopt(argv,"hg:b:s:p:",["gfffile=","blastoutfile=","scovs-threshold=","pident-threshold="])
-   except getopt.GetoptError:
-      usage()	
-      sys.exit(2)
-   for opt, arg in opts:
-      if opt == '-h':
-	 usage()
-         sys.exit()
-      elif opt in ("-g", "--gfffile"):
-         gfffile = arg
-      elif opt in ("-b", "--blastoutfile"):
-         blastoutfile = arg
-      elif opt in ("-s", "--scovs-threshold"):
-         RPSBLAST_SCOVS_THRESHOLD = float(arg)	
-      elif opt in ("-p", "--pident-threshold"):
-         RPSBLAST_PIDENT_THRESHOLD = float(arg)
-
-   if (gfffile =='' or blastoutfile == ''):
-	usage()	
-	sys.exit()
-
    featureid_locations={}
    limits=dict(gff_type=["gene","mRNA","CDS"])
-   in_handle=open(gfffile)
-   for rec in GFF.parse(in_handle,limit_info=limits):
-	for feature in rec.features:
-		if str(feature.location.strand)!="-1":
-			featureid_locations[feature.id]=[rec.id,str(feature.location.start),str(feature.location.end),'+']
-		else:
-			featureid_locations[feature.id]=[rec.id,str(feature.location.start),str(feature.location.end),'-']
-		
-   in_handle.close()
+   with open(gfffile) as in_handle:
+       for rec in GFF.parse(in_handle, limit_info=limits):
+           for feature in rec.features:
+               l = [rec.id, str(feature.location.start), str(feature.location.end)]
+               if feature.location.strand == 1:
+                   l.append('+')
+               else:
+                   l.append('-')
+               featureid_locations[feature.id] = l
 
    print  '#Query\tHit\tE-value\tIdentity\tScore\tQuery-start\tQuery-end\tHit-start\tHit-end\tHit-length\tDescription\tTitle\tClass-description\tComments'	
+
+   sseq_ids = []
+   with open(blastoutfile) as in_handle:
+       for line in in_handle:
+           sseq_ids.append(line.split("\t")[RPSBLAST_SSEQID_FIELD].split('|')[2])
+   cogrecords_l = get_records_from_cdd(sseq_ids, args.email)
+   cogrecords = {}
+   for rec in cogrecords_l:
+       cogrecords[rec['Id']] = rec
 
    in_handle=open(blastoutfile)
    for line in in_handle:
         record=line.split("\t")
-        if (float(record[RPSBLAST_PIDENT_FIELD])>= RPSBLAST_PIDENT_THRESHOLD and ((float(abs(int(record[RPSBLAST_SEND_FIELD])-int(record[RPSBLAST_SSTART_FIELD]))+1)/float(record[RPSBLAST_SLEN_FIELD]))*100.0)>= RPSBLAST_SCOVS_THRESHOLD):
-		cogrecord=get_record_from_cdd(record[RPSBLAST_SSEQID_FIELD].split('|')[2])
-		featureidlocrecord=featureid_locations[record[RPSBLAST_QSEQID_FIELD]]
-		print (	featureidlocrecord[0]+'_'+record[RPSBLAST_QSEQID_FIELD][7:]+'\t'+
+        l_covered = (float(abs(int(record[RPSBLAST_SEND_FIELD])-int(record[RPSBLAST_SSTART_FIELD]))+1))
+
+        if (float(record[RPSBLAST_PIDENT_FIELD])>= RPSBLAST_PIDENT_THRESHOLD and
+                ((l_covered/float(record[RPSBLAST_SLEN_FIELD]))*100.0 >= RPSBLAST_SCOVS_THRESHOLD)):
+
+            cogrecord = cogrecords[record[RPSBLAST_SSEQID_FIELD].split('|')[2]]
+            featureidlocrecord=featureid_locations[record[RPSBLAST_QSEQID_FIELD]]
+            print(featureidlocrecord[0]+'_'+record[RPSBLAST_QSEQID_FIELD][7:]+'\t'+
 			cogrecord['Accession']+'\t'+
 			record[RPSBLAST_EVALUE_FIELD]+'\t'+
 			record[RPSBLAST_PIDENT_FIELD]+'\t'+
@@ -157,10 +134,25 @@ def main(argv):
 			record[RPSBLAST_SEND_FIELD]+'\t'+
 			record[RPSBLAST_LENGTH_FIELD]+'\t'+
 			cogrecord['Abstract'].split('[')[0].strip()+'\t'+
-			cogrecord['Title']+'\t'+cogrecord['Abstract'].split('[')[1].strip()[:-1]+'\t'+
+			cogrecord['Title']+'\t'+
+                        cogrecord['Abstract'].split('[')[1].strip()[:-1]+'\t'+
                         '['+featureidlocrecord[1]+','+featureidlocrecord[2]+']('+featureidlocrecord[3]+')'
 			)
    in_handle.close()
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+   parser = argparse.ArgumentParser(usage=usage())
+   parser.add_argument('-g', '--gfffile', required=True,
+           help='GFF file generated by e.g. prodigal')
+   parser.add_argument('-b', '--blastoutfile', required=True,
+           help='Output of rpsblast run')
+   parser.add_argument('-s', '--scovs-threshold', type=float, default=60.0,
+           help='Threshold covered in percent, default=60.0')
+   parser.add_argument('-p', '--pident-threshold', type=float, default=0.0,
+           help='Threshold identity in percent, default=0.0')
+   parser.add_argument('-e', '--email',
+           help='Email adress needed to fetch data through ncbi api')
+
+   args = parser.parse_args()
+
+   main(args)
