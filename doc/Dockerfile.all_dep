@@ -15,8 +15,8 @@ MAINTAINER CONCOCT developer group, concoct-support@lists.sourceforge.net
 
 # Set environment variables for CONCOCT
 ENV CONCOCT /opt/CONCOCT-0.2.1
-ENV CONCOCT_TEST /opt/CONCOCT-test-data
-ENV CONCOCT_EXAMPLE /opt/CONCOCT-complete-example
+ENV CONCOCT_TEST /opt/Data/CONCOCT-test-data
+ENV CONCOCT_EXAMPLE /opt/Data/CONCOCT-complete-example
 ENV PATH /opt/velvet_1.2.10:$PATH
 
 RUN apt-get update -qq
@@ -89,11 +89,5 @@ RUN mkdir -p $CONCOCT_TEST;\
 
 # Create the example folder
 RUN mkdir -p $CONCOCT_EXAMPLE
-
-# Download the complete CONCOCT example
-#RUN cd /opt;\
-#    wget https://github.com/BinPro/CONCOCT-test-data/archive/0.2.0.tar.gz -O CONCOCT_data.tar.gz;\
-#    tar xf CONCOCT_data.tar.gz -C $CONCOCT_TEST --strip-components 1
-
 
 
