@@ -84,7 +84,7 @@ There are two Docker images available:
 
 <b>binnisb/concoct_0.2.1</b> image (1.2G) contains CONCOCT and no other dependencies. Using this image allows you to run the concoct program on your coverage and composition files and generate the clustering of the contigs. No dependencies for preprocessing or postprocessing are included in this image.
 
-<b>binnisb/concoct_0.2.1_full</b> image (1.8G) contains all dependencies for the [complete worklfow](https://github.com/BinPro/CONCOCT/blob/master/doc/complete_example.md). It omits the COG database and the CONCOCT test data but we will show you how to download those.
+<b>binnisb/concoct_0.2.1_full</b> image (1.8G) contains all dependencies for the [complete worklfow](doc/complete_example.md). It omits the COG database and the CONCOCT test data but we will show you how to download those.
 
 Our recommendation is to download the full image.
 
@@ -127,5 +127,5 @@ concoct --help
 ```
 
 ### Complete Example ###
-After having installed concoct, a complete workflow can be found [here](https://github.com/BinPro/CONCOCT/blob/master/doc/complete_example.md).
+After having installed concoct, a complete workflow can be found [here](doc/complete_example.md).
 
