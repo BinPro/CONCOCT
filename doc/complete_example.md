@@ -5,35 +5,11 @@ It assumes you have successfully gone through the installation description found
 
 Required software
 ----------------------
-To run the entire example you need the following software:
+To run the entire example you need to install all dependencies as stated in the [README dependencies](../README.md#dependencies). This includes all the optional dependencies. You can also use [doc/Dockerfile.all_dep](Dockerfile.all_dep) to help you install these packages on your sever.
 
-* Assembling Metagenomic Reads
-    * [Velvet](https://launchpad.net/ubuntu/+source/velvet) version >= 1.2.08; change MAXKMERLENGTH=128 into the Makefile in velvet installation directory before the installation
-
-* Map the Reads onto the Contigs
-    * [BEDTools](https://github.com/arq5x/bedtools2/releases) version >= 2.15.0 (only genomeCoverageBed)
-    * [Picard](https://launchpad.net/ubuntu/+source/picard-tools/) tools version >= 1.77
-    * [samtools](http://samtools.sourceforge.net/) version >= 0.1.18
-    * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml) version >= 2.1.0
-    * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
-
-
-* Validation using single-copy core genes
-  * [PROKKA](http://www.vicbioinformatics.com/software.prokka.shtml) 
-  * [BCBio](https://bcbio-nextgen.readthedocs.org/en/latest/) In Ubuntu, you can use:
-    git clone git://github.com/chapmanb/bcbb.git  
-    cd bcbb/gff  
-    python setup.py build  
-    sudo python setup.py install  
+Another way to get everything set up is to use our full Docker image (binnisb/concoct_0.2.1_full) as suggested in the [README docker](../README.md#using-docker).
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
-
-Configurations
-----------------------
-
-In velvet installation directory Makefile, set 'MAXKMERLENGTH=128', if
-this value is smaller in the default installation.
-
 
 Downloading test data
 -----------------------
@@ -43,6 +19,25 @@ If you are running the current unstable master branch of concoct, you need to cl
 
 Setting up the test environment
 -------------------------------
+###Using Docker###
+On your host machine create a folder where you want all the output from this example to go:
+
+    mkdir -p /home/username/Data
+    mkdir /home/username/Data/CONCOCT-complete-example
+    # Move the test data you extracted in the download part into the Data folder
+    mv /home/username/CONCOCT-test-data /home/username/Data/CONCOCT-test-data
+
+Now you want to execute the following command to log into our full Docker image and to map the ```/home/username/Data``` to your image:
+
+    sudo docker run -v /home/username/Data:/opt/Data/ -i -t binnisb/concoct_0.2.1_full bash
+
+This will download the 1.8G image to your machine and then leave you in a BASH shell with the following environmental variables set for you:
+
+    CONCOCT=/opt/CONCOCT-0.2.1
+    CONCOCT_TEST=/opt/Data/CONCOCT-test-data
+    CONCOCT_EXAMPLE=/opt/Data/CONCOCT-complete-example
+
+###Your own setup###
 After obtaining the test data, create a folder where you want all the output from this example to go:
 
     mkdir CONCOCT-complete-example
@@ -75,8 +70,11 @@ After the assembly is finished create a directory with the resulting contigs and
 
 Map the Reads onto the Contigs
 ------------------------------
-After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. One does need to set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
+After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. 
 
+If you are not using the Docker image, then one does need to set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
+
+    #NOTE not necessary if using the Docker image
     export MRKDUP=/home/username/src/picard-tools-1.77/MarkDuplicates.jar
 
 It is typically located within your picard-tools installation.
@@ -88,6 +86,7 @@ The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you cr
     
 Then create a folder map. The parallel command creates a folder for each sample, and runs ```map-bowtie2-markduplicates.sh``` for each sample:
 
+    #Watch out, this command uses a lot of memory
     mkdir map
     parallel mkdir -p map/{/} '&&' \
         cd map/{/} '&&' \
