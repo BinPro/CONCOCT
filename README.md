@@ -49,6 +49,7 @@ These are the python packages that need to be installed in order to run concoct.
     * [samtools](http://samtools.sourceforge.net/) version >= 0.1.18
     * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml) version >= 2.1.0
     * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
+    * Python packages: ```pysam>=0.6```
 
 * For validation of clustering using single-copy core genes
     * [Prodigal](https://github.com/hyattpd/Prodigal/archive/v2.60.tar.gz) >= 2.60
