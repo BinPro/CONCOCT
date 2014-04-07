@@ -25,7 +25,8 @@ RUN apt-get install -qq git
 
 # Velvet for assembly
 RUN apt-get install -qq zlib1g-dev
-    cd /opt;\
+
+RUN cd /opt;\
     wget www.ebi.ac.uk/~zerbino/velvet/velvet_1.2.10.tgz -O velvet.tgz;\
     tar xf velvet.tgz;\
     cd velvet_1.2.10;\
@@ -57,9 +58,6 @@ RUN apt-get install -qq bowtie2
 # Parallel 20130622-1
 RUN apt-get install -qq parallel
 
-# Install blast 2.28
-RUN apt-get install -qq ncbi-blast+
-
 # BCBio latest git
 RUN cd /opt;\
     git clone git://github.com/chapmanb/bcbb.git;\
@@ -84,10 +82,10 @@ RUN cd /opt;\
     printf "install.packages(\"ggplot2\", repo=$RREPO)\ninstall.packages(\"reshape\",repo=$RREPO)\ninstall.packages(\"gplots\",repo=$RREPO)\ninstall.packages(\"ellipse\",repo=$RREPO)\ninstall.packages(\"grid\",repo=$RREPO)\ninstall.packages(\"getopt\",repo=$RREPO)" > dep.R;\
     Rscript dep.R
 
-# Create /opt/CONCOCT-test-data
-RUN mkdir -p $CONCOCT_TEST;\
+# Install picard 1.110
+ENV MRKDUP /opt/picard-tools-1.110/MarkDuplicates.jar
+RUN cd /opt;\
+    wget "http://downloads.sourceforge.net/project/picard/picard-tools/1.110/picard-tools-1.110.zip?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fpicard%2Ffiles%2Fpicard-tools%2F1.110%2F&ts=1396879817&use_mirror=freefr" -O picard-tools-1.110.zip;\
+    unzip picard-tools-1.110.zip
 
-# Create the example folder
-RUN mkdir -p $CONCOCT_EXAMPLE
-
-
+RUN conda install --yes pysam
