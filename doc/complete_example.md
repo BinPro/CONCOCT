@@ -86,14 +86,12 @@ The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you cr
     
 Then create a folder map. The parallel command creates a folder for each sample, and runs ```map-bowtie2-markduplicates.sh``` for each sample:
 
-    #Watch out, this command uses a lot of memory
-    mkdir map
-    parallel mkdir -p map/{/} '&&' \
-        cd map/{/} '&&' \
-        bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh \
-            -ct 1 -p '-f' {} '$('echo {} '|' sed s/R1/R2/')' pair \
-            $CONCOCT_EXAMPLE/contigs/velvet_71.fa asm bowtie2 \
-        ::: $CONCOCT_TEST/reads/*_R1.fa
+    for f in $CONCOCT_TEST/reads/*_R1.fa; do
+        mkdir -p map/$(basename $f);
+        cd map/$(basename $f);
+        bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh -ct 1 -p '-f' $f $(echo $f | sed s/R1/R2/) pair $CONCOCT_EXAMPLE/contigs/velvet_71.fa asm bowtie2;
+        cd ../..;
+    done
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
 
