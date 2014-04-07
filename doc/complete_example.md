@@ -7,16 +7,9 @@ Required software
 ----------------------
 To run the entire example you need to install all dependencies as stated in the [README dependencies](../README.md#dependencies). This includes all the optional dependencies. You can also use [doc/Dockerfile.all_dep](Dockerfile.all_dep) to help you install these packages on your sever.
 
-Another thing you can do is to use our Docker image as suggested in the [README docker](../README.md#using-docker).
+Another thing you can do is to use our full Docker image (binnisb/concoct_0.2.1_full) as suggested in the [README docker](../README.md#using-docker).
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
-
-Configurations
-----------------------
-
-In velvet installation directory Makefile, set 'MAXKMERLENGTH=128', if
-this value is smaller in the default installation.
-
 
 Downloading test data
 -----------------------
@@ -26,6 +19,25 @@ If you are running the current unstable master branch of concoct, you need to cl
 
 Setting up the test environment
 -------------------------------
+###Using Docker###
+On your host machine create a folder where you want all the output from this example to go:
+
+    mkdir -p /home/username/Data
+    mkdir /home/username/Data/CONCOCT-complete-example
+    # Move the test data you extracted in the download part into the Data folder
+    mv /home/username/CONCOCT-test-data /home/username/Data/CONCOCT-test-data
+
+Now you want to execute the following command to log into our full Docker image and to map the ```/home/username/Data``` to your image:
+
+    sudo docker run -v /home/username/Data:/opt/Data/ -i -t binnisb/concoct_0.2.1_full bash
+
+This will download the 1.8G image to your machine and then leave you in a BASH shell with the following environmental variables set for you:
+
+    CONCOCT=/opt/CONCOCT-0.2.1
+    CONCOCT_TEST=/opt/Data/CONCOCT-test-data
+    CONCOCT_EXAMPLE=/opt/Data/CONCOCT-complete-example
+
+###Your own setup###
 After obtaining the test data, create a folder where you want all the output from this example to go:
 
     mkdir CONCOCT-complete-example
