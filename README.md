@@ -38,6 +38,10 @@ scikit-learn>=0.13.1
 These are the python packages that need to be installed in order to run concoct. If you follow the installation instructions below, these will be installed automatically, but are listed here for transparency. 
 
 ###Optional dependencies###
+* For assembly
+    * [Velvet](http://www.ebi.ac.uk/~zerbino/velvet/)
+        * In velvet installation directory Makefile, set 'MAXKMERLENGTH=128', if this value is smaller in the default installation.
+
 
 * To create the input table (containing average coverage per sample and contig)
     * [BEDTools](https://github.com/arq5x/bedtools2/releases) version >= 2.15.0 (only genomeCoverageBed)
