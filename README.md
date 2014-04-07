@@ -13,16 +13,68 @@ Feel free to contact our mailing list concoct-support@lists.sourceforge.net for 
 If you would like subscribe to concoct-support mailing list, you can do so [here](https://lists.sourceforge.net/lists/listinfo/concoct-support)
 
 ##Dependencies##
-
-In order to install concoct, it requires python version 2.7.* and the python package installer ```pip```. It also requires a c compiler, e.g. ```gcc``` and the GNU Scientific Library ```gsl```. For linux (ubuntu) this is installed through:
+###Fundamental dependencies###
 ```
-apt-get install build-essential gsl-bin
+python v2.7.*
+gcc
+gsl
 ```
 
-Before or during the installation of concoct, several other python packages will be downloaded and installed by pip.
+These items are prerequisities for the installation of concoct as described below. The installation procedure varies on different systems, and described in this README is only how to proceed with a linux (ubuntu) distribution.
 
-##Install##
-###Using Docker and Anaconda###
+The first item, ```python v2.7.*```, should be installed on a modern Ubuntu distribution. A c-compiler, e.g. ```gcc```, is needed to compile the c parts of concoct that uses the GNU Scientific Library ```gsl```. For linux (ubuntu) this is installed through:
+```
+apt-get install build-essential libgsl0-dev
+```
+###Python packages###
+```
+cython>=0.19.2
+numpy>=1.7.1
+scipy>=0.12.0
+pandas>=0.11.0
+biopython>=1.62b
+scikit-learn>=0.13.1
+```
+These are the python packages that need to be installed in order to run concoct. If you follow the installation instructions below, these will be installed automatically, but are listed here for transparency. 
+
+###Optional dependencies###
+
+* To create the input table (containing average coverage per sample and contig)
+    * [BEDTools](https://github.com/arq5x/bedtools2/releases) version >= 2.15.0 (only genomeCoverageBed)
+    * [Picard](https://launchpad.net/ubuntu/+source/picard-tools/) tools version >= 1.77
+    * [samtools](http://samtools.sourceforge.net/) version >= 0.1.18
+    * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml) version >= 2.1.0
+    * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
+
+* For validation of clustering using single-copy core genes
+    * [PROKKA](http://www.vicbioinformatics.com/software.prokka.shtml)
+    * Python packages: ```bcbio-gff>=0.4```
+    * R packages: ```gplots, reshape, ggplot2, ellipse, getopt``` and ```grid```
+
+##Installation#
+Here we describe two recommended ways of getting concoct to run on your computer/server. The first option, using Anaconda, should work for any *nix (e.g. Mac OS X or Linux) system even where you do not have 'sudo' rights (e.g. on a common computer cluster). The second option is suitable for a linux computer where you have root privileges and you prefer to use a virtual machine where all dependencies to run concoct are included.
+
+###Using Anaconda###
+This instruction shows how to install all dependencies (except the 'Fundamental dependencies' and the 'Optional dependencies' listed above) using an Anaconda environment. Anaconda is a tool to isolate your python installation, which allows you to have multiple parallel installations using different versions of different packages, and gives you a very convenient and fast way to install the most common scientific python packages. Anaconda is free but not open source, you can download Anaconda [here](https://store.continuum.io/cshop/anaconda/). Installation instructions can be found [here](http://docs.continuum.io/anaconda/install.html).
+
+After installing Anaconda, create a new environment that will contain the concoct installation:
+```
+conda create -n concoct_env python=2.7.6
+```
+After choosing to proceed, run the suggested command:
+```
+source activate concoct_env
+```
+then install the concoct dependencies into this environment:
+```
+conda install cython numpy scipy biopython pandas pip scikit-learn
+```
+Finally, download the CONCOCT distribution from https://github.com/BinPro/CONCOCT/releases (stable) and extract the files, or clone the repository with github (potentially unstable). Resolve all dependencies, see above and then execute within the CONCOCT directory:
+```
+python setup.py install
+```
+
+###Using Docker###
 If you have root access where you want to install concoct and storage for roughly 1.2G "virtual machine" then Docker provides a very nice way to get a Docker image with concoct and its dependencies installed. This way the only thing you install on your host system is Docker, the rest is contained in an Docker image. This allows you to install and run programs in that image without it affecting your host system. You should get to know Docker here: https://www.docker.io/the_whole_story/
 You need to get Docker installed (see https://www.docker.io/gettingstarted/ and specially if you have Ubuntu http://docs.docker.io/en/latest/installation/ubuntulinux/). When Docker is installed you need to download and log into the concoct image which can be done in one command. We also want to map a folder from the host (/home/user/MyData) to a folder in the image (/opt/MyData). To get all this working we execute one command:
 ```
@@ -39,51 +91,6 @@ $ cd /opt/MyData
 $ concoct --coverage_file coverage.csv --composition_file composition.fa -b output_folder/
 ```
 
-
-###Using Ubuntu and Anaconda###
-On Ubuntu this will install all dependencies and the anaconda environment
-```
-apt-get update -qq
-apt-get install -qq wget git build-essential libgsl0-dev
-wget http://repo.continuum.io/miniconda/Miniconda-3.3.0-Linux-x86_64.sh -O miniconda.sh
-chmod +x miniconda.sh
-./miniconda.sh -p /home/travis/miniconda -b
-export PATH=/opt/miniconda/bin:$PATH
-conda update --yes conda
-conda install --yes python=2.7 atlas cython numpy scipy biopython pandas pip scikit-learn
-```
-
-###Using pip###
-Download the CONCOCT distribution from https://github.com/BinPro/CONCOCT/releases (stable) and extract the files, or clone the repository with github (potentially unstable)
-```
-git clone https://github.com/BinPro/CONCOCT.git
-```
-
-Resolve all dependencies, see above and then execute:
-```
-cd CONCOCT
-pip install -r requirements.txt
-python setup.py install
-```
-
-###Using apt-get###
-Another way to get the dependencies (given Ubuntu / Debian, similar for other distros) is through ```apt-get```. However, for some packages, only deprecated versions are available. Make sure that the requirements for these packages are fulfilled:
-
-    biopython>=1.62b
-    numpy>=1.7.1
-    pandas>=0.11.0
-    scikit-learn>=0.13.1
-    scipy>=0.12.0
-
-The actual commands for installing is then
-```
-sudo apt-get install git python-setuptools python-biopython python-nose \
-                     python-numpy python-pandas python-scikits-learn python-scipy \
-                     build-essential gsl-bin
-git clone https://github.com/BinPro/CONCOCT.git
-cd CONCOCT
-python setup.py install
-```
 
 ##Execute concoct##
 The script concoct takes two input files. The first file, the coverage
