@@ -38,7 +38,7 @@ scikit-learn>=0.13.1
 These are the python packages that need to be installed in order to run concoct. If you follow the installation instructions below, these will be installed automatically, but are listed here for transparency. 
 
 ###Optional dependencies###
-* For assembly
+* For assembly, use your favorite, here is one
     * [Velvet](http://www.ebi.ac.uk/~zerbino/velvet/)
         * In velvet installation directory Makefile, set 'MAXKMERLENGTH=128', if this value is smaller in the default installation.
 
