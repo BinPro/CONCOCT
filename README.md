@@ -47,9 +47,11 @@ These are the python packages that need to be installed in order to run concoct.
     * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
 
 * For validation of clustering using single-copy core genes
-    * [PROKKA](http://www.vicbioinformatics.com/software.prokka.shtml)
+    * [Prodigal](https://github.com/hyattpd/Prodigal/archive/v2.60.tar.gz) >= 2.60
     * Python packages: ```bcbio-gff>=0.4```
     * R packages: ```gplots, reshape, ggplot2, ellipse, getopt``` and ```grid```
+
+If you want to install these dependencies on your own server, you can take a look at [doc/Dockerfile.all_dep](doc/Dockerfile.all_dep) for ideas on how to install them.
 
 ##Installation#
 Here we describe two recommended ways of getting concoct to run on your computer/server. The first option, using Anaconda, should work for any *nix (e.g. Mac OS X or Linux) system even where you do not have 'sudo' rights (e.g. on a common computer cluster). The second option is suitable for a linux computer where you have root privileges and you prefer to use a virtual machine where all dependencies to run concoct are included.
@@ -75,22 +77,43 @@ python setup.py install
 ```
 
 ###Using Docker###
-If you have root access where you want to install concoct and storage for roughly 1.2G "virtual machine" then Docker provides a very nice way to get a Docker image with concoct and its dependencies installed. This way the only thing you install on your host system is Docker, the rest is contained in an Docker image. This allows you to install and run programs in that image without it affecting your host system. You should get to know Docker here: https://www.docker.io/the_whole_story/
-You need to get Docker installed (see https://www.docker.io/gettingstarted/ and specially if you have Ubuntu http://docs.docker.io/en/latest/installation/ubuntulinux/). When Docker is installed you need to download and log into the concoct image which can be done in one command. We also want to map a folder from the host (/home/user/MyData) to a folder in the image (/opt/MyData). To get all this working we execute one command:
+If you have root access to a machine where you want to install concoct and you have storage for roughly 1.2G or 1.8G "virtual machine" then Docker provides a very nice way to get a Docker image with concoct and its dependencies installed. This way the only thing you install on your host system is Docker, the rest is contained in an Docker image. This allows you to install and run programs in that image without it affecting your host system. You should [get to know Docker here](https://www.docker.io/the_whole_story/).
+You need to [get Docker installed](https://www.docker.io/gettingstarted/) and specially if you have [Ubuntu](http://docs.docker.io/en/latest/installation/ubuntulinux/). When Docker is installed you need to download and log into the concoct image which can be done in one command.
+
+There are two Docker images available:
+
+<b>binnisb/concoct_0.2.1</b> image (1.2G) contains CONCOCT and no other dependencies. Using this image allows you to run the concoct program on your coverage and composition files and generate the clustering of the contigs. No dependencies for preprocessing or postprocessing are included in this image.
+
+<b>binnisb/concoct_0.2.1_full</b> image (1.8G) contains all dependencies for the [complete worklfow](https://github.com/BinPro/CONCOCT/blob/master/doc/complete_example.md). It omits the COG database and the CONCOCT test data but we will show you how to download those.
+
+Our recommendation is to download the full image.
+
+The following will assume you have installed docker on your host machine and have the following folders containing the COG database, the [CONCOCT test data](https://github.com/BinPro/CONCOCT-test-data/releases) and the CONCOCT complete example folder:
 ```
-sudo docker run -v /home/user/MyData:/opt/MyData -i -t binnisb/concoct_0.2.1 bash
+# Create host directories
+mkdir -p /home/USER/Data/COG/
+mkdir -p /home/USER/Data/CONCOCT-test-data
+mkdir -p /home/USER/Data/CONCOCT-complete-example
+
+# SOMEONE NEEDS TO ADD COG DOWNLOAD HERE!!!
+
+# Download and extract CONCOCT-test-data into hosts CONCOCT-test-data folder
+wget https://github.com/BinPro/CONCOCT-test-data/archive/0.2.0.tar.gz -O CONCOCT_0.2.0_test-data.tar.gz
+tar xf CONCOCT_0.2.0_test-data.tar.gz -C /home/USER/Data/CONCOCT-test-data --strip-components 1
 ```
-This downloads the image (about 1.2G) and logs you into a bash shell. To test concoct you can then do:
+
+The following command will then download the full image from the Docker image index, map the Data folder to the image and log you into the docker image.
+```
+sudo docker run -v /home/USER/Data:/opt/Data -i -t binnisb/concoct_0.2.1_full bash
+```
+To test concoct you can then do:
 ```
 $ cd /opt/CONCOCT-0.2.1
 $ nosetests
 ```
-Which should execute all tests without errors. Then to run concoct on your data (stored in /home/user/MyData on host) you can do:
-```
-$ cd /opt/MyData
-$ concoct --coverage_file coverage.csv --composition_file composition.fa -b output_folder/
-```
+Which should execute all tests without errors.
 
+You can now follow the comlete workflow tutorial.
 
 ##Execute concoct##
 The script concoct takes two input files. The first file, the coverage
