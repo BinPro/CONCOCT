@@ -1,0 +1,99 @@
+# Docker for CONCOCT (http://github.com/BinPro/CONCOCT) v0.2.1
+# VERSION 0.2.1
+# 
+# This docker extends the binnisb/concoct_0.2.1 docker, which installs
+# basic dependencies for CONCOCT v0.2.1, with all other dependencies for
+# the whole process from assembling your reads to analysing results.
+# You should be able to run the extended example for CONCOCT that goes
+# through that process.
+#
+# sudo docker run -v /my/host/shared/directory:/my/docker/location -i -t binnisb/concoct_0.2.1_full /bin/bash
+#
+
+FROM binnisb/concoct_0.2.1
+MAINTAINER CONCOCT developer group, concoct-support@lists.sourceforge.net
+
+# Set environment variables for CONCOCT
+ENV CONCOCT /opt/CONCOCT-0.2.1
+ENV CONCOCT_TEST /opt/CONCOCT-test-data
+ENV CONCOCT_EXAMPLE /opt/CONCOCT-complete-example
+ENV PATH /opt/velvet_1.2.10:$PATH
+
+RUN apt-get update -qq
+
+RUN apt-get install -qq git
+
+# Velvet for assembly
+RUN apt-get install -qq zlib1g-dev
+    cd /opt;\
+    wget www.ebi.ac.uk/~zerbino/velvet/velvet_1.2.10.tgz -O velvet.tgz;\
+    tar xf velvet.tgz;\
+    cd velvet_1.2.10;\
+    sed -i "s/MAXKMERLENGTH=31/MAXKMERLENGTH=128/" Makefile ;\
+    make
+
+# Bedtools2.17
+RUN apt-get install -qq bedtools
+
+# Picard tools 1.95
+# To get fuse to work, I need the following (Issue here: https://github.com/dotcloud/docker/issues/514,
+# solution here: https://gist.github.com/henrik-muehe/6155333).
+RUN apt-get install -qq libfuse2
+RUN cd /tmp ; apt-get download fuse
+RUN cd /tmp ; dpkg-deb -x fuse_* .
+RUN cd /tmp ; dpkg-deb -e fuse_*
+RUN cd /tmp ; rm fuse_*.deb
+RUN cd /tmp ; echo -en '#!/bin/bash\nexit 0\n' > DEBIAN/postinst
+RUN cd /tmp ; dpkg-deb -b . /fuse.deb
+RUN cd /tmp ; dpkg -i /fuse.deb
+RUN apt-get install -qq picard-tools
+
+# Samtools 0.1.19
+RUN apt-get install -qq samtools
+
+# Bowtie2.1.0
+RUN apt-get install -qq bowtie2
+
+# Parallel 20130622-1
+RUN apt-get install -qq parallel
+
+# Install blast 2.28
+RUN apt-get install -qq ncbi-blast+
+
+# BCBio latest git
+RUN cd /opt;\
+    git clone git://github.com/chapmanb/bcbb.git;\
+    cd bcbb/gff;\
+    python setup.py build;\
+    sudo python setup.py install
+
+# Install prodigal 2.60
+RUN cd /opt;\
+    wget --no-check-certificate https://prodigal.googlecode.com/files/Prodigal-2.60.tar.gz;\
+    tar xf Prodigal-2.60.tar.gz;\
+    cd Prodigal-2.60;\
+    make;\
+    ln -s /opt/Prodigal-2.60/prodigal /bin/prodigal
+
+# Install R
+RUN apt-get install -qq r-base
+
+# Install R packages
+RUN cd /opt;\
+    RREPO='"http://cran.rstudio.com/"';\
+    printf "install.packages(\"ggplot2\", repo=$RREPO)\ninstall.packages(\"reshape\",repo=$RREPO)\ninstall.packages(\"gplots\",repo=$RREPO)\ninstall.packages(\"ellipse\",repo=$RREPO)\ninstall.packages(\"grid\",repo=$RREPO)\ninstall.packages(\"getopt\",repo=$RREPO)" > dep.R;\
+    Rscript dep.R
+
+# Create /opt/CONCOCT-test-data
+RUN mkdir -p $CONCOCT_TEST;\
+
+# Create the example folder
+RUN mkdir -p $CONCOCT_EXAMPLE
+
+# Download the complete CONCOCT example
+#RUN cd /opt;\
+#    wget https://github.com/BinPro/CONCOCT-test-data/archive/0.2.0.tar.gz -O CONCOCT_data.tar.gz;\
+#    tar xf CONCOCT_data.tar.gz -C $CONCOCT_TEST --strip-components 1
+
+
+
