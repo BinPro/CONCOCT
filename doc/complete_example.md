@@ -5,26 +5,9 @@ It assumes you have successfully gone through the installation description found
 
 Required software
 ----------------------
-To run the entire example you need the following software:
+To run the entire example you need to install all dependencies as stated in the [README dependencies](README.md#dependencies). This includes all the optional dependencies. You can also use [doc/Dockerfile.all_dep](doc/Dockerfile.all_dep) to help you install these packages on your sever.
 
-* Assembling Metagenomic Reads
-    * [Velvet](https://launchpad.net/ubuntu/+source/velvet) version >= 1.2.08; change MAXKMERLENGTH=128 into the Makefile in velvet installation directory before the installation
-
-* Map the Reads onto the Contigs
-    * [BEDTools](https://github.com/arq5x/bedtools2/releases) version >= 2.15.0 (only genomeCoverageBed)
-    * [Picard](https://launchpad.net/ubuntu/+source/picard-tools/) tools version >= 1.77
-    * [samtools](http://samtools.sourceforge.net/) version >= 0.1.18
-    * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml) version >= 2.1.0
-    * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
-
-
-* Validation using single-copy core genes
-  * [PROKKA](http://www.vicbioinformatics.com/software.prokka.shtml) 
-  * [BCBio](https://bcbio-nextgen.readthedocs.org/en/latest/) In Ubuntu, you can use:
-    git clone git://github.com/chapmanb/bcbb.git  
-    cd bcbb/gff  
-    python setup.py build  
-    sudo python setup.py install  
+Another thing you can do is to use our Docker image as suggested in the [README docker](README.md#using-docker).
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
