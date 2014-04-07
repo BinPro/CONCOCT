@@ -50,6 +50,8 @@ These are the python packages that need to be installed in order to run concoct.
     * [PROKKA](http://www.vicbioinformatics.com/software.prokka.shtml)
     * Python packages:
       ```bcbio-gff>=0.4```
+    * R packages:
+      ```gplots, reshape, ggplot2, ellipse, getopt and grid```
 
 ##Installation#
 Here we describe two recommended ways of getting concoct to run on your computer/server. The first option, using Anaconda, should work for any *nix (e.g. Mac OS X or Linux) system even where you do not have 'sudo' rights (e.g. on a common computer cluster). The second option is suitable for a linux computer where you have root privileges and you prefer to use a virtual machine where all dependencies to run concoct are included.
