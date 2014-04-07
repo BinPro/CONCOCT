@@ -88,20 +88,6 @@ There are two Docker images available:
 
 Our recommendation is to download the full image.
 
-The following will assume you have installed docker on your host machine and have the following folders containing the COG database, the [CONCOCT test data](https://github.com/BinPro/CONCOCT-test-data/releases) and the CONCOCT complete example folder:
-```
-# Create host directories
-mkdir -p /home/USER/Data/COG/
-mkdir -p /home/USER/Data/CONCOCT-test-data
-mkdir -p /home/USER/Data/CONCOCT-complete-example
-
-# SOMEONE NEEDS TO ADD COG DOWNLOAD HERE!!!
-
-# Download and extract CONCOCT-test-data into hosts CONCOCT-test-data folder
-wget https://github.com/BinPro/CONCOCT-test-data/archive/0.2.0.tar.gz -O CONCOCT_0.2.0_test-data.tar.gz
-tar xf CONCOCT_0.2.0_test-data.tar.gz -C /home/USER/Data/CONCOCT-test-data --strip-components 1
-```
-
 The following command will then download the full image from the Docker image index, map the Data folder to the image and log you into the docker image.
 ```
 sudo docker run -v /home/USER/Data:/opt/Data -i -t binnisb/concoct_0.2.1_full bash
