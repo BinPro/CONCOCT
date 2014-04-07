@@ -5,7 +5,7 @@ It assumes you have successfully gone through the installation description found
 
 Required software
 ----------------------
-To run the entire example you need to install all dependencies as stated in the [README dependencies](../README.md#dependencies). This includes all the optional dependencies. You can also use [doc/Dockerfile.all_dep](Dockerfile.all_dep) to help you install these packages on your sever.
+To run the entire example you need to install all dependencies as stated in the [README dependencies](../README.md#dependencies). This includes all the optional dependencies. You can also use [doc/Dockerfile.all_dep](Dockerfile.all_dep) to help you install these packages on your server.
 
 Another way to get everything set up is to use our full Docker image (binnisb/concoct_0.2.1_full) as suggested in the [README docker](../README.md#using-docker).
 
