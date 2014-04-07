@@ -86,6 +86,7 @@ The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you cr
     
 Then create a folder map. The parallel command creates a folder for each sample, and runs ```map-bowtie2-markduplicates.sh``` for each sample:
 
+    #Watch out, this command uses a lot of memory
     mkdir map
     parallel mkdir -p map/{/} '&&' \
         cd map/{/} '&&' \
