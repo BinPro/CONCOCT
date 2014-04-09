@@ -20,18 +20,18 @@ If you are running the current unstable master branch of concoct, you need to cl
 Setting up the test environment
 -------------------------------
 ###Using Docker###
-On your host machine create a folder where you want all the output from this example to go:
+On your HOST machine, create a folder where you want all the output from this example to go and where you will store the CONCOCT-test-data. Following the structure below (Data, Data/CONCOCT-complete-example, Data/CONCOCT-test-data):
 
-    mkdir -p /home/username/Data
-    mkdir /home/username/Data/CONCOCT-complete-example
+    mkdir -p /HOST/path/to/Data
+    mkdir /HOST/path/to/Data/CONCOCT-complete-example
     # Move the test data you extracted in the download part into the Data folder
-    mv /home/username/CONCOCT-test-data /home/username/Data/CONCOCT-test-data
+    mv /HOST/extracted/test/data/CONCOCT-test-data /HOST/path/to/Data/CONCOCT-test-data
 
-Now you want to execute the following command to log into our full Docker image and to map the ```/home/username/Data``` to your image:
+Now you want to execute the following command to log into our full Docker image and to map the ```/HOST/path/to/Data``` to your image and the Data folder will be accessable in /opt/Data:
 
-    sudo docker run -v /home/username/Data:/opt/Data/ -i -t binnisb/concoct_0.2.1_full bash
+    sudo docker run -v /HOST/path/to/Data:/opt/Data/ -i -t binnisb/concoct_0.2.1_full bash
 
-This will download the 1.8G image to your machine and then leave you in a BASH shell with the following environmental variables set for you:
+This will download the 1.8G image to your machine and then leaves you in a BASH shell. In the Docker imgage, the following environmental variables have been set. So if you have your folders set up differently in the steps above you need to alter these variables accordingly:
 
     CONCOCT=/opt/CONCOCT-0.2.1
     CONCOCT_TEST=/opt/Data/CONCOCT-test-data
