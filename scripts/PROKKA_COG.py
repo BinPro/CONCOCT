@@ -53,7 +53,7 @@ def get_records_from_cdd(queries, email):
     return records
 
 def usage():
-    print '\n'.join([
+    return '\n'.join([
            'Example usage:',
 	   '',   			
            '\tStep 1: Run PROKKA_XXXXXXXX.faa with rpsblast against the  Cog database',
@@ -69,83 +69,77 @@ def usage():
            'Refer to rpsblast tutorial: http://www2.warwick.ac.uk/fac/sci/moac/people/students/peter_cock/python/rpsblast/',
            ''])
 
+def read_blast_output(blastoutfile): 
+    sseq_ids = []
+    records = []
+    with open(blastoutfile) as in_handle:
+        for line in in_handle:
+            line_items = line.split("\t")
+            qseq = line_items[0]
+            sseq = line_items[1]
+            pident = line_items[3]
+            send = line_items[7]
+            sstart = line_items[8]
+            slen = line_items[10]
+
+            records.append({'qseqid': qseq,
+                            'sseqid': sseq,
+                            'pident': float(pident),
+                            'send': float(send),
+                            'sstart': float(sstart),
+                            'slen': float(slen)})
+
+            sseq_ids.append(sseq.split('|')[2])
+    return records, sseq_ids
+
+def read_gff_file(gfffile):
+    featureid_locations={}
+    limits=dict(gff_type=["gene","mRNA","CDS"])
+    with open(gfffile) as in_handle:
+        for rec in GFF.parse(in_handle, limit_info=limits):
+            for feature in rec.features:
+                featureid_locations[feature.id] = rec.id
+    return featureid_locations
+
 def main(args):
-   blastoutfile = args.blastoutfile
-   gfffile = args.gfffile
    RPSBLAST_SCOVS_THRESHOLD = args.scovs_threshold
    RPSBLAST_PIDENT_THRESHOLD = args.pident_threshold
 
-   # = Parameters to set ============== #
-   RPSBLAST_QSEQID_FIELD=0
-   RPSBLAST_SSEQID_FIELD=1
-   RPSBLAST_EVALUE_FIELD=2
-   RPSBLAST_PIDENT_FIELD=3
-   RPSBLAST_SCORE_FIELD=4
-   RPSBLAST_QSTART_FIELD=5
-   RPSBLAST_QEND_FIELD=6
-   RPSBLAST_SSTART_FIELD=7
-   RPSBLAST_SEND_FIELD=8
-   RPSBLAST_LENGTH_FIELD=9
-   RPSBLAST_SLEN_FIELD=10
-   # = /Parameters to set ============= #
+   print  "\t".join(['#Query','Hit'])
 
+   records, sseq_ids = read_blast_output(args.blastoutfile)
 
-   featureid_locations={}
-   limits=dict(gff_type=["gene","mRNA","CDS"])
-   with open(gfffile) as in_handle:
-       for rec in GFF.parse(in_handle, limit_info=limits):
-           for feature in rec.features:
-               l = [rec.id, str(feature.location.start), str(feature.location.end)]
-               if feature.location.strand == 1:
-                   l.append('+')
-               else:
-                   l.append('-')
-               featureid_locations[feature.id] = l
-
-   print  '#Query\tHit\tE-value\tIdentity\tScore\tQuery-start\tQuery-end\tHit-start\tHit-end\tHit-length\tDescription\tTitle\tClass-description\tComments'	
-
-   sseq_ids = []
-   with open(blastoutfile) as in_handle:
-       for line in in_handle:
-           sseq_ids.append(line.split("\t")[RPSBLAST_SSEQID_FIELD].split('|')[2])
+   # Retrieve the cog accession number from ncbi
    cogrecords_l = get_records_from_cdd(sseq_ids, args.email)
    cogrecords = {}
    for rec in cogrecords_l:
        cogrecords[rec['Id']] = rec
 
-   in_handle=open(blastoutfile)
-   for line in in_handle:
-        record=line.split("\t")
-        l_covered = (float(abs(int(record[RPSBLAST_SEND_FIELD])-int(record[RPSBLAST_SSTART_FIELD]))+1))
+   featureid_locations = read_gff_file(args.gfffile)
 
-        if (float(record[RPSBLAST_PIDENT_FIELD])>= RPSBLAST_PIDENT_THRESHOLD and
-                ((l_covered/float(record[RPSBLAST_SLEN_FIELD]))*100.0 >= RPSBLAST_SCOVS_THRESHOLD)):
+   for record_d in records:
+       pident_above_threshold = record_d['pident'] >= RPSBLAST_PIDENT_THRESHOLD
 
-            cogrecord = cogrecords[record[RPSBLAST_SSEQID_FIELD].split('|')[2]]
-            featureidlocrecord=featureid_locations[record[RPSBLAST_QSEQID_FIELD]]
-            print(featureidlocrecord[0]+'_'+record[RPSBLAST_QSEQID_FIELD][7:]+'\t'+
-			cogrecord['Accession']+'\t'+
-			record[RPSBLAST_EVALUE_FIELD]+'\t'+
-			record[RPSBLAST_PIDENT_FIELD]+'\t'+
-			record[RPSBLAST_SCORE_FIELD]+'\t'+
-			record[RPSBLAST_QSTART_FIELD]+'\t'+
-			record[RPSBLAST_QEND_FIELD]+'\t'+
-			record[RPSBLAST_SSTART_FIELD]+'\t'+
-			record[RPSBLAST_SEND_FIELD]+'\t'+
-			record[RPSBLAST_LENGTH_FIELD]+'\t'+
-			cogrecord['Abstract'].split('[')[0].strip()+'\t'+
-			cogrecord['Title']+'\t'+
-                        cogrecord['Abstract'].split('[')[1].strip()[:-1]+'\t'+
-                        '['+featureidlocrecord[1]+','+featureidlocrecord[2]+']('+featureidlocrecord[3]+')'
-			)
-   in_handle.close()
+       # A certain fraction of the cog should be covered to avoid the same cog 
+       # to be counted twice in the case when a cog is split across two or more contigs.
+       alignment_length_in_subject = abs(record_d['send'] - record_d['sstart']) + 1
+       percent_seq_covered = (alignment_length_in_subject / record_d['slen']) * 100.0
+       seq_cov_above_threshold =  percent_seq_covered >= RPSBLAST_SCOVS_THRESHOLD
+        
+       if pident_above_threshold and seq_cov_above_threshold:
+           cog_accession = cogrecords[record_d['sseqid'].split('|')[2]]['Accession']
+           featureidlocrecord = featureid_locations[record_d['qseqid']]
+           
+           print(featureidlocrecord + '_' + record_d['qseqid'].split('_')[-1] + '\t' +
+		cog_accession)
 
 if __name__ == "__main__":
    parser = argparse.ArgumentParser(usage=usage())
    parser.add_argument('-g', '--gfffile', required=True,
            help='GFF file generated by e.g. prodigal')
    parser.add_argument('-b', '--blastoutfile', required=True,
-           help='Output of rpsblast run')
+           help=('Output of rpsblast run, assumed to be in tabular format whith '
+               'columns: qseqid sseqid evalue pident score qstart qend sstart send length slen '))
    parser.add_argument('-s', '--scovs-threshold', type=float, default=60.0,
            help='Threshold covered in percent, default=60.0')
    parser.add_argument('-p', '--pident-threshold', type=float, default=0.0,
