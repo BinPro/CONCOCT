@@ -133,6 +133,20 @@ def main(args):
            print(featureidlocrecord + '_' + record_d['qseqid'].split('_')[-1] + '\t' +
 		cog_accession)
 
+    # Load clustering
+
+    # Per cluster, count the number of features
+    for cluster in clusters:
+        counts = []
+        for marker in markers:
+            count = 0
+            for contig in cluster_n_contig[cluster]:
+                for feature in contg_n_feature[contig]:
+                    if feature == marker:
+                        count += 1
+            counts.append(count)
+        print "\t".join(counts)
+
 if __name__ == "__main__":
    parser = argparse.ArgumentParser(usage=usage())
    parser.add_argument('-g', '--gfffile', required=True,
