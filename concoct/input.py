@@ -80,15 +80,18 @@ def load_coverage(cov_file, contig_lengths, no_cov_normalization, add_total_cove
     cov.ix[:,cov_range[0]:cov_range[1]] = cov.ix[:,cov_range[0]:cov_range[1]].add(
             (100/contig_lengths),
             axis='index')
-    if add_total_coverage:
-        cov['total_coverage'] = cov.ix[:,cov_range[0]:cov_range[1]].sum(axis=1)
-        temp_cov_range = (cov_range[0],'total_coverage')
 
     if not no_cov_normalization:
         #Normalize per sample first
         cov.ix[:,cov_range[0]:cov_range[1]] = \
             _normalize_per_sample(cov.ix[:,cov_range[0]:cov_range[1]])
 
+    # Total coverage should be calculated after per sample normalization
+    if add_total_coverage:
+        cov['total_coverage'] = cov.ix[:,cov_range[0]:cov_range[1]].sum(axis=1)
+        temp_cov_range = (cov_range[0],'total_coverage')
+    
+    if not no_cov_normalization:
         # Normalize contigs next
         cov.ix[:,cov_range[0]:cov_range[1]] = \
             _normalize_per_contig(cov.ix[:,cov_range[0]:cov_range[1]])
