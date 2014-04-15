@@ -1,4 +1,4 @@
-#CONCOCT 0.2.1 [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)#
+#CONCOCT 0.2.2 [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)#
 
 A program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
 coverage data in multiple samples and linkage data from paired end reads.
@@ -78,11 +78,11 @@ python setup.py install
 If you have root access where you want to install concoct and storage for roughly 1.2G "virtual machine" then Docker provides a very nice way to get a Docker image with concoct and its dependencies installed. This way the only thing you install on your host system is Docker, the rest is contained in an Docker image. This allows you to install and run programs in that image without it affecting your host system. You should get to know Docker here: https://www.docker.io/the_whole_story/
 You need to get Docker installed (see https://www.docker.io/gettingstarted/ and specially if you have Ubuntu http://docs.docker.io/en/latest/installation/ubuntulinux/). When Docker is installed you need to download and log into the concoct image which can be done in one command. We also want to map a folder from the host (/home/user/MyData) to a folder in the image (/opt/MyData). To get all this working we execute one command:
 ```
-sudo docker run -v /home/user/MyData:/opt/MyData -i -t binnisb/concoct_0.2.1 bash
+sudo docker run -v /home/user/MyData:/opt/MyData -i -t binnisb/concoct_0.2.2 bash
 ```
 This downloads the image (about 1.2G) and logs you into a bash shell. To test concoct you can then do:
 ```
-$ cd /opt/CONCOCT-0.2.1
+$ cd /opt/CONCOCT-0.2.2
 $ nosetests
 ```
 Which should execute all tests without errors. Then to run concoct on your data (stored in /home/user/MyData on host) you can do:
