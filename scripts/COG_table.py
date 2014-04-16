@@ -25,6 +25,7 @@ import sys
 from BCBio import GFF
 import argparse
 from Bio import Entrez
+from collections import defaultdict
 
 def get_records_from_cdd(queries, email):
     # We need CDD accession to COG accession mapping. For this we will use NCBI eutils and parse the returned XML
@@ -62,9 +63,9 @@ def usage():
            '\t\t\t-outfmt \"6 qseqid sseqid evalue pident score qstart qend', 
            '\t\t\tsstart send length slen\" -out blast_output.out',
            '',
-           '\tStep 2: Run this script to generate COG anotations:',
+           '\tStep 2: Run this script to generate the table with marker gene abundance per cluster.:',
            '\t\t\t./PROKKA_COG.py -g PROKKA_XXXXXXXX.gff -b blast_output.out -e mail@example.com',
-           '\t\t\t > annotation.cog',
+           '\t\t\t -c clustering_gt1000.csv -m marker_genes.txt > scg_table.tsv',
 	   '',	
            'Refer to rpsblast tutorial: http://www2.warwick.ac.uk/fac/sci/moac/people/students/peter_cock/python/rpsblast/',
            ''])
@@ -101,61 +102,104 @@ def read_gff_file(gfffile):
                 featureid_locations[feature.id] = rec.id
     return featureid_locations
 
+def read_markers_file(marker_file):
+    # Stores each line of marker_file as an item in a list
+    with open(marker_file) as mf:
+        return [l.strip() for l in mf.readlines()]
+
+def read_clustering_file(cluster_file):
+    # Returns the cluster names and the contig names per cluster
+    contigs_per_cluster = defaultdict(list)
+    clusters = set()
+    with open(cluster_file) as cf:
+        for line in cf.readlines():
+            line_items = line.strip().split(',')
+            cluster = line_items[1]
+            contig = line_items[0]
+            clusters.add(cluster)
+            contigs_per_cluster[cluster].append(contig)
+    return list(clusters), contigs_per_cluster
+
+
 def main(args):
-   RPSBLAST_SCOVS_THRESHOLD = args.scovs_threshold
-   RPSBLAST_PIDENT_THRESHOLD = args.pident_threshold
 
-   print  "\t".join(['#Query','Hit'])
+    RPSBLAST_SCOVS_THRESHOLD = args.scovs_threshold
+    RPSBLAST_PIDENT_THRESHOLD = args.pident_threshold
 
-   records, sseq_ids = read_blast_output(args.blastoutfile)
+    records, sseq_ids = read_blast_output(args.blastoutfile)
 
-   # Retrieve the cog accession number from ncbi
-   cogrecords_l = get_records_from_cdd(sseq_ids, args.email)
-   cogrecords = {}
-   for rec in cogrecords_l:
-       cogrecords[rec['Id']] = rec
+    # Retrieve the cog accession number from ncbi
+    cogrecords_l = get_records_from_cdd(sseq_ids, args.email)
+    cogrecords = {}
+    for rec in cogrecords_l:
+        cogrecords[rec['Id']] = rec
 
-   featureid_locations = read_gff_file(args.gfffile)
+    # If a gff file is given, the contig ids will be fetched from this.
+    if args.gfffile:
+        featureid_locations = read_gff_file(args.gfffile)
+   
+    features_per_contig = defaultdict(list)
 
-   for record_d in records:
-       pident_above_threshold = record_d['pident'] >= RPSBLAST_PIDENT_THRESHOLD
+    for record_d in records:
+        pident_above_threshold = record_d['pident'] >= RPSBLAST_PIDENT_THRESHOLD
 
-       # A certain fraction of the cog should be covered to avoid the same cog 
-       # to be counted twice in the case when a cog is split across two or more contigs.
-       alignment_length_in_subject = abs(record_d['send'] - record_d['sstart']) + 1
-       percent_seq_covered = (alignment_length_in_subject / record_d['slen']) * 100.0
-       seq_cov_above_threshold =  percent_seq_covered >= RPSBLAST_SCOVS_THRESHOLD
+        # A certain fraction of the cog should be covered to avoid the same cog 
+        # to be counted twice in the case when a cog is split across two or more contigs.
+        alignment_length_in_subject = abs(record_d['send'] - record_d['sstart']) + 1
+        percent_seq_covered = (alignment_length_in_subject / record_d['slen']) * 100.0
+        seq_cov_above_threshold =  percent_seq_covered >= RPSBLAST_SCOVS_THRESHOLD
         
-       if pident_above_threshold and seq_cov_above_threshold:
-           cog_accession = cogrecords[record_d['sseqid'].split('|')[2]]['Accession']
-           featureidlocrecord = featureid_locations[record_d['qseqid']]
-           
-           print(featureidlocrecord + '_' + record_d['qseqid'].split('_')[-1] + '\t' +
-		cog_accession)
+        if pident_above_threshold and seq_cov_above_threshold:
+            cog_accession = cogrecords[record_d['sseqid'].split('|')[2]]['Accession']
+            if args.gfffile:
+                contig = featureid_locations[record_d['qseqid']]
+            else:
+                contig = "".join(record_d['qseqid'].split('_')[:-1])
+            features_per_contig[contig].append(cog_accession)
 
     # Load clustering
+    clusters, contigs_per_cluster = read_clustering_file(args.cluster_file)
+    clusters.sort()
+
+    # Load markers
+    markers = read_markers_file(args.marker_file)
+    markers.sort()
+
+    # print header
+    print "\t".join(["Cluster", "Contigs", "Num_contigs"] + markers)
 
     # Per cluster, count the number of features
     for cluster in clusters:
-        counts = []
+        contigs = contigs_per_cluster[cluster]
+        contigs.sort()
+        counts = [cluster, "|".join(contigs), str(len(contigs))]
+
         for marker in markers:
             count = 0
-            for contig in cluster_n_contig[cluster]:
-                for feature in contg_n_feature[contig]:
+            for contig in contigs:
+                for feature in features_per_contig[contig]:
                     if feature == marker:
                         count += 1
-            counts.append(count)
+            counts.append(str(count))
         print "\t".join(counts)
 
 if __name__ == "__main__":
    parser = argparse.ArgumentParser(usage=usage())
-   parser.add_argument('-g', '--gfffile', required=True,
-           help='GFF file generated by e.g. prodigal')
    parser.add_argument('-b', '--blastoutfile', required=True,
            help=('Output of rpsblast run, assumed to be in tabular format whith '
-               'columns: qseqid sseqid evalue pident score qstart qend sstart send length slen '))
-   parser.add_argument('-s', '--scovs-threshold', type=float, default=60.0,
-           help='Threshold covered in percent, default=60.0')
+               'columns: qseqid sseqid evalue pident score qstart qend sstart send length slen. '
+               'The contigs ids are assumed to be recoverable by removing the last underscore '
+               'and the characters following it from the qseqid column.' ))
+   parser.add_argument('-g', '--gfffile',
+           help=('GFF file generated by e.g. prodigal '
+           'only needed if the contig names are not recoverable from the '
+           'blast output file.'))
+   parser.add_argument('-c', '--cluster_file', required=True,
+           help=('Clustering file from concoct execution.'))
+   parser.add_argument('-m', '--marker_file', required=True,
+           help=('File containing a list of genes that will be used as marker genes'))
+   parser.add_argument('-s', '--scovs-threshold', type=float, default=50.0,
+           help='Threshold covered in percent, default=50.0')
    parser.add_argument('-p', '--pident-threshold', type=float, default=0.0,
            help='Threshold identity in percent, default=0.0')
    parser.add_argument('-e', '--email',
