@@ -27,13 +27,13 @@ On your HOST machine, create a folder where you want all the output from this ex
     # Move the test data you extracted in the download part into the Data folder
     mv /HOST/extracted/test/data/CONCOCT-test-data /HOST/path/to/Data/CONCOCT-test-data
 
-Now you want to execute the following command to log into our full Docker image and to map the ```/HOST/path/to/Data``` to your image and the Data folder will be accessable in /opt/Data:
+Now you want to execute the following command to log into our Docker image and to map the ```/HOST/path/to/Data``` to your image and the Data folder will be accessable in /opt/Data:
 
-    sudo docker run -v /HOST/path/to/Data:/opt/Data/ -i -t binnisb/concoct_0.2.1_full bash
+    sudo docker run -v /HOST/path/to/Data:/opt/Data/ -i -t binnisb/concoct_0.2.3 bash
 
-This will download the 1.8G image to your machine and then leaves you in a BASH shell. In the Docker imgage, the following environmental variables have been set. So if you have your folders set up differently in the steps above you need to alter these variables accordingly:
+This will download the 2G image to your machine and then leaves you in a BASH shell. In the Docker imgage, the following environmental variables have been set. So if you have your folders set up differently in the steps above you need to alter these variables accordingly:
 
-    CONCOCT=/opt/CONCOCT-0.2.1
+    CONCOCT=/opt/CONCOCT-0.2.3
     CONCOCT_TEST=/opt/Data/CONCOCT-test-data
     CONCOCT_EXAMPLE=/opt/Data/CONCOCT-complete-example
 
