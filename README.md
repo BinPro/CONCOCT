@@ -82,24 +82,20 @@ python setup.py install
 ```
 
 ###Using Docker###
-If you have root access to a machine where you want to install concoct and you have storage for roughly 1.2G or 1.8G "virtual machine" then Docker provides a very nice way to get a Docker image with concoct and its dependencies installed. This way the only thing you install on your host system is Docker, the rest is contained in an Docker image. This allows you to install and run programs in that image without it affecting your host system. You should [get to know Docker here](https://www.docker.io/the_whole_story/).
+If you have root access to a machine where you want to install concoct and you have storage for roughly 2G "virtual machine" then Docker provides a very nice way to get a Docker image with concoct and its dependencies installed. This way the only thing you install on your host system is Docker, the rest is contained in an Docker image. This allows you to install and run programs in that image without it affecting your host system. You should [get to know Docker here](https://www.docker.io/the_whole_story/).
 You need to [get Docker installed](https://www.docker.io/gettingstarted/) and specially if you have [Ubuntu](http://docs.docker.io/en/latest/installation/ubuntulinux/). When Docker is installed you need to download and log into the concoct image which can be done in one command.
 
-There are two Docker images available:
+We provide a Docker image:
 
-<b>binnisb/concoct_0.2.1</b> image (1.2G) contains CONCOCT and no other dependencies. Using this image allows you to run the concoct program on your coverage and composition files and generate the clustering of the contigs. No dependencies for preprocessing or postprocessing are included in this image.
+<b>binnisb/concoct_0.2.3</b> contains CONCOCT and all its dependencies for the [complete worklfow](doc/complete_example.md). Currently it does not do SCG evaluation.
 
-<b>binnisb/concoct_0.2.1_full</b> image (1.8G) contains all dependencies for the [complete worklfow](doc/complete_example.md). Currently it does not do SCG evaluation.
-
-Our recommendation is to download the full image.
-
-The following command will then download the full image from the Docker image index, map the Data folder to the image and log you into the docker image.
+The following command will then download the image from the Docker image index, map the Data folder to the image and log you into the docker image.
 ```
-sudo docker run -v /home/USER/Data:/opt/Data -i -t binnisb/concoct_0.2.1_full bash
+sudo docker run -v /home/USER/Data:/opt/Data -i -t binnisb/concoct_0.2.3 bash
 ```
 To test concoct you can then do:
 ```
-$ cd /opt/CONCOCT-0.2.1
+$ cd /opt/CONCOCT-0.2.3
 $ nosetests
 ```
 Which should execute all tests without errors.
