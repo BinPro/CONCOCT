@@ -22,6 +22,7 @@ scgfile <- opt$scgfile
 tab <- read.table(scgfile,header=TRUE,row.names=1)
 ecogs <- tab[,3:ncol(tab)]
 
+maxecogs <- max(ecogs)
 
 sumCogs <- rowSums(ecogs)
 
@@ -57,7 +58,11 @@ ecogs.order$id <- slist
 
 mecogsorder <- melt(ecogs.order,id=("id"))
 
-p <- ggplot(mecogsorder, aes(variable,id)) + geom_tile(aes(fill = as.factor(value)), colour = "white") + scale_fill_manual(name="COG counts",values = c("0" = "ivory2","1" = "green4","2" = "light green","3"="red","4"="orange","5"="yellow"))
+color <- c("ivory2", "#1a9850", "#91cf60", "#d9ef8b", "#fee08b", "#fc8d59", "#d73027", "#2166ac",  "#4393c3", "#92c5de", "#d1e5f0")
+if (maxecogs > 10) {
+  color <- c("ivory2", "#1a9850", "#91cf60", "#d9ef8b", "#fee08b", "#fc8d59", "#d73027", "#2166ac",  "#4393c3", "#92c5de", "#d1e5f0", grey((maxecogs - 10):0/(1.2*(maxecogs-10))))
+}
+p <- ggplot(mecogsorder, aes(variable,id)) + geom_tile(aes(fill = as.factor(value)), colour = "white") + scale_fill_manual(name="COG counts",values = color)
 
 pdf(opt$ofile)
 p + scale_y_discrete(breaks=slist,labels=names) + opts(axis.text.x=theme_text(size=7,angle=-90,vjust=0.5)) + ylab("Cluster")
