@@ -154,7 +154,7 @@ def main(args):
             if args.gfffile:
                 contig = featureid_locations[record_d['qseqid']]
             else:
-                contig = "".join(record_d['qseqid'].split('_')[:-1])
+                contig = "".join(record_d['qseqid'].split(args.separator)[:-1])
             features_per_contig[contig].append(cog_accession)
 
     # Load clustering
@@ -204,7 +204,11 @@ if __name__ == "__main__":
            help='Threshold identity in percent, default=0.0')
    parser.add_argument('-e', '--email',
            help='Email adress needed to fetch data through ncbi api')
-
+   parser.add_argument('--separator', default="_",
+           help=('Character that is used to separate the contig id from the '
+                 'protein identifier. Everything before the last occurence ' 
+                 'of this character will be used as the contig id. Default '
+                 'value is "_"'))
    args = parser.parse_args()
 
    main(args)
