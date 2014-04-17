@@ -2,7 +2,8 @@
 from nose.tools import assert_equal, assert_true
 import numpy as np
 import pandas as p
-from concoct.input import _normalize_per_sample, _normalize_per_contig, generate_feature_mapping
+from Bio import SeqIO
+from concoct.input import _normalize_per_sample, _normalize_per_contig, generate_feature_mapping, load_composition
 
 class TestInput(object):
     def setUp(self):
@@ -25,3 +26,15 @@ class TestInput(object):
         assert_equal(counter, 10)
         assert_equal(len(feature_mapping.keys()), 16)
         assert_true('AA' in feature_mapping)
+
+    def test_load_composition(self):
+        seqs = SeqIO.parse("test_data/composition_some_shortened.fa","fasta")
+        ids = []
+        lengths = []
+        for s in seqs:
+            ids.append(s.id)
+            lengths.append(len(s))
+        c_len = p.Series(lengths,index=ids,dtype=int)
+
+        composition,contig_lengths,threshold_filter = load_composition("test_data/composition_some_shortened.fa",4,1000)
+        assert_true((c_len == contig_lengths).all())
