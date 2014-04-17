@@ -34,7 +34,7 @@ class TestInput(object):
         for s in seqs:
             ids.append(s.id)
             lengths.append(len(s))
-        c_len = p.Series(lengths,index=ids,dtype=int)
+        c_len = p.Series(lengths,index=ids,dtype=float)
 
         composition,contig_lengths,threshold_filter = load_composition("test_data/composition_some_shortened.fa",4,1000)
         assert_true((c_len == contig_lengths).all())
