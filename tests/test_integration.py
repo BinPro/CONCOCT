@@ -94,7 +94,7 @@ class TestCMD(object):
         assert_true(isfile(tmp_basename_file+'_clustering_gt1000.csv'),
                     msg = "Clustering file is not created, when file is used as basename")
         L = listdir(tmp_basename_dir)
-        assert_true(len(L) == 28,
+        assert_true(len(L) == 26,
                     msg = "Wrong number of output files, observed {0}".format(L))
 
     def test_prior_to_clustering(self):
