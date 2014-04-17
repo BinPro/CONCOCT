@@ -18,7 +18,10 @@ if( !is.null(opt$help)) {
 
 scgfile <- opt$scgfile
 
-ecogs <- read.table(scgfile,header=TRUE,row.names=1)
+
+tab <- read.table(scgfile,header=TRUE,row.names=1)
+ecogs <- tab[,3:ncol(tab)]
+
 
 sumCogs <- rowSums(ecogs)
 
@@ -58,5 +61,4 @@ p <- ggplot(mecogsorder, aes(variable,id)) + geom_tile(aes(fill = as.factor(valu
 
 pdf(opt$ofile)
 p + scale_y_discrete(breaks=slist,labels=names) + opts(axis.text.x=theme_text(size=7,angle=-90,vjust=0.5)) + ylab("Cluster")
-
 dev.off()
