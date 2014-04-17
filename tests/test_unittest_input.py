@@ -30,9 +30,8 @@ class TestInput(object):
 
     def test_load_composition(self):
         # Get the directory path of this test file
-
         f = os.path.dirname(os.path.abspath(__file__))
-
+        # calculate the lengths of the contigs
         seqs = SeqIO.parse("{0}/test_data/composition_some_shortened.fa".format(f),"fasta")
         ids = []
         lengths = []
@@ -40,6 +39,7 @@ class TestInput(object):
             ids.append(s.id)
             lengths.append(len(s))
         c_len = p.Series(lengths,index=ids,dtype=float)
-
+        # Use load_composition to calculate contig lengths
         composition,contig_lengths,threshold_filter = load_composition("{0}/test_data/composition_some_shortened.fa".format(f),4,1000)
+        # All equal
         assert_true((c_len == contig_lengths).all())
