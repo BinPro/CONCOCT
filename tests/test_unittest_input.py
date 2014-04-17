@@ -28,7 +28,7 @@ class TestInput(object):
         assert_true('AA' in feature_mapping)
 
     def test_load_composition(self):
-        seqs = SeqIO.parse("test_data/composition_some_shortened.fa","fasta")
+        seqs = SeqIO.parse("tests/test_data/composition_some_shortened.fa","fasta")
         ids = []
         lengths = []
         for s in seqs:
@@ -36,5 +36,5 @@ class TestInput(object):
             lengths.append(len(s))
         c_len = p.Series(lengths,index=ids,dtype=float)
 
-        composition,contig_lengths,threshold_filter = load_composition("test_data/composition_some_shortened.fa",4,1000)
+        composition,contig_lengths,threshold_filter = load_composition("tests/test_data/composition_some_shortened.fa",4,1000)
         assert_true((c_len == contig_lengths).all())
