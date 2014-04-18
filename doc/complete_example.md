@@ -5,9 +5,9 @@ It assumes you have successfully gone through the installation description found
 
 Required software
 ----------------------
-To run the entire example you need to install all dependencies as stated in the [README dependencies](../README.md#dependencies). This includes all the optional dependencies. You can also use [doc/Dockerfile.all_dep](Dockerfile.all_dep) to help you install these packages on your server.
+To run the entire example you need to install all dependencies as stated in the [README dependencies](../README.md#dependencies). This includes all the optional dependencies. You can also look at [doc/Dockerfile](Dockerfile) to help you install these packages on your server.
 
-Another way to get everything set up is to use our full Docker image (binnisb/concoct_0.2.1_full) as suggested in the [README docker](../README.md#using-docker).
+Another way to get everything set up is to use our full Docker image (binnisb/concoct_0.2.3) as suggested in the [README docker](../README.md#using-docker).
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
@@ -20,10 +20,13 @@ If you are running the current unstable master branch of concoct, you need to cl
 Setting up the test environment
 -------------------------------
 ###Using Docker###
-On your HOST machine, create a folder where you want all the output from this example to go and where you will store the CONCOCT-test-data. Following the structure below (Data, Data/CONCOCT-complete-example, Data/CONCOCT-test-data):
+On your HOST machine create the following folder structure below (Data, Data/CONCOCT-complete-example, Data/CONCOCT-test-data):
 
     mkdir -p /HOST/path/to/Data
     mkdir /HOST/path/to/Data/CONCOCT-complete-example
+    
+Move the test data that was downloaded and extracted (CONCOCT-test-data) to the Data folder
+    
     # Move the test data you extracted in the download part into the Data folder
     mv /HOST/extracted/test/data/CONCOCT-test-data /HOST/path/to/Data/CONCOCT-test-data
 
