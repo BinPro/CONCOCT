@@ -100,7 +100,7 @@ $ nosetests
 ```
 Which should execute all tests without errors.
 
-You can now follow the comlete workflow tutorial.
+You can now follow the complete workflow tutorial.
 
 ##Execute concoct##
 The script concoct takes two input files. The first file, the coverage
