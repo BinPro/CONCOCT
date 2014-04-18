@@ -94,7 +94,7 @@ class TestCMD(object):
         assert_true(isfile(tmp_basename_file+'_clustering_gt1000.csv'),
                     msg = "Clustering file is not created, when file is used as basename")
         L = listdir(tmp_basename_dir)
-        assert_true(len(L) == 28,
+        assert_true(len(L) == 26,
                     msg = "Wrong number of output files, observed {0}".format(L))
 
     def test_prior_to_clustering(self):
@@ -286,10 +286,8 @@ class TestCMD(object):
         self.run_command()
         original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
         df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
-        # true pseudo count found by running once and using that. Previous tests
-        # when we did not normalize the coverage were calculated by hand and 
-        # were correct so I assume this is correct with normalization
-        true_pseudo_cov = -1.3062 
+
+        true_pseudo_cov = -1.3115 
         calc_pseudo_cov = df.sample_1[0]
         assert_almost_equal(true_pseudo_cov,calc_pseudo_cov,places=4)
 
@@ -297,9 +295,8 @@ class TestCMD(object):
         self.run_command(tags=["--no_cov_normalization"])
         original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
         df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
-        # Manually calculated pseudo coverage using
-        # coverage 0.153531, contig length 10132
-        true_pseudo_cov = -1.8115 
+
+        true_pseudo_cov = -1.8107 
         calc_pseudo_cov = df.sample_1[0]
         assert_almost_equal(true_pseudo_cov,calc_pseudo_cov,places=4)
 
