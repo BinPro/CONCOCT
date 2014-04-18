@@ -39,28 +39,29 @@ def load_composition(comp_file,kmer_len,threshold):
             if re.match(count_re,line):
                 seq_count += 1
 
-    #Initialize with ones since we do pseudo count, we have i contigs as rows
-    #and j features as columns
+    # Initialize with ones since we do pseudo count, we have i contigs as rows
+    # and j features as columns
     composition = np.ones((seq_count,nr_features))
+    # Store contig_lengths of the sequences
+    contig_lengths = np.zeros(seq_count)
     
     contigs_id = []
     for i,seq in enumerate(SeqIO.parse(comp_file,"fasta")):
         contigs_id.append(seq.id)
+        contig_lengths[i] = len(seq)
         for kmer_tuple in window(seq.seq.tostring().upper(),kmer_len):
             kmer = "".join(kmer_tuple)
             if kmer in feature_mapping:
                 composition[i,feature_mapping[kmer]] += 1
 
+    contig_lengths = p.Series(contig_lengths,index=contigs_id,dtype=float)
     composition = p.DataFrame(composition,index=contigs_id,dtype=float)
-
-    # save contig lengths, used for pseudo counts in coverage
-    contig_lengths = composition.sum(axis=1)
 
     # Select contigs to cluster on, namely the sequences longer than the threshold.
     # The total kmer count without pseudo counts is related to the sequence length through:
     # 
     # Kmer_count = Seq_length - kmer_len + 1
-    threshold_filter = composition.sum(axis=1) - nr_features + kmer_len - 1 > threshold
+    threshold_filter = contig_lengths > threshold
     
     #log(p_ij) = log[(X_ij +1) / rowSum(X_ij+1)]
     composition = np.log(composition.divide(composition.sum(axis=1),axis=0))
@@ -80,15 +81,18 @@ def load_coverage(cov_file, contig_lengths, no_cov_normalization, add_total_cove
     cov.ix[:,cov_range[0]:cov_range[1]] = cov.ix[:,cov_range[0]:cov_range[1]].add(
             (100/contig_lengths),
             axis='index')
-    if add_total_coverage:
-        cov['total_coverage'] = cov.ix[:,cov_range[0]:cov_range[1]].sum(axis=1)
-        temp_cov_range = (cov_range[0],'total_coverage')
 
     if not no_cov_normalization:
         #Normalize per sample first
         cov.ix[:,cov_range[0]:cov_range[1]] = \
             _normalize_per_sample(cov.ix[:,cov_range[0]:cov_range[1]])
 
+    # Total coverage should be calculated after per sample normalization
+    if add_total_coverage:
+        cov['total_coverage'] = cov.ix[:,cov_range[0]:cov_range[1]].sum(axis=1)
+        temp_cov_range = (cov_range[0],'total_coverage')
+    
+    if not no_cov_normalization:
         # Normalize contigs next
         cov.ix[:,cov_range[0]:cov_range[1]] = \
             _normalize_per_contig(cov.ix[:,cov_range[0]:cov_range[1]])
