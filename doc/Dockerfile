@@ -6,7 +6,7 @@
 #
 # To login to the docker with a shared directory from the host do:
 #
-# sudo docker run -v /my/host/shared/directory:/my/docker/location -i -t binnisb/concoct_0.2.333 /bin/bash
+# sudo docker run -v /my/host/shared/directory:/my/docker/location -i -t binnisb/concoct_0.2.3 /bin/bash
 #
 
 FROM ubuntu:13.10
