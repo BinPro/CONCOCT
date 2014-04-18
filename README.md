@@ -52,7 +52,7 @@ These are the python packages that need to be installed in order to run concoct.
     * Python packages: ```pysam>=0.6```
 
 * For validation of clustering using single-copy core genes
-    * [Prodigal](https://github.com/hyattpd/Prodigal/archive/v2.60.tar.gz) >= 2.60
+    * [Prodigal](http://prodigal.ornl.gov/) >= 2.60
     * Python packages: ```bcbio-gff>=0.4```
     * R packages: ```gplots, reshape, ggplot2, ellipse, getopt``` and ```grid```
 
