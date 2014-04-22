@@ -342,9 +342,9 @@ class TestCMD(object):
             os.remove(conf_file)
 
     def test_one_contig_threshold(self):
-    	"""Make sure we don't execute clustering of 0 or 1 contig"""
-    	# Make sure the error code is not set before running command
-    	assert_false(hasattr(self,"c"))
+        """Make sure we don't execute clustering of 0 or 1 contig"""
+        # Make sure the error code is not set before running command
+        assert_false(hasattr(self,"c"))
         # Longest contig is 33356 so we put the threshold just below
         self.run_command(tags=["--length_threshold 33350"])
         # The command should have failed with code 255
