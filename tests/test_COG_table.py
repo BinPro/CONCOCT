@@ -44,7 +44,7 @@ class TestCMD(object):
     def run_command(self, 
             cluster_file = 'prodigal_example/clustering_gt1000.csv', 
             blastoutfile = 'prodigal_example/blast_output.out',
-            marker_file = 'scg_cogs_min0.97_max1.03_unique_genera.txt',
+            marker_file = '../../scgs/scg_cogs_min0.97_max1.03_unique_genera.txt',
             gfffile = None,
             scovs_threshold = None, 
             pident_threshold = None,
