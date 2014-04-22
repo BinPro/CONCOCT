@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # ***************************************************************
-# Name:      PROKKA_COG.py
-# Purpose:   This script integrates with PROKKA and generates Cogs assignments for the protein sequences.
+# Name:      COG_table.py
+# Purpose:   This script integrates with PROKKA or Prodigal and generates Cogs assignments for the protein sequences.
 # Version:   0.1
 # Authors:   Umer Zeeshan Ijaz (Umer.Ijaz@glasgow.ac.uk)
 #                 http://userweb.eng.gla.ac.uk/umer.ijaz
@@ -64,7 +64,7 @@ def usage():
            '\t\t\tsstart send length slen\" -out blast_output.out',
            '',
            '\tStep 2: Run this script to generate the table with marker gene abundance per cluster.:',
-           '\t\t\t./PROKKA_COG.py -g PROKKA_XXXXXXXX.gff -b blast_output.out -e mail@example.com',
+           '\t\t\t./COG_table.py -g PROKKA_XXXXXXXX.gff -b blast_output.out -e mail@example.com',
            '\t\t\t -c clustering_gt1000.csv -m marker_genes.txt > scg_table.tsv',
 	   '',	
            'Refer to rpsblast tutorial: http://www2.warwick.ac.uk/fac/sci/moac/people/students/peter_cock/python/rpsblast/',
