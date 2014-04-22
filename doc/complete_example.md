@@ -1,39 +1,15 @@
-Complete Example V0.2
+Complete Example V0.3
 =====================
-This documentation page aims to be a complete example walk through for the usage of the CONCOCT package version 0.2.
+This documentation page aims to be a complete example walk through for the usage of the CONCOCT package version 0.3.
 It assumes you have successfully gone through the installation description found in the README. 
 
 Required software
 ----------------------
-To run the entire example you need the following software:
+To run the entire example you need to install all dependencies as stated in the [README dependencies](../README.md#dependencies). This includes all the optional dependencies. You can also look at [doc/Dockerfile](Dockerfile) to help you install these packages on your server.
 
-* Assembling Metagenomic Reads
-    * [Velvet](https://launchpad.net/ubuntu/+source/velvet) version >= 1.2.08; change MAXKMERLENGTH=128 into the Makefile in velvet installation directory before the installation
-
-* Map the Reads onto the Contigs
-    * [BEDTools](https://github.com/arq5x/bedtools2/releases) version >= 2.15.0 (only genomeCoverageBed)
-    * [Picard](https://launchpad.net/ubuntu/+source/picard-tools/) tools version >= 1.77
-    * [samtools](http://samtools.sourceforge.net/) version >= 0.1.18
-    * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml) version >= 2.1.0
-    * [GNU parallel](http://www.gnu.org/software/parallel/) version >= 20130422
-
-
-* Validation using single-copy core genes
-  * [PROKKA](http://www.vicbioinformatics.com/software.prokka.shtml) 
-  * [BCBio](https://bcbio-nextgen.readthedocs.org/en/latest/) In Ubuntu, you can use:
-    git clone git://github.com/chapmanb/bcbb.git  
-    cd bcbb/gff  
-    python setup.py build  
-    sudo python setup.py install  
+Another way to get everything set up is to use our full Docker image (binnisb/concoct_0.3.0) as suggested in the [README docker](../README.md#using-docker).
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
-
-Configurations
-----------------------
-
-In velvet installation directory Makefile, set 'MAXKMERLENGTH=128', if
-this value is smaller in the default installation.
-
 
 Downloading test data
 -----------------------
@@ -43,6 +19,28 @@ If you are running the current unstable master branch of concoct, you need to cl
 
 Setting up the test environment
 -------------------------------
+###Using Docker###
+On your HOST machine create the following folder structure below (Data, Data/CONCOCT-complete-example, Data/CONCOCT-test-data):
+
+    mkdir -p /HOST/path/to/Data
+    mkdir /HOST/path/to/Data/CONCOCT-complete-example
+    
+Move the test data that was downloaded and extracted (CONCOCT-test-data) to the Data folder
+    
+    # Move the test data you extracted in the download part into the Data folder
+    mv /HOST/extracted/test/data/CONCOCT-test-data /HOST/path/to/Data/CONCOCT-test-data
+
+Now you want to execute the following command to log into our Docker image and to map the ```/HOST/path/to/Data``` to your image and the Data folder will be accessable in /opt/Data:
+
+    sudo docker run -v /HOST/path/to/Data:/opt/Data/ -i -t binnisb/concoct_0.3.0 bash
+
+This will download the 2G image to your machine and then leaves you in a BASH shell. In the Docker imgage, the following environmental variables have been set. So if you have your folders set up differently in the steps above you need to alter these variables accordingly:
+
+    CONCOCT=/opt/CONCOCT-0.3.0
+    CONCOCT_TEST=/opt/Data/CONCOCT-test-data
+    CONCOCT_EXAMPLE=/opt/Data/CONCOCT-complete-example
+
+###Your own setup###
 After obtaining the test data, create a folder where you want all the output from this example to go:
 
     mkdir CONCOCT-complete-example
@@ -75,8 +73,11 @@ After the assembly is finished create a directory with the resulting contigs and
 
 Map the Reads onto the Contigs
 ------------------------------
-After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. One does need to set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
+After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. 
 
+If you are not using the Docker image, then one does need to set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
+
+    #NOTE not necessary if using the Docker image
     export MRKDUP=/home/username/src/picard-tools-1.77/MarkDuplicates.jar
 
 It is typically located within your picard-tools installation.
@@ -88,13 +89,12 @@ The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you cr
     
 Then create a folder map. The parallel command creates a folder for each sample, and runs ```map-bowtie2-markduplicates.sh``` for each sample:
 
-    mkdir map
-    parallel mkdir -p map/{/} '&&' \
-        cd map/{/} '&&' \
-        bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh \
-            -ct 1 -p '-f' {} '$('echo {} '|' sed s/R1/R2/')' pair \
-            $CONCOCT_EXAMPLE/contigs/velvet_71.fa asm bowtie2 \
-        ::: $CONCOCT_TEST/reads/*_R1.fa
+    for f in $CONCOCT_TEST/reads/*_R1.fa; do
+        mkdir -p map/$(basename $f);
+        cd map/$(basename $f);
+        bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh -ct 1 -p '-f' $f $(echo $f | sed s/R1/R2/) pair $CONCOCT_EXAMPLE/contigs/velvet_71.fa asm bowtie2;
+        cd ../..;
+    done
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
 
@@ -193,7 +193,7 @@ This generates a file with normalised frequencies of contigs from each cluster a
 Validation using single-copy core genes
 ---------------------------------------
 
-We can also evaluate the clustering based on single-copy core genes. You first need to find genes on the contigs and functionally annotate these. Here we used prokka (http://www.vicbioinformatics.com/software.prokka.shtml) for gene prediction and annotation, the corresponding protein sequences are here:
+We can also evaluate the clustering based on single-copy core genes. You first need to find genes on the contigs and functionally annotate these. Here we used prokka (http://www.vicbioinformatics.com/software.prokka.shtml) for gene prediction and annotation, but you can also use for example prodigal. The corresponding protein sequences are here:
 
     $CONCOCT_TEST/annotations/proteins/velvet_71.faa
 
@@ -209,37 +209,27 @@ To run this yourself the file ```velvet_71.faa``` will have to be copied into th
 
     mkdir $CONCOCT_EXAMPLE/annotations
     mkdir $CONCOCT_EXAMPLE/annotations/proteins
-    mkdir $CONCOCT_EXAMPLE/annotations/cog-annotations 
+    mkdir $CONCOCT_EXAMPLE/annotations/cog-annotations
     cp $CONCOCT_TEST/annotations/proteins/* $CONCOCT_EXAMPLE/annotations/proteins/
 The blast output has been placed in:
 
     $CONCOCT_TEST/annotations/cog-annotations/velvet_71.out
     
-Finally, we filtered for COGs representing a majority of the subject to ensure fragmented genes are not over-counted.
+Finally, we filtered for COGs representing a majority of the subject to ensure fragmented genes are not over-counted and generated a table of counts of single-copy core genes in each cluster generated by CONCOCT. Remember to use a real email adress, this is supplied since information is fetched from ncbi using their service eutils, and the email is required to let them know who you are.
 
     cd $CONCOCT_EXAMPLE
-    $CONCOCT/scripts/PROKKA_COG.py -g annotations/proteins/velvet_71.gff -b annotations/cog-annotations/velvet_71.out > annotations/cog-annotations/velvet_71.cog
+    $CONCOCT/scripts/COG_table.py -g annotations/proteins/velvet_71.gff -b annotations/cog-annotations/velvet_71.out -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt -c concoct-output/clustering_gt1000.csv -e mail@example.com > evaluation-output/clustering_gt1000_scg.tab
 
-Again noting that the respective files have to be copied into the working directory if you did not run the preceeding step. The output file is here:
+The script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv``` and a file listing a set of SCGs (e.g. a set of COG ids) to use ```scgs/scg_cogs_min0.97_max1.03_unique_genera.txt```.
 
-    $CONCOCT_EXAMPLE/annotations/cog-annotations/velvet_71.cog
-
-We can now run the script Validate_scg.pl to generate a table of counts of single-copy core genes in the different clusters generated by CONCOCT. 
-
-    cd $CONCOCT_EXAMPLE
-    $CONCOCT/scripts/Validate_scg.pl -s "_" -c concoct-output/clustering_gt1000.csv -a annotations/cog-annotations/velvet_71.cog -m $CONCOCT/scripts/scg_cogs_min0.97_max1.03_unique_genera.txt > evaluation-output/clustering_gt1000_scg.tab
-
-The script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv```, an annotation file ```annotations/cog-annoations/cogs.txt```, a tab-separated file with contig ids in the first and gene ids in the second column (one contig can appear on multiple lines), and a file listing a set of SCGs (e.g. a set of COG ids) to use ```scgs/scg_cogs_min0.97_max1.03_unique_genera.txt```.
-
-The parameter –s indicates a separator character in which case only the string before (the first instance of) the separator will be used as contig id in the annotation file. We may want to do this because prodigal and other programs name the proteins on the same contig as contigXXXX_1, contigXXXX_2, etc.
+Since these protein sequences are generated by Prokka, the names of the contig ids need to be recovered from the gff file. If prodigal would have been used, the contig ids would instead have been recovered from the protein ids using a separator character, in which case only the string before (the last instance of) the separator will be used as contig id in the annotation file. In the case of prodigal the separator that should be used is _ and this is the default value, but other characters can be given through the '--separator' argument.
 
 The output file is a tab-separated file with basic information about the clusters (cluster id, ids of contigs in cluster and number of contigs in cluster) in the first three columns, and counts of the different SCGs in the following columns.
 
-This can also be visualised graphically using the R script. First we trim a little extraneous information from the tab files and then we generate the plot with an R script:
+This can also be visualised graphically using the R script:
 
     cd $CONCOCT_EXAMPLE
-    cut -f1,4- evaluation-output/clustering_gt1000_scg.tab > evaluation-output/clustering_gt1000_scg.tsv
-    $CONCOCT/scripts/COGPlot.R -s evaluation-output/clustering_gt1000_scg.tsv -o evaluation-output/clustering_gt1000_scg.pdf
+    $CONCOCT/scripts/COGPlot.R -s evaluation-output/clustering_gt1000_scg.tab -o evaluation-output/clustering_gt1000_scg.pdf
 
 The plot is downloadable here:
 

@@ -18,6 +18,7 @@ before_install:
    - sudo apt-get install -qq build-essential libgsl0-dev
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION cython numpy scipy biopython pandas pip scikit-learn
+  - pip install bcbio-gff
   - python setup.py install
 # command to run tests
 script: nosetests
