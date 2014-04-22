@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from nose.tools import assert_equal, assert_true, assert_almost_equal, nottest
+from nose.tools import assert_equal, assert_true, assert_almost_equal, nottest, assert_false
 from os.path import isdir,isfile
 from os import listdir
 import os
@@ -340,3 +340,13 @@ class TestCMD(object):
         conf_file = os.path.join(test_dir_path, 'Conf.csv')
         if isfile(conf_file):
             os.remove(conf_file)
+
+    def test_one_contig_threshold(self):
+    	"""Make sure we don't execute clustering of 0 or 1 contig"""
+    	# Make sure the error code is not set before running command
+    	assert_false(hasattr(self,"c"))
+        # Longest contig is 33356 so we put the threshold just below
+        self.run_command(tags=["--length_threshold 33350"])
+        # The command should have failed with code 255
+        assert_true(hasattr(self,"c"))
+        assert_equal(self.c,255)

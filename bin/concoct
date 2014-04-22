@@ -18,7 +18,11 @@ def main(args):
     Output(args.basename,args)
 
     composition, contig_lengths, threshold_filter, cov, cov_range = load_data(args)
-
+    
+    # If there are zero or one contig that exceed the filter, do not continue
+    if len(threshold_filter[threshold_filter==True]) < 2:
+        logging.error('Not enough contigs pass the threshold filter. Exiting!')
+        sys.exit(-1)
     if cov is not None:
         joined = composition.join(
             cov.ix[:,cov_range[0]:cov_range[1]],
