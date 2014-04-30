@@ -35,10 +35,10 @@ def main(args):
     # Fix special case in pca_components
     if args.pca_components == "All":
         args.pca_components = joined[args.length_threshold_filter].shape[1]
-
+    weights = contig_lengths.divide(args.length_threshold_filter,axis=0)
     #PCA on the contigs that have kmer count greater than length_threshold
     transform_filter, pca = perform_pca(
-        joined[threshold_filter], 
+        joined[threshold_filter], weights[threshold_filter],
         args.pca_components
         )
 
