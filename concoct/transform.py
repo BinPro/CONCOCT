@@ -1,8 +1,9 @@
 from sklearn.decomposition import PCA
+from concoct.Weighted import weightedPCA
 import pandas as p
 
-def perform_pca(d,nc):
-    pca_object = PCA(n_components=nc).fit(d)
+def perform_pca(d,weights,nc):
+    pca_object = PCA(n_components=nc).fit(d,weights)
     return pca_object.transform(d), pca_object
 
 def perform_split_pca(cov_d, composition, pca_components, use_pcas = None):
