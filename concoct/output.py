@@ -68,7 +68,6 @@ class Output(object):
     def write_pca(self, transform, threshold, index, weights):
         transform_df = p.DataFrame(transform, index=index)
         transform_df['weights'] = p.Series(weights, index=transform_df.index)
-        import ipdb; ipdb.set_trace()
         transform_df.to_csv(
             self.PCA_FILE_BASE.format(threshold),
             float_format=self.FLOAT_FORMAT,

@@ -25,12 +25,10 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_cblas.h>
 #include <pthread.h>
-
 #include <Python.h>
 
 /*User includes*/
 #include "vbgmmmodule.h"
-
 
 static PyObject *vbgmm_fit(PyObject *self, PyObject *args)
 {
@@ -125,7 +123,7 @@ int driver(const char* szFileStub, int nKStart, int nLMin, unsigned long lSeed, 
   }
   runRThreads((void *) &ptBestCluster);
 
-  compressCluster(ptBestCluster);
+  compressCluster(ptBestCluster,&tData);
 
   calcCovarMatrices(ptBestCluster,&tData);
 
@@ -259,7 +257,7 @@ void setVBParams(t_VBParams *ptVBParams, t_Data *ptData)
 
 void readInputData(const char *szFile, t_Data *ptData)
 {
-  double  **aadX = NULL;
+  double  *adL = NULL, **aadX = NULL;
   int  i = 0, j = 0, nD = 0, nN = 0;
   char szLine[MAX_LINE_LENGTH];
   FILE* ifp = NULL;
@@ -279,6 +277,7 @@ void readInputData(const char *szFile, t_Data *ptData)
       
       nD++;
     }
+    nD--;
     /*count data points*/
     while(fgets(szLine, MAX_LINE_LENGTH, ifp) != NULL){
     	nN++;
@@ -290,7 +289,6 @@ void readInputData(const char *szFile, t_Data *ptData)
 
     if(fgets(szLine, MAX_LINE_LENGTH, ifp) == NULL)
       goto formatError;
-
 
     /*allocate memory for dimension names*/
     ptData->aszDimNames = (char **) malloc(nD*sizeof(char*));
@@ -314,6 +312,11 @@ void readInputData(const char *szFile, t_Data *ptData)
 	goto memoryError;
     }
 
+    /*allocate memory for lengths*/
+    adL = (double *) malloc(nN*sizeof(double));
+    if(!adL)
+      goto memoryError;
+
     /*read in input data*/
     ptData->aszSampleNames = (char **) malloc(nN*sizeof(char*));
     if(!ptData->aszSampleNames)
@@ -326,6 +329,7 @@ void readInputData(const char *szFile, t_Data *ptData)
 
       szTok = strtok(szLine, DELIM);
       ptData->aszSampleNames[i] = strdup(szTok);
+              
       for(j = 0; j < nD; j++){
 	szTok = strtok(NULL, DELIM);
 
@@ -335,6 +339,14 @@ void readInputData(const char *szFile, t_Data *ptData)
 	  goto formatError;
 	}
       }
+	
+      szTok = strtok(NULL, DELIM);
+
+      adL[i] = strtod(szTok,&pcError);
+
+      if(*pcError != '\0'){
+        goto formatError;
+      }
     }
   }
   else{
@@ -342,10 +354,16 @@ void readInputData(const char *szFile, t_Data *ptData)
     fflush(stderr);
     exit(EXIT_FAILURE);
   }
+  ptData->adL = adL;
+  ptData->dTL = 0.0;
+  for(i = 0; i < nN; i++){
+	ptData->dTL += ptData->adL[i];
+  }
 
   ptData->nD = nD;
   ptData->nN = nN;
   ptData->aadX = aadX;
+  
   return;
 
  memoryError:
@@ -446,7 +464,7 @@ void destroyData(t_Data *ptData)
     free(ptData->aszDimNames[i]);
   }
   free(ptData->aszDimNames);
-
+  free(ptData->adL);
   for(i = 0; i < nN; i++){
     free(ptData->aadX[i]);
   }
@@ -470,6 +488,8 @@ void destroyCluster(t_Cluster* ptCluster)
   }
 
   free(ptCluster->anMaxZ);
+
+  free(ptCluster->adW);
 
   free(ptCluster->anW); 
 
@@ -526,12 +546,17 @@ void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptDat
   if(!ptCluster->anW)
     goto memoryError;
 
+  ptCluster->adW = (double *) malloc(nK*sizeof(double)); /*destroyed*/
+  if(!ptCluster->adW)
+    goto memoryError;
+
   for(i = 0; i < nN; i++){
     ptCluster->anMaxZ[i] = NOT_SET;
   }
 
   for(i = 0; i < nK; i++){
     ptCluster->anW[i] = 0;
+    ptCluster->adW[i] = 0.;
   }
 
   ptCluster->aadZ = (double **) malloc(nN*sizeof(double *)); /*destroyed*/
@@ -653,6 +678,7 @@ double decomposeMatrix(gsl_matrix *ptSigmaMatrix, int nD)
 void performMStep(t_Cluster *ptCluster, t_Data *ptData){
   int i = 0, j = 0, k = 0, l = 0, m = 0;
   int nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
+  double *adL   = ptData->adL;	
   double **aadZ = ptCluster->aadZ,**aadX = ptData->aadX;
   double *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
   double **aadCovar = NULL, **aadInvWK = NULL;
@@ -698,9 +724,9 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
     /* compute weight associated with component k*/
     adPi[k] = 0.0;
     for(i = 0; i < nN; i++){
-      adPi[k] += aadZ[i][k];
+      adPi[k] += aadZ[i][k]*adL[i];
       for(j = 0; j < nD; j++){
-	adMu[j] += aadZ[i][k]*aadX[i][j];
+	adMu[j] += aadZ[i][k]*adL[i]*aadX[i][j];
       }
     }
     /*normalise means*/
@@ -728,7 +754,7 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
 
 	for(l = 0; l < nD; l++){
 	  for(m = 0; m <=l ; m++){
-	    aadCovar[l][m] += aadZ[i][k]*adDiff[l]*adDiff[m];
+	    aadCovar[l][m] += aadZ[i][k]*adL[i]*adDiff[l]*adDiff[m];
 	  }
 	} 
       }
@@ -850,9 +876,10 @@ void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData)
 {
   int i = 0, j = 0, k = 0, l = 0, m = 0;
   int nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
+  double *adL = ptData->adL;
   double **aadZ = ptCluster->aadZ,**aadX = ptData->aadX;
   double *adPi = ptCluster->adPi, **aadCovar = NULL;
-  double dN = (double) nN;
+  double dTL = ptData->dTL;
 
 
   aadCovar = (double **) malloc(nD*sizeof(double*));
@@ -882,9 +909,9 @@ void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData)
     /* compute weight associated with component k*/
     adPi[k] = 0.0;
     for(i = 0; i < nN; i++){
-      adPi[k] += aadZ[i][k];
+      adPi[k] += aadZ[i][k]*adL[i];
       for(j = 0; j < nD; j++){
-	adMu[j] += aadZ[i][k]*aadX[i][j];
+	adMu[j] += aadZ[i][k]*adL[i]*aadX[i][j];
       }
     }
     /*normalise means*/
@@ -902,7 +929,7 @@ void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData)
 
       for(l = 0; l < nD; l++){
 	for(m = 0; m <=l ; m++){
-	  aadCovar[l][m] += aadZ[i][k]*adDiff[l]*adDiff[m];
+	  aadCovar[l][m] += aadZ[i][k]*adL[i]*adDiff[l]*adDiff[m];
 	}
       } 
     }
@@ -920,7 +947,7 @@ void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData)
       }
     }
 
-    adPi[k] /= dN; /*normalise weights*/    
+    adPi[k] /= dTL; /*normalise weights*/    
   }
   /*free up memory*/
   for(i = 0; i < nD; i++){
@@ -940,6 +967,7 @@ void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData)
 void calcCovarMatricesVB(t_Cluster *ptCluster, t_Data *ptData){
   int i = 0, j = 0, k = 0, l = 0, m = 0;
   int nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
+  double *adL = ptData->adL;
   double **aadZ = ptCluster->aadZ,**aadX = ptData->aadX;
   double *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
   double **aadCovar = NULL, **aadInvWK = NULL;
@@ -983,9 +1011,9 @@ void calcCovarMatricesVB(t_Cluster *ptCluster, t_Data *ptData){
     /* compute weight associated with component k*/
     adPi[k] = 0.0;
     for(i = 0; i < nN; i++){
-      adPi[k] += aadZ[i][k];
+      adPi[k] += adL[i]*aadZ[i][k];
       for(j = 0; j < nD; j++){
-	adMu[j] += aadZ[i][k]*aadX[i][j];
+	adMu[j] += aadZ[i][k]*adL[i]*aadX[i][j];
       }
     }
     /*normalise means*/
@@ -1013,7 +1041,7 @@ void calcCovarMatricesVB(t_Cluster *ptCluster, t_Data *ptData){
 
 	for(l = 0; l < nD; l++){
 	  for(m = 0; m <=l ; m++){
-	    aadCovar[l][m] += aadZ[i][k]*adDiff[l]*adDiff[m];
+	    aadCovar[l][m] += adL[i]*aadZ[i][k]*adDiff[l]*adDiff[m];
 	  }
 	} 
       }
@@ -1123,11 +1151,11 @@ void updateMeans(t_Cluster *ptCluster, t_Data *ptData){
   int i = 0, j = 0, k = 0;
   int nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
   int *anMaxZ = ptCluster->anMaxZ;
-  int *anW    = ptCluster->anW;
-  double **aadX = ptData->aadX, **aadMu = ptCluster->aadMu;
+  double *adW    = ptCluster->adW;
+  double *adL    = ptData->adL;
+  double **aadX  = ptData->aadX, **aadMu = ptCluster->aadMu;
 
   for(k = 0; k < nK; k++){
-    
     for(j = 0; j < nD; j++){
       aadMu[k][j] = 0.0;
     }
@@ -1137,16 +1165,15 @@ void updateMeans(t_Cluster *ptCluster, t_Data *ptData){
     int nZ = anMaxZ[i];
 
     for(j = 0; j < nD; j++){
-      aadMu[nZ][j] += aadX[i][j];
+      aadMu[nZ][j] += adL[i]*aadX[i][j];
     }
   }
 
   for(k = 0; k < nK; k++){ /*loop components*/
-    
     /*normalise means*/
-    if(anW[k] > 0){
+    if(adW[k] > 0){
       for(j = 0; j < nD; j++){
-	aadMu[k][j] /= (double) anW[k];
+	aadMu[k][j] /= adW[k];
       }
     }
     else{
@@ -1199,12 +1226,16 @@ void initKMeans(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData)
   /*very simple initialisation assign each data point to random cluster*/
   int i = 0, k = 0, nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
   double **aadMu = ptCluster->aadMu, **aadX = ptData->aadX; 
-  int *anMaxZ = ptCluster->anMaxZ, *anW = ptCluster->anW, nChange = nN;
+  double *adL = ptData->adL;
+  int *anMaxZ = ptCluster->anMaxZ,  nChange = nN;
   int nIter = 0, nMaxIter = ptCluster->nMaxIter;
+  int *anW  = ptCluster->anW; 
+  double *adW = ptCluster->adW;
   for(i = 0; i < nN; i++){
     int nIK = gsl_rng_uniform_int (ptGSLRNG, nK);
 
     ptCluster->anMaxZ[i] = nIK;
+    adW[nIK] += adL[i];
     anW[nIK]++;
   }
   
@@ -1229,8 +1260,12 @@ void initKMeans(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData)
       if(nMinK != anMaxZ[i]){
 	int nCurr = anMaxZ[i];
 	nChange++;
-	anW[nCurr]--;
-	anW[nMinK]++;
+
+        anW[nCurr]--;
+        anW[nMinK]++;
+
+	adW[nCurr] -= adL[i];
+	adW[nMinK] += adL[i];
 	anMaxZ[i] = nMinK;
 
 	/*check for empty clusters*/
@@ -1245,7 +1280,9 @@ void initKMeans(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData)
 
 	  nKI = anMaxZ[nRandI];
 	  anW[nKI]--;
-	  anW[nCurr] = 1;
+          adW[nKI]   -= adL[nRandI];
+	  adW[nCurr] = adL[nRandI];
+	  anW[nCurr] = 1;	
 	  anMaxZ[nRandI] = nCurr;
 	}
       }
@@ -1333,7 +1370,7 @@ double dWishartEntropy(gsl_matrix *ptW, double dNu, int nD)
   return dRet;
 }
 
-double calcVBL(t_Cluster* ptCluster)
+double calcVBL(t_Cluster* ptCluster, t_Data *ptData)
 {
   int i = 0, k = 0, l = 0, nN = ptCluster->nN;
   int nK = ptCluster->nK, nD = ptCluster->nD;
@@ -1344,6 +1381,7 @@ double calcVBL(t_Cluster* ptCluster)
   double dD = (double) nD;
   double** aadMu = ptCluster->aadMu, **aadM = ptCluster->aadM, **aadZ = ptCluster->aadZ;
   double* adBeta = ptCluster->adBeta, *adNu = ptCluster->adNu, *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
+  double* adL = ptData->adL;
   double adNK[nK];
   double d2Pi = 2.0*M_PI, dBeta0 = ptCluster->ptVBParams->dBeta0, dNu0 = ptCluster->ptVBParams->dNu0, dRet = 0.0;
   double dK = 0.0;
@@ -1355,9 +1393,9 @@ double calcVBL(t_Cluster* ptCluster)
   /*Equation 10.72*/
   for(i = 0; i < nN; i++){
     for(k = 0; k < nK; k++){
-      adNK[k] += aadZ[i][k];
+      adNK[k] += aadZ[i][k]*adL[i];
       if(adPi[k] > 0.0){
-	dBishop2 += aadZ[i][k]*log(adPi[k]);
+	dBishop2 += aadZ[i][k]*adL[i]*log(adPi[k]);
       }
     }
   }
@@ -1424,7 +1462,7 @@ double calcVBL(t_Cluster* ptCluster)
   for(i = 0; i < nN; i++){
     for(k = 0; k < nK; k++){
       if(aadZ[i][k] > 0.0){
-	dBishop4 += aadZ[i][k]*log(aadZ[i][k]);
+	dBishop4 += aadZ[i][k]*adL[i]*log(aadZ[i][k]);
       }
     }
   }
@@ -1522,7 +1560,7 @@ void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData)
 
   /*calculate data likelihood*/
   calcZ(ptCluster,ptData);
-  ptCluster->dVBL = calcVBL(ptCluster);
+  ptCluster->dVBL = calcVBL(ptCluster, ptData);
 
   while(nIter < nMaxIter && dDelta > dEpsilon){
    
@@ -1533,7 +1571,7 @@ void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData)
     calcZ(ptCluster,ptData);
 
     dLastVBL = ptCluster->dVBL;
-    ptCluster->dVBL = calcVBL(ptCluster);
+    ptCluster->dVBL = calcVBL(ptCluster,ptData);
     dDelta = fabs(ptCluster->dVBL - dLastVBL);
 
     if(ofp){
@@ -1715,11 +1753,11 @@ void* runRThreads(void *pvpDCluster)
 
 void calcSampleVar(t_Data *ptData,double *adVar, double *adMu)
 {
-  double **aadX = ptData->aadX;
+  double **aadX = ptData->aadX, *adL = ptData->adL;
   int i = 0, n = 0;
   int nD = ptData->nD, nN = ptData->nN;
   /*sample means*/
-  double dN = (double) nN;
+  double dTL = ptData->dTL;
 
   for(i = 0; i < nD; i++){
     adMu[i] = 0.0;
@@ -1728,23 +1766,23 @@ void calcSampleVar(t_Data *ptData,double *adVar, double *adMu)
 
   for(i = 0; i < nD; i++){
     for(n = 0; n < nN; n++){
-      adMu[i] += aadX[n][i];
-      adVar[i] += aadX[n][i]*aadX[n][i];
+      adMu[i] += aadX[n][i]*adL[n];
+      adVar[i] += aadX[n][i]*aadX[n][i]*adL[n];
     }
 
-    adMu[i] /= dN;
+    adMu[i] /= dTL;
 
-    adVar[i] = (adVar[i] - dN*adMu[i]*adMu[i])/(dN - 1.0);
+    adVar[i] = (adVar[i] - dTL*adMu[i]*adMu[i])/(dTL - 1.0);
   }
 
   return;
 }
 
-void compressCluster(t_Cluster *ptCluster)
+void compressCluster(t_Cluster *ptCluster, t_Data *ptData)
 {
   int i = 0, k = 0, nNewK = 0, nN = ptCluster->nN;
   double **aadNewZ = NULL, dN = (double) nN;
-
+  double *adL = ptData->adL, dTL = ptData->dTL;
   for(i = 0; i < ptCluster->nK; i++){
     if(ptCluster->adPi[i] > 0.0){
       nNewK++;
@@ -1784,9 +1822,9 @@ void compressCluster(t_Cluster *ptCluster)
   for(k = 0; k < ptCluster->nK; k++){
     ptCluster->adPi[k] = 0.0;
     for(i = 0; i < nN; i++){
-      ptCluster->adPi[k] += ptCluster->aadZ[i][k];
+      ptCluster->adPi[k] += ptCluster->aadZ[i][k]*adL[i];
     }
-    ptCluster->adPi[k] /= dN;
+    ptCluster->adPi[k] /= dTL;
   }
 
   /*assign to best clusters*/

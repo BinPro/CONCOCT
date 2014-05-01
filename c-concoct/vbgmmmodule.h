@@ -34,6 +34,10 @@ typedef struct s_Data
 
   gsl_matrix *ptTMatrix;
 
+  double *adL;
+
+  double dTL;
+
   double **aadX;
 
   char **aszDimNames;
@@ -106,6 +110,8 @@ typedef struct s_Cluster
   int *anMaxZ;
   /*frequencies for each cluster*/
   int *anW;
+  /*length weighted frequencies for each cluster*/
+  double *adW;
 } t_Cluster;
 
 
@@ -124,7 +130,7 @@ typedef struct s_Cluster
 #define MIN_PI           0.1 /*Unormalised*/
 #define MIN_COVAR        0.001
 
-#define N_RTHREADS       10
+#define N_RTHREADS       1
 #define R_PRIME          1009
 
 #define INPUT_FILE       "PCA_transformed_data_gt"
@@ -178,9 +184,9 @@ void calcSampleVar(t_Data *ptData,double *adVar, double *adMu);
 
 double dLogWishartB(gsl_matrix *ptInvW, int nD, double dNu, int bInv);
 
-double calcVBL(t_Cluster* ptCluster);
+double calcVBL(t_Cluster* ptCluster, t_Data *ptData);
 
-void compressCluster(t_Cluster* ptCluster);
+void compressCluster(t_Cluster* ptCluster, t_Data *ptData);
 
 void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData);
 
