@@ -105,9 +105,9 @@ class weightedPCA(BaseEstimator, TransformerMixin):
 
         """
         U, S, V = self._fit(X,weights)
-        U = U[:, :self.n_components]
-	# X_new = X * V = U * S * V^T * V = U * S
-        U *= S[:self.n_components]
+        U = U[:, :self.n_components_]
+        # X_new = X * V = U * S * V^T * V = U * S
+        U *= S[:self.n_components_]
         return U
 
     def _fit(self, X, weights):
@@ -117,7 +117,7 @@ class weightedPCA(BaseEstimator, TransformerMixin):
         X: array-like, shape (n_samples, n_features)
             Training vector, where n_samples in the number of samples and
             n_features is the number of features.
-	weights: vector like relative sample weights
+            weights: vector like relative sample weights
         Returns
         -------
         U, s, V : ndarrays
@@ -127,20 +127,22 @@ class weightedPCA(BaseEstimator, TransformerMixin):
         X = array2d(X)
         n_samples, n_features = X.shape
         X = as_float_array(X, copy=self.copy)
-	# Center data
-	Y = np.dot(np.diag(weights),X)
+        # Center data
+        Y = np.dot(np.diag(weights),X)
         self.mean_ = np.mean(Y, axis=0)
         X -= self.mean_
 
         sweights = np.sqrt(weights)
-	Z = np.dot(np.diag(sweights),X)
+        Z = np.dot(np.diag(sweights),X)
 
         U, S, V = linalg.svd(Z, full_matrices=False)
-	
-	tweight = np.sum(weights)
+
+        tweight = np.sum(weights)
         self.explained_variance_ = (S ** 2) / tweight
         self.explained_variance_ratio_ = (self.explained_variance_ /
                                           self.explained_variance_.sum())
+
+        self.components_ = V
 
         if (self.n_components is not None
               and 0 < self.n_components
