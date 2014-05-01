@@ -143,21 +143,23 @@ class weightedPCA(BaseEstimator, TransformerMixin):
                                           self.explained_variance_.sum())
 
         self.components_ = V
+        n_components = self.n_components
 
-        if (self.n_components is not None
-              and 0 < self.n_components
-              and self.n_components < 1.0):
+        if (n_components is not None
+              and 0 < n_components
+              and n_components < 1.0):
             # number of components for which the cumulated explained variance
             # percentage is superior to the desired threshold
             ratio_cumsum = self.explained_variance_ratio_.cumsum()
-            self.n_components = np.sum(ratio_cumsum < self.n_components) + 1
+            n_components = np.sum(ratio_cumsum < n_components) + 1
 
-        if self.n_components is not None:
-            self.components_ = self.components_[:self.n_components, :]
+        if n_components is not None:
+            self.components_ = self.components_[:n_components, :]
             self.explained_variance_ = \
-                self.explained_variance_[:self.n_components]
+                self.explained_variance_[:n_components]
             self.explained_variance_ratio_ = \
-                self.explained_variance_ratio_[:self.n_components]
+                self.explained_variance_ratio_[:n_components]
+            self.n_components_ = n_components
 
         return (U, S, V)
 
