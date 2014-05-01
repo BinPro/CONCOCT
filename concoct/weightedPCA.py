@@ -129,10 +129,10 @@ class weightedPCA(BaseEstimator, TransformerMixin):
         X = as_float_array(X, copy=self.copy)
         # Center data
         Y = np.dot(np.diag(weights),X)
-	tweight = np.sum(weights)
+        tweight = np.sum(weights)
         self.mean_ = np.sum(Y, axis=0)/tweight 
         
-	X -= self.mean_
+        X -= self.mean_
 
         sweights = np.sqrt(weights)
         Z = np.dot(np.diag(sweights),X)
