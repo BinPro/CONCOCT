@@ -650,6 +650,32 @@ double decomposeMatrix(gsl_matrix *ptSigmaMatrix, int nD)
   }
 }
 
+void performMStepThreadedMaster(t_Cluster *ptCluster, t_Data *ptData)
+{
+    pthread_t   atMThreads[N_STHREADS];
+    int         iret[N_STHREADS];
+    int         t = 0;
+    t_MCalc     atMCalc[N_STHREADS];
+    int         nKAssign = ptCluster->nK/N_STHREADS;
+
+    for(t = 0; t < N_STHREADS; t++){
+        atMCalc[t].ptCluster = ptCluster;
+        atMCalc[t].ptData    = ptData;
+        atMCalc[t].nKStart   = t*nKAssign;
+        atMCalc[t].nKEnd     = (t+1)*nKAssign;
+    }
+    atMCalc[N_STHREADS - 1].nKEnd = ptCluster->nK;
+
+    for(t = 0; t < N_STHREADS; t++){
+        iret[t] = pthread_create(&atMThreads[t], NULL,performMStepThreaded, (void*) &atMCalc[t]);
+    }
+
+    for(t = 0; t < N_STHREADS; t++){
+        pthread_join(atMThreads[t], NULL);
+    }
+}
+
+
 void *performMStepThreaded(void *pvMCalc)
 {
     t_MCalc     *ptMCalc   = (t_MCalc *) pvMCalc;
@@ -663,7 +689,6 @@ void *performMStepThreaded(void *pvMCalc)
     double *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
     double **aadCovar = NULL, **aadInvWK = NULL;
     t_VBParams *ptVBParams = ptCluster->ptVBParams;
-
     gsl_matrix* ptSigmaMatrix = gsl_matrix_alloc(nD,nD);
   
     aadCovar = (double **) malloc(nD*sizeof(double*));
@@ -684,7 +709,6 @@ void *performMStepThreaded(void *pvMCalc)
         aadInvWK[i] = (double *) malloc(nD*sizeof(double));
         if(!aadInvWK[i])
             goto memoryError;
-        }
     }
  
     /*perform M step*/
@@ -1379,7 +1403,7 @@ void initRandom(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData)
     ptCluster->aadZ[i][nIK] = 1.0;
   }
   
-  performMStep(ptCluster, ptData);
+  performMStepThreadedMaster(ptCluster, ptData);
   
   return;
 }
@@ -1465,7 +1489,7 @@ void initKMeans(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData)
     ptCluster->aadZ[i][anMaxZ[i]] = 1.0;
   }
 
-  performMStep(ptCluster, ptData);
+  performMStepThreadedMaster(ptCluster, ptData);
   return;
 }
 
