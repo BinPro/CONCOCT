@@ -698,11 +698,14 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
     /* compute weight associated with component k*/
     adPi[k] = 0.0;
     for(i = 0; i < nN; i++){
-      adPi[k] += aadZ[i][k];
-      for(j = 0; j < nD; j++){
-	adMu[j] += aadZ[i][k]*aadX[i][j];
-      }
+	if(aadZ[i][k] > MIN_Z){
+      		adPi[k] += aadZ[i][k];
+      		for(j = 0; j < nD; j++){
+			adMu[j] += aadZ[i][k]*aadX[i][j];
+		}
+	}
     }
+    
     /*normalise means*/
     if(adPi[k] > MIN_PI){
 
@@ -720,20 +723,22 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
      
       /*calculate covariance matrices*/
       for(i = 0; i < nN; i++){
-	double adDiff[nD];
+	if(aadZ[i][k] > MIN_Z){
+		double adDiff[nD];
       
-	for(j = 0; j < nD; j++){
-	  adDiff[j] = aadX[i][j] - adMu[j];
-	}
+		for(j = 0; j < nD; j++){
+	  		adDiff[j] = aadX[i][j] - adMu[j];
+		}
 
-	for(l = 0; l < nD; l++){
-	  for(m = 0; m <=l ; m++){
-	    aadCovar[l][m] += aadZ[i][k]*adDiff[l]*adDiff[m];
-	  }
-	} 
-      }
+		for(l = 0; l < nD; l++){
+	  		for(m = 0; m <=l ; m++){
+	    			aadCovar[l][m] += aadZ[i][k]*adDiff[l]*adDiff[m];
+	  		}
+		} 
+      	}
+     }
       
-      for(l = 0; l < nD; l++){
+     for(l = 0; l < nD; l++){
 	for(m = l + 1; m < nD; m++){
 	  aadCovar[l][m] = aadCovar[m][l];
 	}
@@ -1457,6 +1462,7 @@ void calcZ(t_Cluster* ptCluster, t_Data *ptData){
   for(i = 0; i < nN; i++){
     double dMinDist = DBL_MAX;
     double dTotalZ  = 0.0;
+    double dNTotalZ = 0.0;	
 
     for(k = 0; k < nK; k++){
       if(adPi[k] > 0.){
@@ -1492,8 +1498,17 @@ void calcZ(t_Cluster* ptCluster, t_Data *ptData){
     }
 
     for(k = 0; k < nK; k++){
-      aadZ[i][k] /= dTotalZ;
+      double dF = aadZ[i][k] / dTotalZ;
+      if(dF < MIN_Z){
+	aadZ[i][k] = 0.0;
+      }
+      dNTotalZ += aadZ[i][k];
     }
+    if(dNTotalZ > 0.){
+    	for(k = 0; k < nK; k++){
+      		aadZ[i][k] /= dNTotalZ;
+    	}
+    }	
   }
 
   gsl_vector_free(ptRes);

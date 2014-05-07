@@ -123,6 +123,7 @@ typedef struct s_Cluster
 
 #define MIN_PI           0.1 /*Unormalised*/
 #define MIN_COVAR        0.001
+#define MIN_Z            1.0e-6
 
 #define N_RTHREADS       10
 #define R_PRIME          1009
