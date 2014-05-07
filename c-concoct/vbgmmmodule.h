@@ -108,6 +108,26 @@ typedef struct s_Cluster
   int *anW;
 } t_Cluster;
 
+typedef struct s_ZCalc
+{
+	t_Data    *ptData;
+	t_Cluster *ptCluster;
+
+	int nNStart;
+
+	int nNEnd;
+} t_ZCalc;
+
+typedef struct s_MCalc
+{
+    t_Data    *ptData;
+    t_Cluster *ptCluster;
+
+    int nKStart;
+
+    int nKEnd;
+} t_MCalc;
+
 
 #define DELIM ",\n"
 #define MAX_LINE_LENGTH   10000
@@ -125,7 +145,8 @@ typedef struct s_Cluster
 #define MIN_COVAR        0.001
 #define MIN_Z            1.0e-6
 
-#define N_RTHREADS       10
+#define N_RTHREADS       4
+#define N_STHREADS       4
 #define R_PRIME          1009
 
 #define INPUT_FILE       "PCA_transformed_data_gt"
@@ -184,5 +205,9 @@ double calcVBL(t_Cluster* ptCluster);
 void compressCluster(t_Cluster* ptCluster);
 
 void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData);
+
+void* calcZThreaded(void *pvZCalc);
+
+void calcZThreadedMaster(t_Cluster *ptCluster, t_Data *ptData);
 
 #endif
