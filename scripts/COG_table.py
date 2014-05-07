@@ -128,7 +128,7 @@ def read_clustering_file(cluster_file):
 
 
 def main(args):
-
+     
     RPSBLAST_SCOVS_THRESHOLD = args.scovs_threshold
     RPSBLAST_PIDENT_THRESHOLD = args.pident_threshold
 
@@ -165,7 +165,7 @@ def main(args):
             if args.gfffile:
                 contig = featureid_locations[record_d['qseqid']]
             else:
-                contig = "".join(record_d['qseqid'].split(args.separator)[:-1])
+                contig = (args.separator).join(record_d['qseqid'].split(args.separator)[:-1])
             features_per_contig[contig].append(cog_accession)
 
     # Load clustering
