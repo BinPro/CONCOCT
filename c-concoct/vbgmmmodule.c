@@ -687,7 +687,7 @@ void *performMStepThreaded(void *pvMCalc)
         }
     }
  
-  /*perform M step*/
+    /*perform M step*/
     for(k = nKStart; k < nKEnd; k++){ /*loop components*/
         double*     adMu          = ptCluster->aadMu[k];
         gsl_matrix  *ptSigmaMatrix = ptCluster->aptSigma[k];
@@ -814,8 +814,40 @@ void *performMStepThreaded(void *pvMCalc)
                 double dX = 0.5*(ptCluster->adNu[k] - (double) l);
                 adLDet[k] += gsl_sf_psi (dX);
             }
-           adLDet[k] -= decomposeMatrix(ptSigmaMatrix,nD);
+            adLDet[k] -= decomposeMatrix(ptSigmaMatrix,nD);
+        }
+    }
 
+  /*Normalise pi*/
+    if(1){
+        double dNP = 0.0;
+
+        for(k = 0; k < nK; k++){
+            dNP += adPi[k];
+        }
+
+        for(k = 0; k < nK; k++){
+            adPi[k] /= dNP;
+        }
+    } 
+
+    /*free up memory*/
+    for(i = 0; i < nD; i++){
+        free(aadCovar[i]);
+        free(aadInvWK[i]);
+    }
+
+    gsl_matrix_free(ptSigmaMatrix);
+    free(aadCovar);    
+    free(aadInvWK);
+ 
+    return;
+
+    memoryError:      
+        fprintf(stderr, "Failed allocating memory in performMStep\n");
+        fflush(stderr);
+        exit(EXIT_FAILURE);  
+}
 void performMStep(t_Cluster *ptCluster, t_Data *ptData){
   int i = 0, j = 0, k = 0, l = 0, m = 0;
   int nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;

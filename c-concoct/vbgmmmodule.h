@@ -210,4 +210,8 @@ void* calcZThreaded(void *pvZCalc);
 
 void calcZThreadedMaster(t_Cluster *ptCluster, t_Data *ptData);
 
+void *performMStepThreaded(void *pvMCalc);
+
+void performMStepThreadedMaster(t_Cluster *ptCluster, t_Data *ptData);
+
 #endif
