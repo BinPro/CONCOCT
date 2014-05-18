@@ -79,7 +79,7 @@ def load_coverage(cov_file, contig_lengths, no_cov_normalization, add_total_cove
 
     # Adding pseudo count
     cov.ix[:,cov_range[0]:cov_range[1]] = cov.ix[:,cov_range[0]:cov_range[1]].add(
-            (100/contig_lengths),
+            (1/contig_lengths),
             axis='index')
 
     if not no_cov_normalization:
