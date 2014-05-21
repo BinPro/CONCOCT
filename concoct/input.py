@@ -20,7 +20,8 @@ def load_data(args):
             args.coverage_file,
             contig_lengths,
             args.no_cov_normalization,
-            add_total_coverage = (not args.no_total_coverage)
+            add_total_coverage = (not args.no_total_coverage),
+            read_length = args.read_length
             )
     else:
         cov, cov_range = None, None
@@ -69,7 +70,7 @@ def load_composition(comp_file,kmer_len,threshold):
     logging.info('Successfully loaded composition data.')
     return composition,contig_lengths,threshold_filter
 
-def load_coverage(cov_file, contig_lengths, no_cov_normalization, add_total_coverage=False):
+def load_coverage(cov_file, contig_lengths, no_cov_normalization, add_total_coverage=False, read_length=100):
     #Coverage import, file has header and contig ids as index
     cov = p.read_table(cov_file, header=0, index_col=0)
 
@@ -79,7 +80,7 @@ def load_coverage(cov_file, contig_lengths, no_cov_normalization, add_total_cove
 
     # Adding pseudo count
     cov.ix[:,cov_range[0]:cov_range[1]] = cov.ix[:,cov_range[0]:cov_range[1]].add(
-            (1/contig_lengths),
+            (read_length/contig_lengths),
             axis='index')
 
     if not no_cov_normalization:
