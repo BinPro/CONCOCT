@@ -60,12 +60,8 @@ mkdir $CONCOCT_EXAMPLE/annotations/cog-annotations
 cp $CONCOCT_TEST/annotations/proteins/* $CONCOCT_EXAMPLE/annotations/proteins/
 
 cd $CONCOCT_EXAMPLE
-$CONCOCT/scripts/PROKKA_COG.py -g annotations/proteins/velvet_71.gff -b annotations/cog-annotations/velvet_71.out > annotations/cog-annotations/velvet_71.cog
+$CONCOCT/scripts/COG_table.py -g annotations/proteins/velvet_71.gff -b annotations/cog-annotations/velvet_71.out -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt -c concoct-output/clustering_gt1000.csv -e mail@example.com > evaluation-output/clustering_gt1000_scg.tab
 
 cd $CONCOCT_EXAMPLE
-$CONCOCT/scripts/Validate_scg.pl -s "_" -c concoct-output/clustering_gt1000.csv -a annotations/cog-annotations/velvet_71.cog -m $CONCOCT/scripts/scg_cogs_min0.97_max1.03_unique_genera.txt > evaluation-output/clustering_gt1000_scg.tab
-
-cd $CONCOCT_EXAMPLE
-cut -f1,4- evaluation-output/clustering_gt1000_scg.tab > evaluation-output/clustering_gt1000_scg.tsv
-$CONCOCT/scripts/COGPlot.R -s evaluation-output/clustering_gt1000_scg.tsv -o evaluation-output/clustering_gt1000_scg.pdf
+$CONCOCT/scripts/COGPlot.R -s evaluation-output/clustering_gt1000_scg.tab -o evaluation-output/clustering_gt1000_scg.pdf
 
