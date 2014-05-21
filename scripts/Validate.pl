@@ -4,23 +4,24 @@ use strict;
 use Getopt::Long;
 
 my $tFile = '';
-my $zFile = '';;
+my $zFile = '';
+my $fFile = '';
 my $help = '';
 my $quiet = '';
 my $outFile = "Conf.csv";
 
 my $USAGE = <<"USAGE";
-Usage: ./Validate.pl --cfile=clustering.csv --sfile=species.csv
+Usage: ./Validate.pl --cfile=clustering.csv --sfile=species.csv --ffile=Contigs.fasta
 
 Regular options:
-
+--ffile    Contigs.fasta weight statistics by contig lengths
 --ofile    filename -- outputfile for confusion matrix default Conf.csv
 --quiet             -- suppress variable names
 --help      
 
 USAGE
 
-GetOptions("cfile=s"   => \$tFile,"sfile=s"  => \$zFile, "ofile=s" => \$outFile, 'quiet' => \$quiet, 'help' => \$help) or die("Error in command line arguments\n");
+GetOptions("ffile=s"   => \$fFile, "cfile=s"   => \$tFile,"sfile=s"  => \$zFile, "ofile=s" => \$outFile, 'quiet' => \$quiet, 'help' => \$help) or die("Error in command line arguments\n");
 
 if ($help ne '') {print $USAGE;}
 
@@ -33,6 +34,47 @@ my $S = 0;
 my %hashCluster = {};
 my @ctotals = ();
 
+
+my @Seq         = ();
+my @id          = ();
+my %hashLengths = {};
+my $count = 0;
+if($fFile ne ''){
+    open(FILE, $fFile) or die "Can't open $fFile\n";
+
+    my $seq = "";
+
+    while(my $line = <FILE>){
+        chomp($line);
+
+        if($line =~ />(.*)/){
+
+            $id[$count] = $1;
+
+            if($seq ne ""){
+                $Seq[$count - 1] = $seq;
+
+                $seq = "";
+            }
+
+            $count++;
+        }
+        else{
+            $seq .= $line;
+        }
+    }
+    close(FILE);
+
+    $Seq[$count - 1] = $seq;
+    my $stotal = $count;
+
+
+    for(my $i = 0; $i < $stotal; $i++){
+        my $iid = $id[$i];
+        my $slength = length($Seq[$i]);
+        $hashLengths{$iid}  = $slength;
+    }
+}
 
 open(FILE, $tFile) or die "Can't open $tFile";
 
@@ -56,40 +98,45 @@ close(FILE);
 
 open(FILE, $zFile) or die "Can't open $zFile";
 
-
+my $tweight = 0.0;
 my %hashC = {};
 my $count = 0;
 while(my $line = <FILE>){
-  chomp($line);
+    chomp($line);
+    my @tokens = split(/,/,$line);
 
-  my @tokens = split(/,/,$line);
+    my $name = $tokens[0];
+    if($hashCluster{$name} ne undef){
+        my $tcluster = $hashCluster{$name};
 
-  my $name = $tokens[0];
+        my $genus = $tokens[1];
 
-  if($hashCluster{$name} ne undef){
-    my $tcluster = $hashCluster{$name};
+        my $l = 0.0;
+        if($hashLengths{$name} ne undef){
+            $l = $hashLengths{$name};
+        }
+        else{
+            $l = 1.0;
+        }
 
-    #print "$name $tcluster\n";
+        if($hashC{$genus} eq undef){
+            my @temp = ();
 
-    my $genus = $tokens[1];
-    #print "$genus\n";
-    if($hashC{$genus} eq undef){
-      my @temp = ();
+            for(my $i = 0; $i < $maxt + 1; $i++){
+	            $temp[$i] = 0;
+            }
+        
+            $temp[$tcluster]+=$l;
 
-      for(my $i = 0; $i < $maxt + 1; $i++){
-	$temp[$i] = 0;
-      }
-
-      $temp[$tcluster]++;
-
-      $hashC{$genus} = \@temp;
+            $hashC{$genus} = \@temp;
+        }
+        else{
+            @{$hashC{$genus}}[$tcluster]+=$l;
+        }
+        $count++;
+        $tweight += $l;
+        $S++;
     }
-    else{
-      @{$hashC{$genus}}[$tcluster]++;
-    }
-    $count++;
-    $S++;
-  }
 }
 
 close(FILE);
@@ -147,13 +194,13 @@ foreach my $key(sort keys %hashC){
 close(OUTFILE);
 
 if($quiet eq ''){
-  printf("N\tM\tS\tK\tRec.\tPrec.\tNMI\tRand\tAdjRand\n");
+  printf("N\tM\tTL\tS\tK\tRec.\tPrec.\tNMI\tRand\tAdjRand\n");
 }
 
 my $NK = scalar(@cluster);;
 my $NS = scalar(@{$cluster[0]});
 
-printf("%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\n",$N,$S,$NS,$NK,recall(@cluster),precision(@cluster),nmi(@cluster),randindex(@cluster),adjrandindex(@cluster));
+printf("%d\t%d\t%.4e\t%d\t%d\t%f\t%f\t%f\t%f\t%f\n",$N,$S,$tweight,$NS,$NK,recall(@cluster),precision(@cluster),nmi(@cluster),randindex(@cluster),adjrandindex(@cluster));
 
 sub precision(){
    my @cluster = @_;
