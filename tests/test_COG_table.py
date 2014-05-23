@@ -45,16 +45,17 @@ class TestCMD(object):
             cluster_file = 'prodigal_example/clustering_gt1000.csv', 
             blastoutfile = 'prodigal_example/blast_output.out',
             marker_file = '../../scgs/scg_cogs_min0.97_max1.03_unique_genera.txt',
+            cdd_cog_file = '../../scgs/cdd_to_cog.tsv',
             gfffile = None,
             scovs_threshold = None, 
             pident_threshold = None,
-            output_file = os.path.join(tmp_dir_path, 'cog_table_output.csv'), 
-            email = 'concoct-support@lists.sourceforge.net'):
+            output_file = os.path.join(tmp_dir_path, 'cog_table_output.csv')):
         
         call = ["python", script_path, 
                 "--cluster_file", "test_data/{0}".format(cluster_file),
                 "--blastoutfile", "test_data/{0}".format(blastoutfile),
-                "--marker_file", "test_data/{0}".format(marker_file)]
+                "--marker_file", "test_data/{0}".format(marker_file),
+                "--cdd_cog_file", "test_data/{0}".format(cdd_cog_file)]
 
         if gfffile:
             call += ['--gfffile', "test_data/{0}".format(gfffile)]
@@ -65,11 +66,8 @@ class TestCMD(object):
         if pident_threshold:
             call += ['--pident-threshold', pident_threshold]
         
-        if email:
-            call += ['--email', email]
-
         call += [">", output_file]
-        
+
         self.c = 0
         try:
             self.op = subprocess.check_output(
