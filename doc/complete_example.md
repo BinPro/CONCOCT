@@ -7,7 +7,7 @@ Required software
 ----------------------
 To run the entire example you need to install all dependencies as stated in the [README dependencies](../README.md#dependencies). This includes all the optional dependencies. You can also look at [doc/Dockerfile](Dockerfile) to help you install these packages on your server.
 
-Another way to get everything set up is to use our full Docker image (binnisb/concoct_0.3.0) as suggested in the [README docker](../README.md#using-docker).
+Another way to get everything set up is to use our full Docker image (binnisb/concoct_0.3.1) as suggested in the [README docker](../README.md#using-docker).
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
@@ -32,11 +32,11 @@ Move the test data that was downloaded and extracted (CONCOCT-test-data) to the 
 
 Now you want to execute the following command to log into our Docker image and to map the ```/HOST/path/to/Data``` to your image and the Data folder will be accessable in /opt/Data:
 
-    sudo docker run -v /HOST/path/to/Data:/opt/Data/ -i -t binnisb/concoct_0.3.0 bash
+    sudo docker run -v /HOST/path/to/Data:/opt/Data/ -i -t binnisb/concoct_0.3.1 bash
 
 This will download the 2G image to your machine and then leaves you in a BASH shell. In the Docker imgage, the following environmental variables have been set. So if you have your folders set up differently in the steps above you need to alter these variables accordingly:
 
-    CONCOCT=/opt/CONCOCT-0.3.0
+    CONCOCT=/opt/CONCOCT-0.3.1
     CONCOCT_TEST=/opt/Data/CONCOCT-test-data
     CONCOCT_EXAMPLE=/opt/Data/CONCOCT-complete-example
 
