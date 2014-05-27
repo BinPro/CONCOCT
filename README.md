@@ -1,4 +1,4 @@
-#CONCOCT 0.3.0 [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)#
+#CONCOCT 0.3.1 [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)#
 
 A program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
 coverage data in multiple samples and linkage data from paired end reads.
@@ -87,15 +87,15 @@ You need to [get Docker installed](https://www.docker.io/gettingstarted/) and sp
 
 We provide a Docker image:
 
-<b>binnisb/concoct_0.3.0</b> contains CONCOCT and all its dependencies for the [complete worklfow](doc/complete_example.md). Currently it does not do SCG evaluation.
+<b>binnisb/concoct_0.3.1</b> contains CONCOCT and all its dependencies for the [complete worklfow](doc/complete_example.md). Currently it does not do SCG evaluation.
 
 The following command will then download the image from the Docker image index, map the Data folder to the image and log you into the docker image.
 ```
-sudo docker run -v /home/USER/Data:/opt/Data -i -t binnisb/concoct_0.3.0 bash
+sudo docker run -v /home/USER/Data:/opt/Data -i -t binnisb/concoct_0.3.1 bash
 ```
 To test concoct you can then do:
 ```
-$ cd /opt/CONCOCT-0.3.0
+$ cd /opt/CONCOCT-0.3.1
 $ nosetests
 ```
 Which should execute all tests without errors.
