@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 import sys, os
 from distutils.core import Extension
 
-version = '0.3.0'
+version = '0.3.1'
 
 module1 = Extension('vbgmm',
         libraries =['gsl',  'gslcblas'],
@@ -30,7 +30,7 @@ setup(name='concoct',
       include_package_data=True,
       zip_safe=False,
       ext_modules = [module1],
-      install_requires=['cython>=0.19.2',
+      install_requires=['cython>=0.19.1',
                         'numpy>=1.7.1',
                         'scipy>=0.12.0',
                         'pandas>=0.11.0',

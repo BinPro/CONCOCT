@@ -121,6 +121,7 @@ typedef struct s_Cluster
 /*Default parameters*/
 #define DEF_BETA0        1.0e-3
 
+#define MIN_Z            1.0e-6
 #define MIN_PI           0.1 /*Unormalised*/
 #define MIN_COVAR        0.001
 

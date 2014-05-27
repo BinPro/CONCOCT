@@ -53,6 +53,12 @@ def get_records_from_cdd(queries, email):
             query_key=search_result['QueryKey']))
     return records
 
+def get_records_from_file(queries, cog_file):
+    # Read a simple tsv file with two columns, cddid and cogid respectively.
+    with open(cog_file, 'r') as cf:
+        records = dict([(row.split('\t')[0], {'Accession': row.split('\t')[1].strip()}) for row in cf.readlines()])
+    return records
+
 def usage():
     return '\n'.join([
            'Example usage:',
@@ -122,17 +128,22 @@ def read_clustering_file(cluster_file):
 
 
 def main(args):
-
+     
     RPSBLAST_SCOVS_THRESHOLD = args.scovs_threshold
     RPSBLAST_PIDENT_THRESHOLD = args.pident_threshold
 
     records, sseq_ids = read_blast_output(args.blastoutfile)
 
-    # Retrieve the cog accession number from ncbi
-    cogrecords_l = get_records_from_cdd(sseq_ids, args.email)
-    cogrecords = {}
-    for rec in cogrecords_l:
-        cogrecords[rec['Id']] = rec
+    if args.cdd_cog_file:
+        # Retrieve the cog accession number from file
+        cogrecords = get_records_from_file(sseq_ids, args.cdd_cog_file)
+    else:
+        # Retrieve the cog accession number from ncbi
+        cogrecords_l = get_records_from_cdd(sseq_ids, args.email)
+        cogrecords = {}
+        for rec in cogrecords_l:
+            cogrecords[rec['Id']] = rec
+
 
     # If a gff file is given, the contig ids will be fetched from this.
     if args.gfffile:
@@ -154,7 +165,7 @@ def main(args):
             if args.gfffile:
                 contig = featureid_locations[record_d['qseqid']]
             else:
-                contig = "".join(record_d['qseqid'].split(args.separator)[:-1])
+                contig = (args.separator).join(record_d['qseqid'].split(args.separator)[:-1])
             features_per_contig[contig].append(cog_accession)
 
     # Load clustering
@@ -204,6 +215,12 @@ if __name__ == "__main__":
            help='Threshold identity in percent, default=0.0')
    parser.add_argument('-e', '--email',
            help='Email adress needed to fetch data through ncbi api')
+   parser.add_argument('--cdd_cog_file',
+           help = ('Supply a cdd to cog mapping file in a tsv format '
+           'to take precedence over eutils fetching of name. '
+           'Useful if running this script in parallel, since '
+           'NCBI eutils has a limit on the number of requests per '
+           'time unit you can make.'))
    parser.add_argument('--separator', default="_",
            help=('Character that is used to separate the contig id from the '
                  'protein identifier. Everything before the last occurence ' 
