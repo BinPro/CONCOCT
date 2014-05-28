@@ -71,6 +71,14 @@ After the assembly is finished create a directory with the resulting contigs and
     rm All_R1.fa
     rm All_R2.fa
 
+Cutting up contigs
+----------------------------
+In order to give more weight to larger contigs and mitigate the effect of assembly errors we cut up the contigs into chunks of 10 Kb. The final chunk is appended to the one before it if it is < 10 Kb to prevent generating small contigs. This means that no contig < 20 Kb is cut up. We use the script ``cut_up_fasta.py`` for this:
+
+    cd $CONCOCT_EXAMPLE
+    python $CONCOCT/scripts/cut_up_fasta.py -c 10000 -o 0 -m contigs/velvet_71.fa > contigs/velvet_71_c10K.fa
+
+
 Map the Reads onto the Contigs
 ------------------------------
 After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. 
@@ -85,14 +93,14 @@ It is typically located within your picard-tools installation.
 The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you created in the previous part. First create the index on the assembly for bowtie2:
 
     cd $CONCOCT_EXAMPLE
-    bowtie2-build contigs/velvet_71.fa contigs/velvet_71.fa
+    bowtie2-build contigs/velvet_71_c10K.fa contigs/velvet_71_c10K.fa
     
 Then create a folder map. The parallel command creates a folder for each sample, and runs ```map-bowtie2-markduplicates.sh``` for each sample:
 
     for f in $CONCOCT_TEST/reads/*_R1.fa; do
         mkdir -p map/$(basename $f);
         cd map/$(basename $f);
-        bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh -ct 1 -p '-f' $f $(echo $f | sed s/R1/R2/) pair $CONCOCT_EXAMPLE/contigs/velvet_71.fa asm bowtie2;
+        bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh -ct 1 -p '-f' $f $(echo $f | sed s/R1/R2/) pair $CONCOCT_EXAMPLE/contigs/velvet_71_c10K.fa asm bowtie2;
         cd ../..;
     done
 
@@ -117,7 +125,7 @@ Use the bam files of each sample to create a table with the coverage of each con
     cd $CONCOCT_EXAMPLE/map
     python $CONCOCT/scripts/gen_input_table.py --isbedfiles \
         --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-        ../contigs/velvet_71.fa */bowtie2/asm_pair-smds.coverage \
+        ../contigs/velvet_71_c10K.fa */bowtie2/asm_pair-smds.coverage \
     > concoct_inputtable.tsv
     mkdir $CONCOCT_EXAMPLE/concoct-input
     mv concoct_inputtable.tsv $CONCOCT_EXAMPLE/concoct-input/
@@ -130,7 +138,7 @@ The same bam files can be used to give linkage per sample between contigs:
     python $CONCOCT/scripts/bam_to_linkage.py -m 8 \
         --regionlength 500 --fullsearch \
         --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-        ../contigs/velvet_71.fa Sample*/bowtie2/asm_pair-smds.bam \
+        ../contigs/velvet_71_c10K.fa Sample*/bowtie2/asm_pair-smds.bam \
     > concoct_linkage.tsv
     mv concoct_linkage.tsv $CONCOCT_EXAMPLE/concoct-input/
     
@@ -150,7 +158,7 @@ We will only run concoct for some standard settings here. First we need to parse
 Then run concoct with 40 as the maximum number of cluster `-c 40`, that we guess is appropriate for this data set:
 
     cd $CONCOCT_EXAMPLE
-    concoct -c 40 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/velvet_71.fa -b concoct-output/
+    concoct -c 40 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/velvet_71_c10K.fa -b concoct-output/
 
 When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory that can be set with the `-b` parameter and will be the present working directory by default. 
 
