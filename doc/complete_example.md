@@ -165,7 +165,7 @@ When concoct has finished the message "CONCOCT Finished, the log shows how it we
 Evaluate output
 ---------------
 
-This will require that you have Rscript with the R packages [gplots](http://cran.r-project.org/web/packages/gplots/index.html), [reshape](http://cran.r-project.org/web/packages/reshape/index.html), [ggplot2](http://cran.r-project.org/web/packages/ggplot2/index.html), [ellipse](http://cran.r-project.org/web/packages/ellipse/index.html), [getopt](http://cran.r-project.org/web/packages/getopt/index.html) and [grid](http://cran.r-project.org/web/packages/grid/index.html) installed.
+This will require that you have Rscript with the R packages [gplots](http://cran.r-project.org/web/packages/gplots/index.html), [reshape](http://cran.r-project.org/web/packages/reshape/index.html), [ggplot2](http://cran.r-project.org/web/packages/ggplot2/index.html), [ellipse](http://cran.r-project.org/web/packages/ellipse/index.html), [getopt](http://cran.r-project.org/web/packages/getopt/index.html) and [grid](http://cran.r-project.org/web/packages/grid/index.html) installed. The package grid does not have to be installed for R version > 1.8.0
 
 First we can visualise the clusters in the first two PCA dimensions:
 
@@ -187,8 +187,9 @@ In either case we provide a script Validate.pl for computing basic metrics on th
 
 This script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv``` these have a simple format of a comma separated file listing each contig id followed by the cluster index and the species labels that have the same format but with a text label rather than a cluster index. The script should output:
 
-    N	M	S	K	Rec.	Prec.	NMI	Rand	AdjRand
-    88	88	4	4	0.920455	0.988636	0.757418	0.871473	0.695022
+    N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+    684	46	4.6000e+01	3	4	0.760870	0.978261	0.456937	0.657971	0.277904
+
 
 This gives the no. of contigs N clustered, the number with labels M, the number of unique labels S, the number of clusters K, the recall, the precision, the normalised mutual information (NMI), the Rand index, and the adjusted Rand index. It also generates a file called a `confusion matrix` with the frequencies of each species in each cluster. We provide a further script for visualising this as a heatmap:
 
