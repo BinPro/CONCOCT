@@ -222,8 +222,6 @@ The script furthermore requires GNU parallel and rpsblast. Here we run it on eig
     mkdir $CONCOCT_EXAMPLE/annotations/cog-annotations
     mv velvet_71_c10K.out annotations/cog-annotations/
 
-To run this yourself the file ```velvet_71.faa``` will have to be copied into the test directory i.e.
-    
 The blast output has been placed in:
 
     $CONCOCT_TEST/annotations/cog-annotations/velvet_71_c10K.out
