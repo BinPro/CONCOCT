@@ -165,7 +165,7 @@ When concoct has finished the message "CONCOCT Finished, the log shows how it we
 Evaluate output
 ---------------
 
-This will require that you have Rscript with the R packages [gplots](http://cran.r-project.org/web/packages/gplots/index.html), [reshape](http://cran.r-project.org/web/packages/reshape/index.html), [ggplot2](http://cran.r-project.org/web/packages/ggplot2/index.html), [ellipse](http://cran.r-project.org/web/packages/ellipse/index.html), [getopt](http://cran.r-project.org/web/packages/getopt/index.html) and [grid](http://cran.r-project.org/web/packages/grid/index.html) installed.
+This will require that you have Rscript with the R packages [gplots](http://cran.r-project.org/web/packages/gplots/index.html), [reshape](http://cran.r-project.org/web/packages/reshape/index.html), [ggplot2](http://cran.r-project.org/web/packages/ggplot2/index.html), [ellipse](http://cran.r-project.org/web/packages/ellipse/index.html), [getopt](http://cran.r-project.org/web/packages/getopt/index.html) and [grid](http://cran.r-project.org/web/packages/grid/index.html) installed. The package grid does not have to be installed for R version > 1.8.0
 
 First we can visualise the clusters in the first two PCA dimensions:
 
@@ -183,12 +183,14 @@ In either case we provide a script Validate.pl for computing basic metrics on th
 
     cd $CONCOCT_EXAMPLE
     cp $CONCOCT_TEST/evaluation-output/clustering_gt1000_s.csv evaluation-output/
-    $CONCOCT/scripts/Validate.pl --cfile=concoct-output/clustering_gt1000.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_conf.csv
+    $CONCOCT/scripts/Validate.pl --cfile=concoct-output/clustering_gt1000.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_conf.csv --ffile=contigs/velvet_71_c10K.fa
+    
 
 This script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv``` these have a simple format of a comma separated file listing each contig id followed by the cluster index and the species labels that have the same format but with a text label rather than a cluster index. The script should output:
 
-    N	M	S	K	Rec.	Prec.	NMI	Rand	AdjRand
-    88	88	4	4	0.920455	0.988636	0.757418	0.871473	0.695022
+    N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+    684	684	6.8023e+06	5	4	0.897224	0.999604	0.841911	0.911563	0.823200
+
 
 This gives the no. of contigs N clustered, the number with labels M, the number of unique labels S, the number of clusters K, the recall, the precision, the normalised mutual information (NMI), the Rand index, and the adjusted Rand index. It also generates a file called a `confusion matrix` with the frequencies of each species in each cluster. We provide a further script for visualising this as a heatmap:
 
@@ -201,36 +203,39 @@ This generates a file with normalised frequencies of contigs from each cluster a
 Validation using single-copy core genes
 ---------------------------------------
 
-We can also evaluate the clustering based on single-copy core genes. You first need to find genes on the contigs and functionally annotate these. Here we used prokka (http://www.vicbioinformatics.com/software.prokka.shtml) for gene prediction and annotation, but you can also use for example prodigal. The corresponding protein sequences are here:
+We can also evaluate the clustering based on single-copy core genes. You first need to find genes on the contigs and functionally annotate these. Here we used prodigal (https://github.com/hyattpd/Prodigal) for gene prediction and annotation, but you can use anything you want:
 
-    $CONCOCT_TEST/annotations/proteins/velvet_71.faa
+    cd $CONCOCT_EXAMPLE
+    mkdir -p $CONCOCT_EXAMPLE/annotations/proteins
+    prodigal -a annotations/proteins/velvet_71_c10K.faa \
+             -i contigs/velvet_71_c10K.fa \
+             -f gff -p meta  > annotations/proteins/velvet_71_c10K.gff
 
-and GFF3 file:
+We used RPS-Blast to COG annotate the protein sequences using the script ``RSBLAST.sh``.
+You need to set the evironmental variable ``COGSDB_DIR``:
 
-    $CONCOCT_TEST/annotations/proteins/velvet_71.gff
+    export COGSDB_DIR=/proj/b2010008/nobackup/database/cog_le/
     
-And we used RPS-Blast to COG annotate the protein sequences using (PROKKA_RPSBLAST.sh). With the following command on eight cores:
+The script furthermore requires GNU parallel and rpsblast. Here we run it on eight cores:
 
-    $CONCOCT/scripts/PROKKA_RPSBLAST.sh -f annotations/proteins/velvet_71.faa -p -c 8 -r 1
-
-To run this yourself the file ```velvet_71.faa``` will have to be copied into the test directory i.e.
-
-    mkdir $CONCOCT_EXAMPLE/annotations
-    mkdir $CONCOCT_EXAMPLE/annotations/proteins
+    $CONCOCT/scripts/RPSBLAST.sh -f annotations/proteins/velvet_71_c10K.faa -p -c 8 -r 1
     mkdir $CONCOCT_EXAMPLE/annotations/cog-annotations
-    cp $CONCOCT_TEST/annotations/proteins/* $CONCOCT_EXAMPLE/annotations/proteins/
+    mv velvet_71_c10K.out annotations/cog-annotations/
+
 The blast output has been placed in:
 
-    $CONCOCT_TEST/annotations/cog-annotations/velvet_71.out
+    $CONCOCT_TEST/annotations/cog-annotations/velvet_71_c10K.out
     
 Finally, we filtered for COGs representing a majority of the subject to ensure fragmented genes are not over-counted and generated a table of counts of single-copy core genes in each cluster generated by CONCOCT. Remember to use a real email adress, this is supplied since information is fetched from ncbi using their service eutils, and the email is required to let them know who you are.
 
     cd $CONCOCT_EXAMPLE
-    $CONCOCT/scripts/COG_table.py -g annotations/proteins/velvet_71.gff -b annotations/cog-annotations/velvet_71.out -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt -c concoct-output/clustering_gt1000.csv -e mail@example.com > evaluation-output/clustering_gt1000_scg.tab
+    $CONCOCT/scripts/COG_table.py -b annotations/cog-annotations/velvet_71_c10K.out \
+    -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt \
+    -c concoct-output/clustering_gt1000.csv \
+    --cdd_cog_file $ONCOCT/scgs/cdd_to_cog.tsv > evaluation-output/clustering_gt1000_scg.tab
 
-The script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv``` and a file listing a set of SCGs (e.g. a set of COG ids) to use ```scgs/scg_cogs_min0.97_max1.03_unique_genera.txt```.
-
-Since these protein sequences are generated by Prokka, the names of the contig ids need to be recovered from the gff file. If prodigal would have been used, the contig ids would instead have been recovered from the protein ids using a separator character, in which case only the string before (the last instance of) the separator will be used as contig id in the annotation file. In the case of prodigal the separator that should be used is _ and this is the default value, but other characters can be given through the '--separator' argument.
+The script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv```, a file listing a set of SCGs (e.g. a set of COG ids) to use ```scgs/scg_cogs_min0.97_max1.03_unique_genera.txt``` and a mapping of Conserved Domain Database ids (https://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml) to COG ids ``$ONCOCT/scgs/cdd_to_cog.tsv``.
+If these protein sequences were generated by Prokka, the names of the contig ids needed to be recovered from the gff file. Since prodigal has been used, the contig ids instead are recovered from the protein ids using a separator character, in which case only the string before (the last instance of) the separator will be used as contig id in the annotation file. In the case of prodigal the separator that should be used is _ and this is the default value, but other characters can be given through the '--separator' argument.
 
 The output file is a tab-separated file with basic information about the clusters (cluster id, ids of contigs in cluster and number of contigs in cluster) in the first three columns, and counts of the different SCGs in the following columns.
 
@@ -253,6 +258,7 @@ To perform a hierarchical clustering of the clusters based on linkage we simply 
 The output indicates that the clusters have been reduced from four to three. The new clustering is given by ```concoct-output/clustering_gt1000_l.csv```. This is a significant improvement in recall:
 
     $CONCOCT/scripts/Validate.pl --cfile=concoct-output/clustering_gt1000_l.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_conf.csv
+    N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+    684	684	6.8400e+02	5	3	1.000000	0.997076	0.995805	0.999979	0.999957
 
-    N	M	S	K	Rec.	Prec.	NMI	Rand	AdjRand
-    88	88	4	3	1.000000	0.988636	0.976458	0.999478	0.998515
+The algorithm is explained in more depth in the paper on [arXiv](http://arxiv.org/abs/1312.4038)

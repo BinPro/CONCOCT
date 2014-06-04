@@ -65,5 +65,5 @@ if (maxecogs > 10) {
 p <- ggplot(mecogsorder, aes(variable,id)) + geom_tile(aes(fill = as.factor(value)), colour = "white") + scale_fill_manual(name="COG counts",values = color)
 
 pdf(opt$ofile)
-p + scale_y_discrete(breaks=slist,labels=names) + opts(axis.text.x=theme_text(size=7,angle=-90,vjust=0.5)) + ylab("Cluster")
+p + scale_y_discrete(breaks=slist,labels=names) + theme(axis.text.x=element_text(size=7,angle=-90,vjust=0.5)) + ylab("Cluster")
 dev.off()
