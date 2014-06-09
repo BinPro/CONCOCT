@@ -87,11 +87,11 @@ You need to [get Docker installed](https://www.docker.io/gettingstarted/) and sp
 
 We provide a Docker image:
 
-<b>binnisb/concoct_latest</b> contains CONCOCT and all its dependencies for the [complete worklfow](doc/complete_example.md). Currently it does not do SCG evaluation.
+<b>binpro/concoct_latest</b> contains CONCOCT and all its dependencies for the [complete worklfow](doc/complete_example.md). Currently it does not do SCG evaluation.
 
 The following command will then download the image from the Docker image index, map the Data folder to the image and log you into the docker image.
 ```
-sudo docker run -v /home/USER/Data:/opt/Data -i -t binnisb/concoct_latest bash
+sudo docker run -v /home/USER/Data:/opt/Data -i -t binpro/concoct_latest bash
 ```
 To test concoct you can then do:
 ```
