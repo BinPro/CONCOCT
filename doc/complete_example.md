@@ -7,7 +7,7 @@ Required software
 ----------------------
 To run the entire example you need to install all dependencies as stated in the [README dependencies](../README.md#dependencies). This includes all the optional dependencies. You can also look at [doc/Dockerfile](Dockerfile) to help you install these packages on your server.
 
-Another way to get everything set up is to use our full Docker image (binnisb/concoct_0.3.1) as suggested in the [README docker](../README.md#using-docker).
+Another way to get everything set up is to use our full Docker image (binpro/concoct_latest) as suggested in the [README docker](../README.md#using-docker).
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
@@ -32,11 +32,11 @@ Move the test data that was downloaded and extracted (CONCOCT-test-data) to the 
 
 Now you want to execute the following command to log into our Docker image and to map the ```/HOST/path/to/Data``` to your image and the Data folder will be accessable in /opt/Data:
 
-    sudo docker run -v /HOST/path/to/Data:/opt/Data/ -i -t binnisb/concoct_0.3.1 bash
+    sudo docker run -v /HOST/path/to/Data:/opt/Data/ -i -t binpro/concoct_latest bash
 
 This will download the 2G image to your machine and then leaves you in a BASH shell. In the Docker imgage, the following environmental variables have been set. So if you have your folders set up differently in the steps above you need to alter these variables accordingly:
 
-    CONCOCT=/opt/CONCOCT-0.3.1
+    CONCOCT=/opt/CONCOCT_latest
     CONCOCT_TEST=/opt/Data/CONCOCT-test-data
     CONCOCT_EXAMPLE=/opt/Data/CONCOCT-complete-example
 
@@ -71,6 +71,14 @@ After the assembly is finished create a directory with the resulting contigs and
     rm All_R1.fa
     rm All_R2.fa
 
+Cutting up contigs
+----------------------------
+In order to give more weight to larger contigs and mitigate the effect of assembly errors we cut up the contigs into chunks of 10 Kb. The final chunk is appended to the one before it if it is < 10 Kb to prevent generating small contigs. This means that no contig < 20 Kb is cut up. We use the script ``cut_up_fasta.py`` for this:
+
+    cd $CONCOCT_EXAMPLE
+    python $CONCOCT/scripts/cut_up_fasta.py -c 10000 -o 0 -m contigs/velvet_71.fa > contigs/velvet_71_c10K.fa
+
+
 Map the Reads onto the Contigs
 ------------------------------
 After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. 
@@ -85,14 +93,14 @@ It is typically located within your picard-tools installation.
 The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you created in the previous part. First create the index on the assembly for bowtie2:
 
     cd $CONCOCT_EXAMPLE
-    bowtie2-build contigs/velvet_71.fa contigs/velvet_71.fa
+    bowtie2-build contigs/velvet_71_c10K.fa contigs/velvet_71_c10K.fa
     
 Then run this for loop, which for each sample creates a folder and runs ```map-bowtie2-markduplicates.sh```:
 
     for f in $CONCOCT_TEST/reads/*_R1.fa; do
         mkdir -p map/$(basename $f);
         cd map/$(basename $f);
-        bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh -ct 1 -p '-f' $f $(echo $f | sed s/R1/R2/) pair $CONCOCT_EXAMPLE/contigs/velvet_71.fa asm bowtie2;
+        bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh -ct 1 -p '-f' $f $(echo $f | sed s/R1/R2/) pair $CONCOCT_EXAMPLE/contigs/velvet_71_c10K.fa asm bowtie2;
         cd ../..;
     done
 
@@ -117,7 +125,7 @@ Use the bam files of each sample to create a table with the coverage of each con
     cd $CONCOCT_EXAMPLE/map
     python $CONCOCT/scripts/gen_input_table.py --isbedfiles \
         --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-        ../contigs/velvet_71.fa */bowtie2/asm_pair-smds.coverage \
+        ../contigs/velvet_71_c10K.fa */bowtie2/asm_pair-smds.coverage \
     > concoct_inputtable.tsv
     mkdir $CONCOCT_EXAMPLE/concoct-input
     mv concoct_inputtable.tsv $CONCOCT_EXAMPLE/concoct-input/
@@ -130,7 +138,7 @@ The same bam files can be used to give linkage per sample between contigs:
     python $CONCOCT/scripts/bam_to_linkage.py -m 8 \
         --regionlength 500 --fullsearch \
         --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-        ../contigs/velvet_71.fa Sample*/bowtie2/asm_pair-smds.bam \
+        ../contigs/velvet_71_c10K.fa Sample*/bowtie2/asm_pair-smds.bam \
     > concoct_linkage.tsv
     mv concoct_linkage.tsv $CONCOCT_EXAMPLE/concoct-input/
     
@@ -150,14 +158,14 @@ We will only run concoct for some standard settings here. First we need to parse
 Then run concoct with 40 as the maximum number of cluster `-c 40`, that we guess is appropriate for this data set:
 
     cd $CONCOCT_EXAMPLE
-    concoct -c 40 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/velvet_71.fa -b concoct-output/
+    concoct -c 40 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/velvet_71_c10K.fa -b concoct-output/
 
 When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory that can be set with the `-b` parameter and will be the present working directory by default. 
 
 Evaluate output
 ---------------
 
-This will require that you have Rscript with the R packages [gplots](http://cran.r-project.org/web/packages/gplots/index.html), [reshape](http://cran.r-project.org/web/packages/reshape/index.html), [ggplot2](http://cran.r-project.org/web/packages/ggplot2/index.html), [ellipse](http://cran.r-project.org/web/packages/ellipse/index.html), [getopt](http://cran.r-project.org/web/packages/getopt/index.html) and [grid](http://cran.r-project.org/web/packages/grid/index.html) installed.
+This will require that you have Rscript with the R packages [gplots](http://cran.r-project.org/web/packages/gplots/index.html), [reshape](http://cran.r-project.org/web/packages/reshape/index.html), [ggplot2](http://cran.r-project.org/web/packages/ggplot2/index.html), [ellipse](http://cran.r-project.org/web/packages/ellipse/index.html), [getopt](http://cran.r-project.org/web/packages/getopt/index.html) and [grid](http://cran.r-project.org/web/packages/grid/index.html) installed. The package grid does not have to be installed for R version > 1.8.0
 
 First we can visualise the clusters in the first two PCA dimensions:
 
@@ -175,12 +183,14 @@ In either case we provide a script Validate.pl for computing basic metrics on th
 
     cd $CONCOCT_EXAMPLE
     cp $CONCOCT_TEST/evaluation-output/clustering_gt1000_s.csv evaluation-output/
-    $CONCOCT/scripts/Validate.pl --cfile=concoct-output/clustering_gt1000.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_conf.csv
+    $CONCOCT/scripts/Validate.pl --cfile=concoct-output/clustering_gt1000.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_conf.csv --ffile=contigs/velvet_71_c10K.fa
+    
 
 This script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv``` these have a simple format of a comma separated file listing each contig id followed by the cluster index and the species labels that have the same format but with a text label rather than a cluster index. The script should output:
 
-    N	M	S	K	Rec.	Prec.	NMI	Rand	AdjRand
-    88	88	4	4	0.920455	0.988636	0.757418	0.871473	0.695022
+    N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+    684	684	6.8023e+06	5	4	0.897224	0.999604	0.841911	0.911563	0.823200
+
 
 This gives the no. of contigs N clustered, the number with labels M, the number of unique labels S, the number of clusters K, the recall, the precision, the normalised mutual information (NMI), the Rand index, and the adjusted Rand index. It also generates a file called a `confusion matrix` with the frequencies of each species in each cluster. We provide a further script for visualising this as a heatmap:
 
@@ -193,36 +203,39 @@ This generates a file with normalised frequencies of contigs from each cluster a
 Validation using single-copy core genes
 ---------------------------------------
 
-We can also evaluate the clustering based on single-copy core genes. You first need to find genes on the contigs and functionally annotate these. Here we used prokka (http://www.vicbioinformatics.com/software.prokka.shtml) for gene prediction and annotation, but you can also use for example prodigal. The corresponding protein sequences are here:
+We can also evaluate the clustering based on single-copy core genes. You first need to find genes on the contigs and functionally annotate these. Here we used prodigal (https://github.com/hyattpd/Prodigal) for gene prediction and annotation, but you can use anything you want:
 
-    $CONCOCT_TEST/annotations/proteins/velvet_71.faa
+    cd $CONCOCT_EXAMPLE
+    mkdir -p $CONCOCT_EXAMPLE/annotations/proteins
+    prodigal -a annotations/proteins/velvet_71_c10K.faa \
+             -i contigs/velvet_71_c10K.fa \
+             -f gff -p meta  > annotations/proteins/velvet_71_c10K.gff
 
-and GFF3 file:
+We used RPS-Blast to COG annotate the protein sequences using the script ``RSBLAST.sh``.
+You need to set the evironmental variable ``COGSDB_DIR``:
 
-    $CONCOCT_TEST/annotations/proteins/velvet_71.gff
+    export COGSDB_DIR=/proj/b2010008/nobackup/database/cog_le/
     
-And we used RPS-Blast to COG annotate the protein sequences using (PROKKA_RPSBLAST.sh). With the following command on eight cores:
+The script furthermore requires GNU parallel and rpsblast. Here we run it on eight cores:
 
-    $CONCOCT/scripts/PROKKA_RPSBLAST.sh -f annotations/proteins/velvet_71.faa -p -c 8 -r 1
-
-To run this yourself the file ```velvet_71.faa``` will have to be copied into the test directory i.e.
-
-    mkdir $CONCOCT_EXAMPLE/annotations
-    mkdir $CONCOCT_EXAMPLE/annotations/proteins
+    $CONCOCT/scripts/RPSBLAST.sh -f annotations/proteins/velvet_71_c10K.faa -p -c 8 -r 1
     mkdir $CONCOCT_EXAMPLE/annotations/cog-annotations
-    cp $CONCOCT_TEST/annotations/proteins/* $CONCOCT_EXAMPLE/annotations/proteins/
+    mv velvet_71_c10K.out annotations/cog-annotations/
+
 The blast output has been placed in:
 
-    $CONCOCT_TEST/annotations/cog-annotations/velvet_71.out
+    $CONCOCT_TEST/annotations/cog-annotations/velvet_71_c10K.out
     
 Finally, we filtered for COGs representing a majority of the subject to ensure fragmented genes are not over-counted and generated a table of counts of single-copy core genes in each cluster generated by CONCOCT. Remember to use a real email adress, this is supplied since information is fetched from ncbi using their service eutils, and the email is required to let them know who you are.
 
     cd $CONCOCT_EXAMPLE
-    $CONCOCT/scripts/COG_table.py -g annotations/proteins/velvet_71.gff -b annotations/cog-annotations/velvet_71.out -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt -c concoct-output/clustering_gt1000.csv -e mail@example.com > evaluation-output/clustering_gt1000_scg.tab
+    $CONCOCT/scripts/COG_table.py -b annotations/cog-annotations/velvet_71_c10K.out \
+    -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt \
+    -c concoct-output/clustering_gt1000.csv \
+    --cdd_cog_file $ONCOCT/scgs/cdd_to_cog.tsv > evaluation-output/clustering_gt1000_scg.tab
 
-The script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv``` and a file listing a set of SCGs (e.g. a set of COG ids) to use ```scgs/scg_cogs_min0.97_max1.03_unique_genera.txt```.
-
-Since these protein sequences are generated by Prokka, the names of the contig ids need to be recovered from the gff file. If prodigal would have been used, the contig ids would instead have been recovered from the protein ids using a separator character, in which case only the string before (the last instance of) the separator will be used as contig id in the annotation file. In the case of prodigal the separator that should be used is _ and this is the default value, but other characters can be given through the '--separator' argument.
+The script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv```, a file listing a set of SCGs (e.g. a set of COG ids) to use ```scgs/scg_cogs_min0.97_max1.03_unique_genera.txt``` and a mapping of Conserved Domain Database ids (https://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml) to COG ids ``$ONCOCT/scgs/cdd_to_cog.tsv``.
+If these protein sequences were generated by Prokka, the names of the contig ids needed to be recovered from the gff file. Since prodigal has been used, the contig ids instead are recovered from the protein ids using a separator character, in which case only the string before (the last instance of) the separator will be used as contig id in the annotation file. In the case of prodigal the separator that should be used is _ and this is the default value, but other characters can be given through the '--separator' argument.
 
 The output file is a tab-separated file with basic information about the clusters (cluster id, ids of contigs in cluster and number of contigs in cluster) in the first three columns, and counts of the different SCGs in the following columns.
 
@@ -245,6 +258,7 @@ To perform a hierarchical clustering of the clusters based on linkage we simply 
 The output indicates that the clusters have been reduced from four to three. The new clustering is given by ```concoct-output/clustering_gt1000_l.csv```. This is a significant improvement in recall:
 
     $CONCOCT/scripts/Validate.pl --cfile=concoct-output/clustering_gt1000_l.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_conf.csv
+    N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+    684	684	6.8400e+02	5	3	1.000000	0.997076	0.995805	0.999979	0.999957
 
-    N	M	S	K	Rec.	Prec.	NMI	Rand	AdjRand
-    88	88	4	3	1.000000	0.988636	0.976458	0.999478	0.998515
+The algorithm is explained in more depth in the paper on [arXiv](http://arxiv.org/abs/1312.4038)

@@ -1,10 +1,12 @@
 #!/bin/bash
 # ***************************************************************
-# Name:      PROKKA_RPSBLAST.sh
+# Name:      RPSBLAST.sh
 # Purpose:   This script integrates with PROKKA and runs PROKKA_XXXXXXXX.faa with rpsblast against the  Cog database
-# Version:   0.1
+# Version:   0.1-inodb_edit
 # Authors:   Umer Zeeshan Ijaz (Umer.Ijaz@glasgow.ac.uk)
 #                 http://userweb.eng.gla.ac.uk/umer.ijaz
+# Contr:     Ino de Bruijn (ino.debruijn@scilifelab.se)
+#
 # Created:   2014-01-16
 # License:   Copyright (c) 2014 Computational Microbial Genomics Group, University of Glasgow, UK
 #
@@ -84,8 +86,10 @@ function ceil () {
 
 
 # = Parameters to set ============== #
-RPSBLAST_DIR="/home/opt/ncbi-blast-2.2.28+/bin"; # Path where blastn is installed
-COGSDB_DIR="/home/opt/rpsblast_db"; # Path where COG is installed
+if [ ! -e $COGSDB_DIR ]; then
+    echo "COGSDB_DIR doesn't exist. Set to directory of the COG database" >&2
+    exit 1
+fi
 FASTA_FILE=""; # This field should be empty
 PARALLELIZE_FLAG=0
 NUMBER_OF_CORES=10
@@ -143,10 +147,10 @@ if [ $PARALLELIZE_FLAG -eq 1 ]; then
     startTime=`date +%s`
     rpsblastOutFmt="\"6 qseqid sseqid evalue pident score qstart qend sstart send length slen\""
 	
-    cat $FASTA_FILE | parallel --block $sizeChunksString --recstart '>' --pipe $RPSBLAST_DIR/rpsblast -outfmt $rpsblastOutFmt -max_target_seqs $NUMBER_OF_REFERENCE_MATCHES -evalue $EVALUE -db $COGSDB_DIR'/Cog' -num_threads $NUMBER_OF_THREADS  -query - > $fileName'.out' 
+    cat $FASTA_FILE | parallel --block $sizeChunksString --recstart '>' --pipe rpsblast -outfmt $rpsblastOutFmt -max_target_seqs $NUMBER_OF_REFERENCE_MATCHES -evalue $EVALUE -db $COGSDB_DIR'/Cog' -num_threads $NUMBER_OF_THREADS  -query - > $fileName'.out' 
     echo "rpsblast using GNU parallel took $(expr `date +%s` - $startTime) seconds to generate $fileName.out from $FASTA_FILE"	
 else
     startTime=`date +%s`
-    $RPSBLAST_DIR/rpsblast -outfmt "6 qseqid sseqid evalue pident score qstart qend sstart send length slen" -max_target_seqs $NUMBER_OF_REFERENCE_MATCHES -evalue $EVALUE -query $FASTA_FILE -db $COGSDB_DIR'/Cog' -out $fileName'.out' -num_threads $NUMBER_OF_THREADS
+    rpsblast -outfmt "6 qseqid sseqid evalue pident score qstart qend sstart send length slen" -max_target_seqs $NUMBER_OF_REFERENCE_MATCHES -evalue $EVALUE -query $FASTA_FILE -db $COGSDB_DIR'/Cog' -out $fileName'.out' -num_threads $NUMBER_OF_THREADS
     echo "rpsblast took $(expr `date +%s` - $startTime) seconds to generate $fileName.out from $FASTA_FILE" 
 fi
