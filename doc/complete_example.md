@@ -95,7 +95,7 @@ The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you cr
     cd $CONCOCT_EXAMPLE
     bowtie2-build contigs/velvet_71_c10K.fa contigs/velvet_71_c10K.fa
     
-Then create a folder map. The parallel command creates a folder for each sample, and runs ```map-bowtie2-markduplicates.sh``` for each sample:
+Then run this for loop, which for each sample creates a folder and runs ```map-bowtie2-markduplicates.sh```:
 
     for f in $CONCOCT_TEST/reads/*_R1.fa; do
         mkdir -p map/$(basename $f);
@@ -107,7 +107,7 @@ Then create a folder map. The parallel command creates a folder for each sample,
 The parameters used for `map-bowtie2-markduplicates.sh` are:
 
 * `-c` option to compute coverage histogram with genomeCoverageBed
-* `-t` option is number of threads (1 since we are already running the ```map-bowtie2-markduplicates.sh``` script in parallel.
+* `-t` option is number of threads
 * `-p` option is the extra parameters given to bowtie2. In this case `-f`.
 
 The five arguments are:
