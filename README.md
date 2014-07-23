@@ -87,7 +87,7 @@ You need to [get Docker installed](https://www.docker.io/gettingstarted/) and sp
 
 We provide a Docker image:
 
-<b>binpro/concoct_latest</b> contains CONCOCT and all its dependencies for the [complete worklfow](doc/complete_example.md). Currently it does not do SCG evaluation.
+<b>binpro/concoct_latest</b> contains CONCOCT and all its dependencies for the [complete worklfow](doc/complete_example.rst). Currently it does not do SCG evaluation.
 
 The following command will then download the image from the Docker image index, map the Data folder to the image and log you into the docker image.
 ```
@@ -128,5 +128,5 @@ concoct --help
 ```
 
 ### Complete Example ###
-After having installed concoct, a complete workflow can be found [here](doc/complete_example.md).
+After having installed concoct, a complete workflow can be found [here](doc/complete_example.rst).
 
