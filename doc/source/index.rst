@@ -3,19 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CONCOCT's documentation!
-===================================
+CONCOCT's documentation
+=======================
+CONCOCT "bins" metagenomic contigs. Metagenomic binning is the process of clustering sequences into clusters corresponding to operational taxonomic units of some level.
 
-CONCOCT is a program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
-coverage data in multiple samples and linkage data from paired end reads.
-
-Warning! This software is to be considered under development. Functionality and the user interface may still change significantly from one version to another.
-If you want to use this software, please stay up to date with the list of known issues:
+For any known issues with CONCOCT check the issue tracker:
 https://github.com/BinPro/CONCOCT/issues
 
 Features
 --------
-CONCOCT is a tool for accurately (up to species level) bin metagenomic contigs. For optmial performance:
+CONCOCT does unsupervised binning of metagenomic contigs by using nucleotide composition - kmer frequencies - and coverage data for multiple samples. 
+CONCOCT can accurately (up to species level) bin metagenomic contigs. For optmial performance:
 
 - Map several samples against your assembled contigs.
 - Cut longer contigs into 10 - 20 kb pieces prior to mapping.
@@ -41,16 +39,11 @@ Licence
 FreeBSD
 
 Contents:
-
+---------
 .. toctree::
    :maxdepth: 2
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   installation
+   usage
+   complete_example
 
