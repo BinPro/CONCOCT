@@ -8,7 +8,7 @@ If you want to use this software, please stay up to date with the list of known 
 https://github.com/BinPro/CONCOCT/issues
 
 ## Documentation ##
-A comprehensive documentation for concoct is hosted on [readthedocs](concoct.readthedocs.org)
+A comprehensive documentation for concoct is hosted on [readthedocs](https://concoct.readthedocs.org).
 
 ##Support##
 If you are having issues, please let us know. We have a mailing list located at: concoct-support@lists.sourcefourge.net which you can also subscribe to [here](https://lists.sourceforge.net/lists/listinfo/concoct-support).
@@ -16,4 +16,4 @@ If you are having issues, please let us know. We have a mailing list located at:
 ## Contribute ##
 
  - Issue Tracker: [github](https://github.com/binpro/CONCOCT/issues)
- - Source Code: [github](https://github.com/binpro/CONCOCT
+ - Source Code: [github](https://github.com/binpro/CONCOCT)
