@@ -42,7 +42,6 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 # ones.
 extensions = [
     'sphinx.ext.pngmath',
-    'sphinxarg.ext',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
