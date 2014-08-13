@@ -26,20 +26,10 @@ You can see the full path of a directory you are located in by running the comma
 
 Assembling Metagenomic Reads
 ----------------------------
-The first step in the analysis is to assemble all reads into contigs, here we use the software [Velvet](http://www.ebi.ac.uk/~zerbino/velvet/) for this. This step can be computationaly intensive but for this small data set comprising a synthetic community of four species and 16 samples (100,000 reads per sample) it can be performed in a few minutes. If you do not wish to execute this step, the resulting contigs are already in the test data repository, and you can copy them from there insted. The commands for running Velvet are:
-
-    cd $CONCOCT_EXAMPLE
-    cat $CONCOCT_TEST/reads/Sample*_R1.fa > All_R1.fa
-    cat $CONCOCT_TEST/reads/Sample*_R2.fa > All_R2.fa
-    velveth velveth_k71 71 -fasta -shortPaired -separate All_R1.fa All_R2.fa
-    velvetg velveth_k71 -ins_length 400 -exp_cov auto -cov_cutoff auto	
-
-After the assembly is finished create a directory with the resulting contigs and copy the result of Velvet there (this output is also in ```$CONCOCT_TEST/contigs```):
+The first step in the analysis is to assemble all reads into contigs, in the standard tutorial we use the software [Velvet](http://www.ebi.ac.uk/~zerbino/velvet/) for this. This step can be computationaly intensive but for this small data set comprising a synthetic community of four species and 16 samples (100,000 reads per sample) it can be performed in a few minutes. We will not execute this step, the resulting contigs are already in the test data repository, and you can copy them from there instead:
 
     mkdir contigs
-    cp velveth_k71/contigs.fa contigs/velvet_71.fa
-    rm All_R1.fa
-    rm All_R2.fa
+    cp $CONCOCT_TEST/contigs/contigs.fa contigs/velvet_71.fa
 
 Cutting up contigs
 ----------------------------
