@@ -33,18 +33,18 @@ The first step in the analysis is to assemble all reads into contigs, in the sta
 
 The commands we ran:
 
-    ~~cd $CONCOCT_EXAMPLE~~
-    ~~cat $CONCOCT_TEST/reads/Sample*_R1.fa > All_R1.fa~~
-    ~~cat $CONCOCT_TEST/reads/Sample*_R2.fa > All_R2.fa~~
-    ~~velveth velveth_k71 71 -fasta -shortPaired -separate All_R1.fa All_R2.fa~~
-    ~~velvetg velveth_k71 -ins_length 400 -exp_cov auto -cov_cutoff auto~~
+~~cd $CONCOCT_EXAMPLE~~
+~~cat $CONCOCT_TEST/reads/Sample*_R1.fa > All_R1.fa~~
+~~cat $CONCOCT_TEST/reads/Sample*_R2.fa > All_R2.fa~~
+~~velveth velveth_k71 71 -fasta -shortPaired -separate All_R1.fa All_R2.fa~~
+~~velvetg velveth_k71 -ins_length 400 -exp_cov auto -cov_cutoff auto~~
 
 ~~After the assembly is finished create a directory with the resulting contigs and copy the result of Velvet there (this output is also in ```$CONCOCT_TEST/contigs```):~~
 
-    ~~mkdir contigs~~
-    ~~cp velveth_k71/contigs.fa contigs/velvet_71.fa~~
-    ~~rm All_R1.fa~~
-    ~~rm All_R2.fa~~
+~~mkdir contigs~~
+~~cp velveth_k71/contigs.fa contigs/velvet_71.fa~~
+~~rm All_R1.fa~~
+~~rm All_R2.fa~~
 
 
 Cutting up contigs
