@@ -29,7 +29,7 @@ Assembling Metagenomic Reads
 The first step in the analysis is to assemble all reads into contigs, in the standard tutorial we use the software [Velvet](http://www.ebi.ac.uk/~zerbino/velvet/) for this. This step can be computationaly intensive but for this small data set comprising a synthetic community of four species and 16 samples (100,000 reads per sample) it can be performed in a few minutes. We will not execute this step, the resulting contigs are already in the test data repository, and you can copy them from there instead:
 
     mkdir contigs
-    cp $CONCOCT_TEST/contigs/contigs.fa contigs/velvet_71.fa
+    cp $CONCOCT_TEST/contigs/velvet_71.fa contigs/velvet_71.fa
 
 Cutting up contigs
 ----------------------------
