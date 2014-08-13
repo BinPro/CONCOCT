@@ -66,8 +66,6 @@ Then run this for loop, which for each sample creates a folder and runs ```map-b
 This  sometimes throws errors on the class servers so I recommend copying the pre-calculated files:
 
     rm -r map
-    echo $CONCOCT_TEST_DATA
-    echo $CONCOCT_TEST
     cp -r $CONCOCT_TEST/map .
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
@@ -114,7 +112,7 @@ Run concoct
 
 To see possible parameter settings with a description run
 
-    $CONCOCT/bin/concoct --help
+    concoct --help
 
 We will only run concoct for some standard settings here. First we need to parse the input table to just contain the mean coverage for each contig in each sample:
 
