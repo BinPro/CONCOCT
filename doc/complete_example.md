@@ -11,6 +11,7 @@ The test data repository is located here /class/stamps-software/CONCOCT-test-dat
 Setting up the test environment
 -------------------------------
 Move to your home directory, create a folder where you want all the output from this example to go:
+    
     cd ~
     mkdir CONCOCT-complete-example
     cd CONCOCT-complete-example
