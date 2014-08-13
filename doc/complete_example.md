@@ -43,10 +43,10 @@ Map the Reads onto the Contigs
 ------------------------------
 After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. 
 
-If you are not using the Docker image, then one does need to set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
+Set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
 
     #NOTE not necessary if using the Docker image
-    export MRKDUP=/home/username/src/picard-tools-1.77/MarkDuplicates.jar
+    export MRKDUP=/bioware/picard-tools-1.118/MarkDuplicates.jar
 
 It is typically located within your picard-tools installation.
 
