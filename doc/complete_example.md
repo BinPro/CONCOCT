@@ -1,13 +1,6 @@
-Complete Example V0.3
-=====================
-This documentation page aims to be a complete example walk through for the usage of the CONCOCT package version 0.3.
-It assumes you have successfully gone through the installation description found in the README. 
-
-Required software
-----------------------
-To run the entire example you need to install all dependencies as stated in the [README dependencies](../README.md#dependencies). This includes all the optional dependencies. You can also look at [doc/Dockerfile](Dockerfile) to help you install these packages on your server.
-
-Another way to get everything set up is to use our full Docker image (binpro/concoct_latest) as suggested in the [README docker](../README.md#using-docker).
+Complete Example V0.3 STAMPS 2014
+=================================
+This documentation page aims to be a complete example walk through for the usage of the CONCOCT package version 0.3 except for the assembly step.
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
