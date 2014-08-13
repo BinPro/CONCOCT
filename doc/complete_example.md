@@ -31,6 +31,22 @@ The first step in the analysis is to assemble all reads into contigs, in the sta
     mkdir contigs
     cp $CONCOCT_TEST/contigs/velvet_71.fa contigs/velvet_71.fa
 
+The commands we ran:
+
+    ~~cd $CONCOCT_EXAMPLE~~
+    ~~cat $CONCOCT_TEST/reads/Sample*_R1.fa > All_R1.fa~~
+    ~~cat $CONCOCT_TEST/reads/Sample*_R2.fa > All_R2.fa~~
+    ~~velveth velveth_k71 71 -fasta -shortPaired -separate All_R1.fa All_R2.fa~~
+    ~~velvetg velveth_k71 -ins_length 400 -exp_cov auto -cov_cutoff auto~~
+
+~~After the assembly is finished create a directory with the resulting contigs and copy the result of Velvet there (this output is also in ```$CONCOCT_TEST/contigs```):~~
+
+    ~~mkdir contigs~~
+    ~~cp velveth_k71/contigs.fa contigs/velvet_71.fa~~
+    ~~rm All_R1.fa~~
+    ~~rm All_R2.fa~~
+
+
 Cutting up contigs
 ----------------------------
 In order to give more weight to larger contigs and mitigate the effect of assembly errors we cut up the contigs into chunks of 10 Kb. The final chunk is appended to the one before it if it is < 10 Kb to prevent generating small contigs. This means that no contig < 20 Kb is cut up. We use the script ``cut_up_fasta.py`` for this:
