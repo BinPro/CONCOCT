@@ -45,7 +45,6 @@ After assembly we map the reads of each sample back to the assembly using [bowti
 
 Set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
 
-    #NOTE not necessary if using the Docker image
     export MRKDUP=/bioware/picard-tools-1.118/MarkDuplicates.jar
 
 It is typically located within your picard-tools installation.
@@ -63,6 +62,13 @@ Then run this for loop, which for each sample creates a folder and runs ```map-b
         bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh -ct 1 -p '-f' $f $(echo $f | sed s/R1/R2/) pair $CONCOCT_EXAMPLE/contigs/velvet_71_c10K.fa asm bowtie2;
         cd ../..;
     done
+
+This  sometimes throws errors on the class servers so I recommend copying the pre-calculated files:
+
+    rm -r map
+    echo $CONCOCT_TEST_DATA
+    echo $CONCOCT_TEST
+    cp -r $CONCOCT_TEST/map .
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
 
