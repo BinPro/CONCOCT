@@ -16,6 +16,10 @@ Move to your home directory, create a folder where you want all the output from 
     mkdir CONCOCT-complete-example
     cd CONCOCT-complete-example
 
+Then load the CONCOCT module:
+
+    module load concoct
+
 Set three variables with full paths. One pointing to the root directory of the ```CONCOCT``` software, one pointing to the test data repository, named ```CONCOCT_TEST``` and one to the directory we just created. If you now have these in the folder ```/home/username/src/```, for instance, then use:
 
     export CONCOCT=/class/stamps-software/CONCOCT
