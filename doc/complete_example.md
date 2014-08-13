@@ -4,46 +4,22 @@ This documentation page aims to be a complete example walk through for the usage
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
-Downloading test data
+Test data
 -----------------------
-First download the test data repository of CONCOCT corresponding to the version of CONCOCT, that you have installed. The test data repository can be downloaded [here](https://github.com/BinPro/CONCOCT-test-data/releases). Then extract it in a suitable location.
-
-If you are running the current unstable master branch of concoct, you need to clone the latest version of the test-data-repository as well.
+The test data repository is located here /class/stamps-software/CONCOCT-test-data-0.3.2
 
 Setting up the test environment
 -------------------------------
-###Using Docker###
-On your HOST machine create the following folder structure below (Data, Data/CONCOCT-complete-example, Data/CONCOCT-test-data):
-
-    mkdir -p /HOST/path/to/Data
-    mkdir /HOST/path/to/Data/CONCOCT-complete-example
-    
-Move the test data that was downloaded and extracted (CONCOCT-test-data) to the Data folder
-    
-    # Move the test data you extracted in the download part into the Data folder
-    mv /HOST/extracted/test/data/CONCOCT-test-data /HOST/path/to/Data/CONCOCT-test-data
-
-Now you want to execute the following command to log into our Docker image and to map the ```/HOST/path/to/Data``` to your image and the Data folder will be accessable in /opt/Data:
-
-    sudo docker run -v /HOST/path/to/Data:/opt/Data/ -i -t binpro/concoct_latest bash
-
-This will download the 2G image to your machine and then leaves you in a BASH shell. In the Docker imgage, the following environmental variables have been set. So if you have your folders set up differently in the steps above you need to alter these variables accordingly:
-
-    CONCOCT=/opt/CONCOCT_latest
-    CONCOCT_TEST=/opt/Data/CONCOCT-test-data
-    CONCOCT_EXAMPLE=/opt/Data/CONCOCT-complete-example
-
-###Your own setup###
-After obtaining the test data, create a folder where you want all the output from this example to go:
-
+Move to your home directory, create a folder where you want all the output from this example to go:
+    cd ~
     mkdir CONCOCT-complete-example
     cd CONCOCT-complete-example
 
 Set three variables with full paths. One pointing to the root directory of the ```CONCOCT``` software, one pointing to the test data repository, named ```CONCOCT_TEST``` and one to the directory we just created. If you now have these in the folder ```/home/username/src/```, for instance, then use:
 
-    CONCOCT=/home/username/src/CONCOCT
-    CONCOCT_TEST=/home/username/src/CONCOCT-test-data
-    CONCOCT_EXAMPLE=/home/username/CONCOCT-complete-example
+    export CONCOCT=/class/stamps-software/CONCOCT
+    export CONCOCT_TEST=/class/stamps-software/CONCOCT-test-data
+    export CONCOCT_EXAMPLE=/class/username/CONCOCT-complete-example
 
 You can see the full path of a directory you are located in by running the command ```pwd```.
 
