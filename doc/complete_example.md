@@ -158,7 +158,7 @@ This script requires the clustering output by concoct ```concoct-output/clusteri
 
 This gives the no. of contigs N clustered, the number with labels M, the number of unique labels S, the number of clusters K, the recall, the precision, the normalised mutual information (NMI), the Rand index, and the adjusted Rand index. It also generates a file called a `confusion matrix` with the frequencies of each species in each cluster. We provide a further script for visualising this as a heatmap:
 
-    $CONCOCT/scripts/ConfPlot.R  -c evaluation-output/clustering_gt1000_conf.csv -o  evaluation-output/clustering_gt1000_conf.pdf
+    Rscript $CONCOCT/scripts/ConfPlot.R  -c evaluation-output/clustering_gt1000_conf.csv -o  evaluation-output/clustering_gt1000_conf.pdf
 
 This generates a file with normalised frequencies of contigs from each cluster across species:
 
@@ -175,16 +175,16 @@ We can also evaluate the clustering based on single-copy core genes. You first n
              -i contigs/velvet_71_c10K.fa \
              -f gff -p meta  > annotations/proteins/velvet_71_c10K.gff
 
-We used RPS-Blast to COG annotate the protein sequences using the script ``RSBLAST.sh``.
-You need to set the evironmental variable ``COGSDB_DIR``:
+We used RPS-Blast to COG annotate the protein sequences using the script ``RSBLAST.sh``. This is not available on the assemblers so we will just copy the output:
+~~You need to set the evironmental variable ``COGSDB_DIR``:~~
 
-    export COGSDB_DIR=/proj/b2010008/nobackup/database/cog_le/
+~~export COGSDB_DIR=/proj/b2010008/nobackup/database/cog_le/~~
     
-The script furthermore requires GNU parallel and rpsblast. Here we run it on eight cores:
+~~The script furthermore requires GNU parallel and rpsblast. Here we run it on eight cores:~~
 
-    $CONCOCT/scripts/RPSBLAST.sh -f annotations/proteins/velvet_71_c10K.faa -p -c 8 -r 1
-    mkdir $CONCOCT_EXAMPLE/annotations/cog-annotations
-    mv velvet_71_c10K.out annotations/cog-annotations/
+~~$CONCOCT/scripts/RPSBLAST.sh -f annotations/proteins/velvet_71_c10K.faa -p -c 8 -r 1~~
+~~mkdir $CONCOCT_EXAMPLE/annotations/cog-annotations~~
+~~mv velvet_71_c10K.out annotations/cog-annotations/~~
 
 The blast output has been placed in:
 
