@@ -2,6 +2,7 @@ import os
 import sys
 from random import randint
 from argparse import ArgumentParser, ArgumentTypeError
+import argcomplete
 
 def set_random_state(seed):
     ERROR="'{0}' should be converatable to integer".format(seed)
@@ -82,6 +83,8 @@ def arguments():
       help=('Debug parameters. '))
     parser.add_argument('-v','--version', action='version',
       version=get_version())
+
+    argcomplete.autocomplete(parser)
 
     args  = parser.parse_args()
 

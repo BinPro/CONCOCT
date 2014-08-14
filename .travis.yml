@@ -17,9 +17,9 @@ before_install:
    - sudo apt-get update -qq
    - sudo apt-get install -qq build-essential libgsl0-dev bedtools
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION cython numpy scipy biopython pandas pip scikit-learn
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION cython numpy scipy biopython pandas pip scikit-learn nose argcomplete
   - pip install bcbio-gff
-  - python setup.py install
+  - pip install .
 # command to run tests
 script: nosetests
 

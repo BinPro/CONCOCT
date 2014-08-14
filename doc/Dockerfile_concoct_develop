@@ -1,0 +1,28 @@
+# Docker for CONCOCT (http://github.com/BinPro/CONCOCT)
+# VERSION: develop
+#
+# This docker creates and sets up an Ubuntu environment with all
+# dependencies for CONCOCT installed.
+#
+# To build this image to get the latest concoct from the develop branch:
+# sudo docker build -t binpro/concoct_develop - < Dockerfile_concoct_develop
+#
+# To login to the docker with a shared directory from the host do:
+#
+# sudo docker run -v /my/host/shared/directory:/my/docker/location -i -t binpro/concoct_develop /bin/bash
+#
+
+FROM binpro/concoct_base
+MAINTAINER CONCOCT developer group, concoct-support@lists.sourceforge.net
+
+# Install python dependencies and fetch and install CONCOCT
+RUN cd /opt;\
+
+    wget https://github.com/BinPro/CONCOCT/archive/develop.zip;\
+    unzip develop.zip;\
+    cd CONCOCT-develop;\
+    python setup.py install
+
+ENV CONCOCT /opt/CONCOCT-develop
+ENV CONCOCT_TEST /opt/Data/CONCOCT-test-data
+ENV CONCOCT_EXAMPLE /opt/Data/CONCOCT-complete-example
