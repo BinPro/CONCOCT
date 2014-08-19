@@ -70,7 +70,7 @@ folder will be accessable in /opt/Data:
     sudo docker run -v /HOST/path/to/Data:/opt/Data/ -i -t binpro/concoct_latest bash
 
 This will download the 2G image to your machine and then leaves you in a
-BASH shell. In the Docker imgage, the following environmental variables
+BASH shell. In the Docker image, the following environmental variables
 have been set. So if you have your folders set up differently in the
 steps above you need to alter these variables accordingly:
 

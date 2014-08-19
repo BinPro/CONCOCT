@@ -60,7 +60,7 @@ Optional dependencies
    -  `BEDTools <https://github.com/arq5x/bedtools2/releases>`__ version
       >= 2.15.0 (only genomeCoverageBed)
    -  `Picard <https://launchpad.net/ubuntu/+source/picard-tools/>`__
-      tools version >= 1.77
+      tools version >= 1.110
    -  `samtools <http://samtools.sourceforge.net/>`__ version >= 0.1.18
    -  `bowtie2 <http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml>`__
       version >= 2.1.0
@@ -88,7 +88,8 @@ computer/server. The first option, using Anaconda, should work for any
 rights (e.g. on a common computer cluster). The second option is
 suitable for a linux computer where you have root privileges and you
 prefer to use a virtual machine where all dependencies to run concoct
-are included.
+are included. Docker does also run on Mac OS X through a virtual machine.
+For more information check out the [Docker documentation](http://docs.docker.com/installation/).
 
 Using Anaconda
 ~~~~~~~~~~~~~~
@@ -143,18 +144,18 @@ dependencies installed. This way the only thing you install on your host
 system is Docker, the rest is contained in an Docker image. This allows
 you to install and run programs in that image without it affecting your
 host system. You should `get to know Docker
-here <https://www.docker.io/the_whole_story/>`__. You need to `get
-Docker installed <https://www.docker.io/gettingstarted/>`__ and
+here <https://docs.docker.com/>`__. You need to `get
+Docker installed <https://docs.docker.com/installation/>`__ and
 specially if you have
-`Ubuntu <http://docs.docker.io/en/latest/installation/ubuntulinux/>`__.
+`Ubuntu <http://docs.docker.com/installation/ubuntulinux/>`__.
 When Docker is installed you need to download and log into the concoct
-image which can be done in one command.
+image.
 
 We provide a Docker image:
 
 binpro/concoct\_latest contains CONCOCT and all its dependencies for the
-`complete worklfow <doc/complete_example.rst>`__. Currently it does not
-do SCG evaluation.
+`complete workflow <doc/complete_example.rst>`__ with the exception of
+the SCG evaluation.
 
 The following command will then download the image from the Docker image
 index, map the Data folder to the image and log you into the docker
