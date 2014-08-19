@@ -36,7 +36,9 @@ setup(name='concoct',
                         'pandas>=0.11.0',
                         'biopython>=1.62b',
                         'scikit-learn>=0.13.1',
-                        'nose==1.3.0'],
+                        'nose==1.3.0',
+                        'sphinx-rtd-theme>=0.1.6',
+                        'Sphinx>=1.2.2'],
       entry_points="""
       # -*- Entry points: -*-
       """,
