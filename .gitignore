@@ -15,3 +15,5 @@ c-concoct/dist/*
 .screenrc
 #ignore test folder
 tests/nose_tmp_output
+#ignore doc builds
+doc/build/*
