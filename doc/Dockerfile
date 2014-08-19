@@ -1,12 +1,12 @@
-# Docker for CONCOCT (http://github.com/BinPro/CONCOCT) v0.3.1
-# VERSION 0.3.1
+# Docker for CONCOCT (http://github.com/BinPro/CONCOCT) v0.3.3
+# VERSION 0.3.3
 # 
 # This docker creates and sets up an Ubuntu environment with all
-# dependencies for CONCOCT v0.3.1 installed.
+# dependencies for CONCOCT v0.3.3 installed.
 #
 # To login to the docker with a shared directory from the host do:
 #
-# sudo docker run -v /my/host/shared/directory:/my/docker/location -i -t binnisb/concoct_0.3.1 /bin/bash
+# sudo docker run -v /my/host/shared/directory:/my/docker/location -i -t binnisb/concoct_0.3.3 /bin/bash
 #
 
 FROM ubuntu:13.10
@@ -39,10 +39,10 @@ RUN cd /opt;\
 # Bedtools2.17
 RUN apt-get install -qq bedtools
 
-# Picard tools 1.110
+# Picard tools 1.118
 # To get fuse to work, I need the following (Issue here: https://github.com/dotcloud/docker/issues/514,
 # solution here: https://gist.github.com/henrik-muehe/6155333).
-ENV MRKDUP /opt/picard-tools-1.110/MarkDuplicates.jar
+ENV MRKDUP /opt/picard-tools-1.118/MarkDuplicates.jar
 RUN apt-get install -qq libfuse2 openjdk-7-jre-headless
 RUN cd /tmp ; apt-get download fuse
 RUN cd /tmp ; dpkg-deb -x fuse_* .
@@ -52,8 +52,8 @@ RUN cd /tmp ; echo -en '#!/bin/bash\nexit 0\n' > DEBIAN/postinst
 RUN cd /tmp ; dpkg-deb -b . /fuse.deb
 RUN cd /tmp ; dpkg -i /fuse.deb
 RUN cd /opt;\
-    wget "http://downloads.sourceforge.net/project/picard/picard-tools/1.110/picard-tools-1.110.zip?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fpicard%2Ffiles%2Fpicard-tools%2F1.110%2F&ts=1396879817&use_mirror=freefr" -O picard-tools-1.110.zip;\
-    unzip picard-tools-1.110.zip
+    wget "http://downloads.sourceforge.net/project/picard/picard-tools/1.118/picard-tools-1.118.zip?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fpicard%2Ffiles%2Fpicard-tools%2F1.118%2F&ts=1396879817&use_mirror=freefr" -O picard-tools-1.118.zip;\
+    unzip picard-tools-1.118.zip
 
 # Samtools 0.1.19
 RUN apt-get install -qq samtools
@@ -64,12 +64,7 @@ RUN apt-get install -qq bowtie2
 # Parallel 20130622-1
 RUN apt-get install -qq parallel
 
-# BCBio latest git
-RUN cd /opt;\
-    git clone git://github.com/chapmanb/bcbb.git;\
-    cd bcbb/gff;\
-    python setup.py build;\
-    python setup.py install
+
 
 # Install prodigal 2.60
 RUN cd /opt;\
@@ -88,16 +83,17 @@ RUN cd /opt;\
     printf "install.packages(\"ggplot2\", repo=$RREPO)\ninstall.packages(\"reshape\",repo=$RREPO)\ninstall.packages(\"gplots\",repo=$RREPO)\ninstall.packages(\"ellipse\",repo=$RREPO)\ninstall.packages(\"grid\",repo=$RREPO)\ninstall.packages(\"getopt\",repo=$RREPO)" > dep.R;\
     Rscript dep.R
 
-# Install python dependencies and fetch and install CONCOCT 0.3.1
+# Install python dependencies and fetch and install CONCOCT 0.3.3
 RUN cd /opt;\
     conda update --yes conda;\
     conda install --yes python=2.7 atlas cython numpy scipy biopython pandas pip scikit-learn pysam;\
-    wget --no-check-certificate https://github.com/BinPro/CONCOCT/archive/0.3.1.tar.gz;\
-    tar xf 0.3.1.tar.gz;\
-    cd CONCOCT-0.3.1;\
+    pip install bcbio-gff;\
+    wget --no-check-certificate https://github.com/BinPro/CONCOCT/archive/0.3.3.tar.gz;\
+    tar xf 0.3.3.tar.gz;\
+    cd CONCOCT-0.3.3;\
     python setup.py install
 
-ENV CONCOCT /opt/CONCOCT-0.3.1
+ENV CONCOCT /opt/CONCOCT-0.3.3
 ENV CONCOCT_TEST /opt/Data/CONCOCT-test-data
 ENV CONCOCT_EXAMPLE /opt/Data/CONCOCT-complete-example
 

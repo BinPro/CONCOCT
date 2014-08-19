@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 import sys, os
 from distutils.core import Extension
 
-version = '0.3.2'
+version = '0.3.3'
 
 module1 = Extension('vbgmm',
         libraries =['gsl',  'gslcblas'],
