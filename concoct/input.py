@@ -28,17 +28,9 @@ def load_data(args):
 
     return composition, contig_lengths, threshold_filter, cov, cov_range
 
-def load_composition(comp_file,kmer_len,threshold):
-    #Composition
+def _calculate_composition(comp_file, seq_count, length_threshold, kmer_len):
     #Generate kmer dictionary
     feature_mapping, nr_features = generate_feature_mapping(kmer_len)
-    #Count lines in composition file
-    count_re = re.compile("^>")
-    seq_count = 0
-    with open(comp_file) as fh:
-        for line in fh:
-            if re.match(count_re,line):
-                seq_count += 1
 
     # Initialize with ones since we do pseudo count, we have i contigs as rows
     # and j features as columns
@@ -50,13 +42,34 @@ def load_composition(comp_file,kmer_len,threshold):
     for i,seq in enumerate(SeqIO.parse(comp_file,"fasta")):
         contigs_id.append(seq.id)
         contig_lengths[i] = len(seq)
-        for kmer_tuple in window(seq.seq.tostring().upper(),kmer_len):
+        for kmer_tuple in window(seq.seq.tostring().upper(), kmer_len):
             kmer = "".join(kmer_tuple)
             if kmer in feature_mapping:
                 composition[i,feature_mapping[kmer]] += 1
 
     contig_lengths = p.Series(contig_lengths,index=contigs_id,dtype=float)
     composition = p.DataFrame(composition,index=contigs_id,dtype=float)
+    return composition, contig_lengths
+
+
+def load_composition(comp_file, kmer_len, threshold):
+    #Composition
+
+    #Count lines in composition file
+    count_re = re.compile("^>")
+    seq_count = 0
+    with open(comp_file) as fh:
+        for line in fh:
+            if re.match(count_re,line):
+                seq_count += 1
+
+
+    composition, contig_lengths = _calculate_composition(
+            comp_file, 
+            seq_count, 
+            threshold,
+            kmer_len
+            )
 
     # Select contigs to cluster on, namely the sequences longer than the threshold.
     # The total kmer count without pseudo counts is related to the sequence length through:

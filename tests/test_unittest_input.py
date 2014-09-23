@@ -4,7 +4,7 @@ import numpy as np
 import pandas as p
 import os
 from Bio import SeqIO
-from concoct.input import _normalize_per_sample, _normalize_per_contig, generate_feature_mapping, load_composition
+from concoct.input import _normalize_per_sample, _normalize_per_contig, generate_feature_mapping, load_composition, _calculate_composition
 
 class TestInput(object):
     def setUp(self):
@@ -43,3 +43,46 @@ class TestInput(object):
         composition,contig_lengths,threshold_filter = load_composition("{0}/test_data/composition_some_shortened.fa".format(f),4,1000)
         # All equal
         assert_true((c_len == contig_lengths).all())
+        
+
+    def test__calculate_composition(self):
+        d = os.path.dirname(os.path.abspath(__file__))
+        f = "{0}/test_data/composition_some_shortened.fa".format(d)
+        seqs = SeqIO.parse(f, "fasta")   
+
+        feature_mapping, counter = generate_feature_mapping(4)
+       
+        seq_strings = []
+        for i, s in enumerate(seqs):
+            seq_strings.append(s.seq.tostring().upper())
+
+        composition, contig_lengths = _calculate_composition(f, i+1, 0, 4)  
+        
+        # Make sure the count is correct for one specific kmer 
+        kmer_s = 'ACGT'
+        reverse_kmer_s = 'ACGT'
+
+        for i, s in enumerate(seq_strings):
+            c = count_substrings(s, kmer_s)
+            assert_equal(composition.iloc[i, feature_mapping[kmer_s]], c+1)
+
+        # Check that non palindromic kmers works as well:
+        kmer_s = 'AGGG'
+        reverse_kmer_s = 'CCCT'
+        for i, s in enumerate(seq_strings):
+            c_1 = count_substrings(s, kmer_s)
+            c_2 = count_substrings(s, reverse_kmer_s)
+            assert_equal(composition.iloc[i, feature_mapping[kmer_s]], c_1 + c_2 + 1)
+        
+
+def count_substrings(s, subs):
+    # stolen from http://stackoverflow.com/a/19848382
+    # modified to count overlapping substrings as well
+    start = numBobs = 0 
+    while start >= 0:
+        pos = s.find(subs, start)
+        if pos < 0:
+            break
+        numBobs += 1
+        start = pos + 1
+    return numBobs
