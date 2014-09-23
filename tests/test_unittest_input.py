@@ -36,13 +36,17 @@ class TestInput(object):
         ids = []
         lengths = []
         for s in seqs:
+            if len(s) <= 1000:
+                continue
             ids.append(s.id)
             lengths.append(len(s))
         c_len = p.Series(lengths,index=ids,dtype=float)
         # Use load_composition to calculate contig lengths
-        composition,contig_lengths,threshold_filter = load_composition("{0}/test_data/composition_some_shortened.fa".format(f),4,1000)
+        composition, contig_lengths = load_composition("{0}/test_data/composition_some_shortened.fa".format(f),4,1000)
+        assert_equal(len(c_len), len(contig_lengths))
         # All equal
-        assert_true((c_len == contig_lengths).all())
+        for ix in ids:
+            assert_equal(c_len.ix[ix], contig_lengths.ix[ix])
         
 
     def test__calculate_composition(self):
@@ -52,26 +56,26 @@ class TestInput(object):
 
         feature_mapping, counter = generate_feature_mapping(4)
        
-        seq_strings = []
+        seq_strings = {}
         for i, s in enumerate(seqs):
-            seq_strings.append(s.seq.tostring().upper())
+            seq_strings[s.id] = s.seq.tostring().upper()
 
-        composition, contig_lengths = _calculate_composition(f, i+1, 0, 4)  
+        composition, contig_lengths = _calculate_composition(f, 0, 4)  
         
         # Make sure the count is correct for one specific kmer 
         kmer_s = ('A', 'C', 'G', 'T')
 
-        for i, s in enumerate(seq_strings):
+        for seq_id, s in seq_strings.iteritems():
             c = count_substrings(s, "".join(kmer_s))
-            assert_equal(composition.iloc[i, feature_mapping[kmer_s]], c+1)
+            assert_equal(composition.ix[seq_id, feature_mapping[kmer_s]], c+1)
 
         # Check that non palindromic kmers works as well:
         kmer_s = ('A', 'G', 'G', 'G')
         reverse_kmer_s = ('C', 'C', 'C', 'T')
-        for i, s in enumerate(seq_strings):
+        for seq_id, s in seq_strings.iteritems():
             c_1 = count_substrings(s, "".join(kmer_s))
             c_2 = count_substrings(s, "".join(reverse_kmer_s))
-            assert_equal(composition.iloc[i, feature_mapping[kmer_s]], c_1 + c_2 + 1)
+            assert_equal(composition.ix[seq_id, feature_mapping[kmer_s]], c_1 + c_2 + 1)
         
 
 def count_substrings(s, subs):
