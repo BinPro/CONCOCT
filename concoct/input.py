@@ -44,14 +44,14 @@ def _calculate_composition(comp_file, seq_count, length_threshold, kmer_len):
         contigs_id.append(seq.id)
         contig_lengths[i] = len(seq)
         counts = Counter(
-                [feature_mapping["".join(kmer_tuple)] 
+                ["".join(kmer_tuple) 
                 for kmer_tuple 
-                in window(seq.seq.tostring().upper(), kmer_len) 
-                if "".join(kmer_tuple) in feature_mapping]
+                in window(seq.seq.tostring().upper(), kmer_len)]
             )
         
-        for pos, count in counts.iteritems():
-            composition[i, pos] += count
+        for kmer, count in counts.iteritems():
+            if kmer in feature_mapping:
+                composition[i, feature_mapping[kmer]] += count
 
     contig_lengths = p.Series(contig_lengths,index=contigs_id,dtype=float)
     composition = p.DataFrame(composition,index=contigs_id,dtype=float)
