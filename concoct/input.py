@@ -29,6 +29,7 @@ def load_data(args):
 
     return composition, cov, cov_range
 
+
 def _calculate_composition(comp_file, length_threshold, kmer_len):
     #Generate kmer dictionary
     feature_mapping, nr_features = generate_feature_mapping(kmer_len)
@@ -41,21 +42,25 @@ def _calculate_composition(comp_file, length_threshold, kmer_len):
         if seq_len<= length_threshold:
             continue
         contig_lengths[seq.id] = seq_len
-        composition_v = np.ones( nr_features)
-        counts = Counter(
-                [kmer_tuple 
+        # Create a list containing all kmers, translated to integers
+        kmers = [
+                feature_mapping[kmer_tuple]
                 for kmer_tuple 
-                in window(seq.seq.tostring().upper(), kmer_len)]
-            )
-        
-        for kmer, count in counts.iteritems():
-            if kmer in feature_mapping:
-                composition_v[feature_mapping[kmer]] += count
-        composition_d[seq.id] = composition_v
+                in window(seq.seq.tostring().upper(), kmer_len)
+                if kmer_tuple in feature_mapping
+                ]
+        # numpy.bincount returns an array of size = max + 1
+        # so we add the max value and remove it afterwards
+        # numpy.bincount was found to be much more efficient than
+        # counting manually or using collections.Counter
+        kmers.append(nr_features - 1)
+        composition_v = np.bincount(np.array(kmers))
+        composition_v[-1] -= 1
+        # Adding pseudo counts before storing in dict
+        composition_d[seq.id] = composition_v + np.ones(nr_features)
     composition = p.DataFrame.from_dict(composition_d, orient='index', dtype=float)
     contig_lengths = p.Series(contig_lengths, dtype=float)
     return composition, contig_lengths
-
 
 def load_composition(comp_file, kmer_len, threshold):
     #Composition
