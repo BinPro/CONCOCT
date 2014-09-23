@@ -287,7 +287,7 @@ class TestCMD(object):
         original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
         df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
 
-        true_pseudo_cov = -1.3115 
+        true_pseudo_cov = -1.3143 
         calc_pseudo_cov = df.sample_1[0]
         assert_almost_equal(true_pseudo_cov,calc_pseudo_cov,places=4)
 
