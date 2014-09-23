@@ -35,7 +35,7 @@ def _calculate_composition(comp_file, seq_count, length_threshold, kmer_len):
 
     # Initialize with ones since we do pseudo count, we have i contigs as rows
     # and j features as columns
-    composition = np.ones((seq_count,nr_features))
+    composition = np.ones((seq_count, nr_features))
     # Store contig_lengths of the sequences
     contig_lengths = np.zeros(seq_count)
     
@@ -44,7 +44,7 @@ def _calculate_composition(comp_file, seq_count, length_threshold, kmer_len):
         contigs_id.append(seq.id)
         contig_lengths[i] = len(seq)
         counts = Counter(
-                ["".join(kmer_tuple) 
+                [kmer_tuple 
                 for kmer_tuple 
                 in window(seq.seq.tostring().upper(), kmer_len)]
             )
@@ -141,10 +141,9 @@ def generate_feature_mapping(kmer_len):
     kmer_hash = {}
     counter = 0
     for kmer in product("ATGC",repeat=kmer_len):
-        kmer = ''.join(kmer)
         if kmer not in kmer_hash:
             kmer_hash[kmer] = counter
-            rev_compl = ''.join([BASE_COMPLEMENT[x] for x in reversed(kmer)])
+            rev_compl = tuple([BASE_COMPLEMENT[x] for x in reversed(kmer)])
             kmer_hash[rev_compl] = counter
             counter += 1
     return kmer_hash, counter

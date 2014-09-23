@@ -26,7 +26,7 @@ class TestInput(object):
         feature_mapping, counter = generate_feature_mapping(2)
         assert_equal(counter, 10)
         assert_equal(len(feature_mapping.keys()), 16)
-        assert_true('AA' in feature_mapping)
+        assert_true(('A', 'A') in feature_mapping)
 
     def test_load_composition(self):
         # Get the directory path of this test file
@@ -59,19 +59,18 @@ class TestInput(object):
         composition, contig_lengths = _calculate_composition(f, i+1, 0, 4)  
         
         # Make sure the count is correct for one specific kmer 
-        kmer_s = 'ACGT'
-        reverse_kmer_s = 'ACGT'
+        kmer_s = ('A', 'C', 'G', 'T')
 
         for i, s in enumerate(seq_strings):
-            c = count_substrings(s, kmer_s)
+            c = count_substrings(s, "".join(kmer_s))
             assert_equal(composition.iloc[i, feature_mapping[kmer_s]], c+1)
 
         # Check that non palindromic kmers works as well:
-        kmer_s = 'AGGG'
-        reverse_kmer_s = 'CCCT'
+        kmer_s = ('A', 'G', 'G', 'G')
+        reverse_kmer_s = ('C', 'C', 'C', 'T')
         for i, s in enumerate(seq_strings):
-            c_1 = count_substrings(s, kmer_s)
-            c_2 = count_substrings(s, reverse_kmer_s)
+            c_1 = count_substrings(s, "".join(kmer_s))
+            c_2 = count_substrings(s, "".join(reverse_kmer_s))
             assert_equal(composition.iloc[i, feature_mapping[kmer_s]], c_1 + c_2 + 1)
         
 
