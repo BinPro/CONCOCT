@@ -5,6 +5,7 @@ import numpy as np
 import pandas as p
 
 from itertools import product, tee, izip
+from collections import Counter
 
 from Bio import SeqIO
 
@@ -42,10 +43,15 @@ def _calculate_composition(comp_file, seq_count, length_threshold, kmer_len):
     for i,seq in enumerate(SeqIO.parse(comp_file,"fasta")):
         contigs_id.append(seq.id)
         contig_lengths[i] = len(seq)
-        for kmer_tuple in window(seq.seq.tostring().upper(), kmer_len):
-            kmer = "".join(kmer_tuple)
-            if kmer in feature_mapping:
-                composition[i,feature_mapping[kmer]] += 1
+        counts = Counter(
+                [feature_mapping["".join(kmer_tuple)] 
+                for kmer_tuple 
+                in window(seq.seq.tostring().upper(), kmer_len) 
+                if "".join(kmer_tuple) in feature_mapping]
+            )
+        
+        for pos, count in counts.iteritems():
+            composition[i, pos] += count
 
     contig_lengths = p.Series(contig_lengths,index=contigs_id,dtype=float)
     composition = p.DataFrame(composition,index=contigs_id,dtype=float)
