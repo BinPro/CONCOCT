@@ -1,12 +1,12 @@
-# Docker for CONCOCT (http://github.com/BinPro/CONCOCT) v0.3.3
-# VERSION 0.3.3
+# Docker for CONCOCT (http://github.com/BinPro/CONCOCT) v0.4.0
+# VERSION 0.4.0
 # 
 # This docker creates and sets up an Ubuntu environment with all
-# dependencies for CONCOCT v0.3.3 installed.
+# dependencies for CONCOCT v0.4.0 installed.
 #
 # To login to the docker with a shared directory from the host do:
 #
-# sudo docker run -v /my/host/shared/directory:/my/docker/location -i -t binnisb/concoct_0.3.3 /bin/bash
+# sudo docker run -v /my/host/shared/directory:/my/docker/location -i -t binnisb/concoct_0.4.0 /bin/bash
 #
 
 FROM ubuntu:13.10
@@ -83,17 +83,16 @@ RUN cd /opt;\
     printf "install.packages(\"ggplot2\", repo=$RREPO)\ninstall.packages(\"reshape\",repo=$RREPO)\ninstall.packages(\"gplots\",repo=$RREPO)\ninstall.packages(\"ellipse\",repo=$RREPO)\ninstall.packages(\"grid\",repo=$RREPO)\ninstall.packages(\"getopt\",repo=$RREPO)" > dep.R;\
     Rscript dep.R
 
-# Install python dependencies and fetch and install CONCOCT 0.3.3
+# Install python dependencies and fetch and install CONCOCT 0.4.0
 RUN cd /opt;\
     conda update --yes conda;\
     conda install --yes python=2.7 atlas cython numpy scipy biopython pandas pip scikit-learn pysam;\
     pip install bcbio-gff;\
-    wget --no-check-certificate https://github.com/BinPro/CONCOCT/archive/0.3.3.tar.gz;\
-    tar xf 0.3.3.tar.gz;\
-    cd CONCOCT-0.3.3;\
+    wget --no-check-certificate https://github.com/BinPro/CONCOCT/archive/0.4.0.tar.gz;\
+    tar xf 0.4.0.tar.gz;\
+    cd CONCOCT-0.4.0;\
     python setup.py install
 
-ENV CONCOCT /opt/CONCOCT-0.3.3
+ENV CONCOCT /opt/CONCOCT-0.4.0
 ENV CONCOCT_TEST /opt/Data/CONCOCT-test-data
 ENV CONCOCT_EXAMPLE /opt/Data/CONCOCT-complete-example
-
