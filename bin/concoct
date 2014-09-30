@@ -17,10 +17,10 @@ def main(args):
     # Initialize output handling
     Output(args.basename,args)
 
-    composition, contig_lengths, threshold_filter, cov, cov_range = load_data(args)
-    
+    composition, cov, cov_range = load_data(args)
+
     # If there are zero or one contig that exceed the filter, do not continue
-    if len(threshold_filter[threshold_filter==True]) < 2:
+    if len(composition) < 2:
         logging.error('Not enough contigs pass the threshold filter. Exiting!')
         sys.exit(-1)
     
@@ -35,21 +35,21 @@ def main(args):
 
     #PCA on the contigs that have kmer count greater than length_threshold
     transform_filter, pca = perform_pca(
-        joined[threshold_filter], 
+        joined,
         args.pca_components
         )
 
-    logging.info('Performed PCA, resulted in %s dimentions' % pca.n_components)
+    logging.info('Performed PCA, resulted in %s dimensions' % transform_filter.shape[1])
     
     Output.write_original_data(
-        joined[threshold_filter],
+        joined,
         args.length_threshold
         )
 
     Output.write_pca(
         transform_filter,
         args.length_threshold,
-        joined[threshold_filter].index,
+        joined.index,
         )
 
     Output.write_pca_components(

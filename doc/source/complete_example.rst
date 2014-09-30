@@ -1,4 +1,4 @@
-Complete Example V0.3
+Complete Example V0.4
 =====================
 
 This documentation page aims to be a complete example walk through for

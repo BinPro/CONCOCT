@@ -219,6 +219,14 @@ class TestCMD(object):
             log_content = log.read()
             assert_true(len(log_content)>10,
                         "Log content is too small")
+            pca_report = filter(lambda row: 'Performed PCA, resulted in ' in row, log_content.split('\n'))[0]
+            pca_dimensions_log = int(pca_report.split()[-2])
+            with open(tmp_basename_dir+'/PCA_transformed_data_gt1000.csv', 'r') as pca_comps:
+                header = pca_comps.readlines()[0]
+                header = header.strip()
+                last_dim = int(header.split(',')[-1])
+                pca_dimensions = last_dim + 1
+            assert_equal(pca_dimensions, pca_dimensions_log)
 
     @nottest
     def test_seed(self):
@@ -287,7 +295,7 @@ class TestCMD(object):
         original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
         df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
 
-        true_pseudo_cov = -1.3115 
+        true_pseudo_cov = -1.3143 
         calc_pseudo_cov = df.sample_1[0]
         assert_almost_equal(true_pseudo_cov,calc_pseudo_cov,places=4)
 
