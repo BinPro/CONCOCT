@@ -39,7 +39,7 @@ def main(args):
         args.pca_components
         )
 
-    logging.info('Performed PCA, resulted in %s dimentions' % pca.n_components)
+    logging.info('Performed PCA, resulted in %s dimensions' % transform_filter.shape[1])
     
     Output.write_original_data(
         joined,
