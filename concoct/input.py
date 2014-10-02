@@ -5,7 +5,7 @@ import numpy as np
 import pandas as p
 
 from itertools import product, tee, izip
-from collections import Counter, OrderedDict
+from collections import OrderedDict
 
 from Bio import SeqIO
 
