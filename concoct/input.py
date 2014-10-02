@@ -5,7 +5,6 @@ import numpy as np
 import pandas as p
 
 from itertools import product, tee, izip
-from collections import OrderedDict
 
 from Bio import SeqIO
 
@@ -35,8 +34,8 @@ def _calculate_composition(comp_file, length_threshold, kmer_len):
     feature_mapping, nr_features = generate_feature_mapping(kmer_len)
 
     # Store composition vectors in a dictionary before creating dataframe
-    composition_d = OrderedDict()
-    contig_lengths = OrderedDict()
+    composition_d = {}
+    contig_lengths = {}
     for seq in SeqIO.parse(comp_file,"fasta"):
         seq_len = len(seq)
         if seq_len<= length_threshold:
