@@ -7,6 +7,11 @@ Warning! This software is to be considered under development. Functionality and 
 If you want to use this software, please stay up to date with the list of known issues:
 https://github.com/BinPro/CONCOCT/issues
 
+## Please Cite ##
+If you use CONCOCT in your publication, please cite:
+
+Alneberg & Bjarnason et al., Binning metagenomic contigs by coverage and composition. 2014 Nature Methods, doi: 10.1038/nmeth.3103
+
 ## Documentation ##
 A comprehensive documentation for concoct is hosted on [readthedocs](https://concoct.readthedocs.org).
 
