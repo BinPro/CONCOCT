@@ -75,6 +75,10 @@ def arguments():
       help=("By default, the total coverage is added as a new column in the coverage "
             "data matrix, independently of coverage normalization but previous to "
             "log transformation. Use this tag to escape this behaviour."))
+    parser.add_argument('--no_original_data', default=False, action="store_true",
+      help=("By default the original data is saved to disk. For big datasets, "
+            "especially when a large k is used for compositional data, this file can become "
+            "very large. Use this tag if you don't want to save the original data."))
     parser.add_argument('-o','--converge_out', default=False, action="store_true",
       help=('Write convergence info to files.'))
 
