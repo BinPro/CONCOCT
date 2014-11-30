@@ -26,7 +26,7 @@ class TestDnaDiff(object):
 
     def tearDown(self):
         """remove temporary output files"""
-        #utils.rm_rf(TMP_DIR_PATH)
+        utils.rm_rf(TMP_DIR_PATH)
 
     def test_run_dnadiff(self):
         """Test single dnadiff run"""

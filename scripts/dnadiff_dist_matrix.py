@@ -35,6 +35,8 @@ class MUMmerReport(object):
         self.report_file = report_file
 
         with open(report_file) as f:
+            one_to_one_parsed = False
+
             for line in f:
                 if line.startswith("TotalBases"):
                     self.tot_bases = [int(b) for b in line.split()[1:]]
@@ -42,8 +44,9 @@ class MUMmerReport(object):
                     # store percentage
                     self.aligned_bases = [float(p) for p in
                             re.findall(r'\((.*?)\%\)', line)]
-                if line.startswith("AvgIdentity"):
+                if not one_to_one_parsed and line.startswith("AvgIdentity"):
                     self.avg_identity = [float(p) for p in line.split()[1:]]
+                    one_to_one_parsed = True
 
 
 def run_dnadiff(fasta1, fasta2, prefix):
@@ -52,7 +55,6 @@ def run_dnadiff(fasta1, fasta2, prefix):
             prefix=prefix)
     with open("{}.cmd".format(prefix), "w") as f:
         f.write(cmd)
-    #subprocess.check_output(["dnadiff", "-p", prefix, "ahaha", fasta2])
     proc = subprocess.Popen(cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT, shell=True)
@@ -84,7 +86,8 @@ def get_dist_matrix(pairwise_folder, fasta_names, min_coverage):
                 fn1=fasta_names[i], fn2=fasta_names[j]), "out.report")
             mumr = MUMmerReport(repfile)
             if min(mumr.aligned_bases) >= min_coverage:
-                matrix[i][j] = 1.0 - (min(mumr.avg_identity) / 100.0)
+                # take distance as 1 - AvgIdentity (same for both ref and qry)
+                matrix[i][j] = 1.0 - (mumr.avg_identity[0] / 100.0)
             else:
                 matrix[i][j] = 1.0
             matrix[j][i] = matrix[i][j]
