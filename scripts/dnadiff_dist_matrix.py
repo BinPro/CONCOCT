@@ -95,6 +95,17 @@ def get_dist_matrix(pairwise_folder, fasta_names, min_coverage):
     return matrix
 
 
+def plot_dist_matrix(matrix, fasta_names, output_file):
+    """Cluster the distance matrix hierarchically and plot using seaborn.
+    Average linkage method is used."""
+    import seaborn as sns
+    import pandas as pd
+
+    pdm = pd.DataFrame(matrix, index=fasta_names, columns=fasta_names)
+    clustergrid = sns.clustermap(pdm, method='average')
+    clustergrid.savefig(output_file)
+
+
 def parse_input():
     """Return input arguments using argparse"""
     parser = argparse.ArgumentParser(description=__doc__,
@@ -110,6 +121,16 @@ def parse_input():
             "genome names, whatever you want. The names are used when storing "
             "the MUMmer dnadiff results as in "
             "output_folder/fastaname1_vs_fastaname2/")
+    parser.add_argument("--hclust_plot_file", default=None, help="Cluster the "
+            "distance matrix hierarchically and plot using seaborn to given "
+            "file. Uses average linkage method for clustering. Type of image is "
+            "determined by extension.")
+    parser.add_argument("--skip_dnadiff", action="store_true", help="Skips "
+            "running MUMmer and uses output_folder as given input to "
+            "calculate the distance matrix. Expects dnadiff output as "
+            "output_folder/fastaname1_vs_fastaname2/out.report")
+    parser.add_argument("--skip_matrix", action="store_true", help="Skips "
+            "Calculating the distance matrix i.e. just runs dnadiff.")
     args = parser.parse_args()
     # Get fasta names
     if args.fasta_names is not None:
@@ -119,15 +140,24 @@ def parse_input():
                     "of given fasta_files")
     else:
         fasta_names = list(range(len(args.fasta_files)))
+    if args.skip_dnadiff and args.skip_matrix:
+        raise Exception("If running dnadiff and calculating the distance matrix "
+                "are both skipped, the program does not run any steps at all.")
 
-    return args.output_folder, args.fasta_files, fasta_names, args.min_coverage
+    return args.output_folder, args.fasta_files, fasta_names, \
+           args.min_coverage, args.skip_dnadiff, args.skip_matrix, \
+           args.hclust_plot_file
 
 
-def main(output_folder, fasta_files, fasta_names, min_coverage):
+def main(output_folder, fasta_files, fasta_names, min_coverage, skip_dnadiff=False, skip_matrix=False, hclust_plot_file=None):
     """Output distance matrix between fasta files using MUMmer's dnadiff"""
-    run_dnadiff_pairwise(fasta_files, fasta_names, output_folder)
-    matrix = get_dist_matrix(output_folder, fasta_names, min_coverage)
-    np.savetxt(sys.stdout, matrix, fmt="%.2f", delimiter="\t")
+    if not skip_dnadiff:
+        run_dnadiff_pairwise(fasta_files, fasta_names, output_folder)
+    if not skip_matrix:
+        matrix = get_dist_matrix(output_folder, fasta_names, min_coverage)
+        np.savetxt(sys.stdout, matrix, fmt="%.2f", delimiter="\t")
+    if hclust_plot_file:
+        plot_dist_matrix
 
 
 if __name__ == "__main__":

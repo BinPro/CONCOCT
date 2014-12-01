@@ -26,7 +26,7 @@ class TestDnaDiff(object):
 
     def tearDown(self):
         """remove temporary output files"""
-        utils.rm_rf(TMP_DIR_PATH)
+        #utils.rm_rf(TMP_DIR_PATH)
 
     def test_run_dnadiff(self):
         """Test single dnadiff run"""
@@ -92,3 +92,21 @@ class TestDnaDiff(object):
         matrix_exp = np.genfromtxt(ospj(DATA_PATH, "expected_dist_matrix.tsv"),
                 delimiter="\t")
         np.testing.assert_almost_equal(matrix, matrix_exp, decimal=2)
+
+    def test_plot_dist_matrix(self):
+        """Test dnadiff pairwise on multiple bins, get the resulting
+        distance matrix and plot the result"""
+        names = [
+            "sample0_gt1000_bin0",
+            "sample0_gt1000_bin10",
+            "sample0_gt1000_bin11",
+            "sample0_gt1000_bin1",
+            "sample0_gt1000_bin2",
+            "sample1_gt1000_bin51",
+            "sample1_gt1000_bin67",
+            "sample1_gt1000_bin6",
+        ]
+        matrix = np.genfromtxt(ospj(DATA_PATH, "expected_dist_matrix.tsv"),
+                delimiter="\t")
+        dnadiff_dist_matrix.plot_dist_matrix(matrix, names, ospj(TMP_BASENAME_DIR, "hclust.pdf"))
+        ok_(os.path.exists(ospj(TMP_BASENAME_DIR, "hclust.pdf")))
