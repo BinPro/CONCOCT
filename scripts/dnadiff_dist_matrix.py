@@ -8,6 +8,7 @@ import re
 from os.path import join as ospj
 import sys
 import numpy as np
+from multiprocessing import Pool
 
 from concoct.utils import dir_utils
 
@@ -64,6 +65,12 @@ def run_dnadiff(fasta1, fasta2, prefix):
         raise CmdException(cmd, stdout, stderr, proc.returncode)
 
 
+def run_dnadiff_star(args):
+    """Converts given list to arguments for run_dnadiff. Useful for
+    multiprocessing. http://stackoverflow.com/questions/5442910"""
+    return run_dnadiff(*args)
+
+
 def run_dnadiff_pairwise(fasta_files, fasta_names, output_folder):
     """Runs MUMmer's dnadiff pairwise for given fasta_files. Uses fasta_names
     to organize output folders for dnadiff as fastaname1_vs_fastaname2."""
@@ -75,6 +82,25 @@ def run_dnadiff_pairwise(fasta_files, fasta_names, output_folder):
                 fn1=fasta_names[i], fn2=fasta_names[j]))
             dir_utils.mkdir_p(out_dir)
             run_dnadiff(fasta_files[i], fasta_files[j], ospj(out_dir, "out"))
+
+
+def parallel_run_dnadiff_pairwise(fasta_files, fasta_names, output_folder):
+    """Runs MUMmer's dnadiff pairwise for given fasta_files using
+    multiprocessing. Uses fasta_names to organize output folders for dnadiff as
+    fastaname1_vs_fastaname2."""
+    assert len(fasta_files) == len(fasta_names)
+
+    pool = Pool()
+    args = []
+    for i in range(len(fasta_files)):
+        for j in range(i + 1, len(fasta_files)):
+            out_dir = ospj(output_folder, "{fn1}_vs_{fn2}".format(
+                fn1=fasta_names[i], fn2=fasta_names[j]))
+            dir_utils.mkdir_p(out_dir)
+            args.append((fasta_files[i], fasta_files[j], ospj(out_dir, "out")))
+    pool.map(run_dnadiff_star, args)
+    pool.close()
+    pool.join()
 
 
 def get_dist_matrix(pairwise_folder, fasta_names, min_coverage):
@@ -153,12 +179,12 @@ def parse_input():
 def main(output_folder, fasta_files, fasta_names, min_coverage, skip_dnadiff=False, skip_matrix=False, hclust_plot_file=None):
     """Output distance matrix between fasta files using MUMmer's dnadiff"""
     if not skip_dnadiff:
-        run_dnadiff_pairwise(fasta_files, fasta_names, output_folder)
+        parallel_run_dnadiff_pairwise(fasta_files, fasta_names, output_folder)
     if not skip_matrix:
         matrix = get_dist_matrix(output_folder, fasta_names, min_coverage)
         np.savetxt(sys.stdout, matrix, fmt="%.2f", delimiter="\t")
     if hclust_plot_file:
-        plot_dist_matrix
+        plot_dist_matrix(matrix, fasta_names, hclust_plot_file)
 
 
 if __name__ == "__main__":

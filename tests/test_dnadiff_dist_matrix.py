@@ -52,6 +52,21 @@ class TestDnaDiff(object):
                 for j in range(i + 1, len(names))]:
             ok_(os.path.exists(f))
 
+    def test_parallel_run_dnadiff_pairwise(self):
+        """Test dnadiff pairwise on multiple bins"""
+        names = ["bin{0}".format(i) for i in range(3)]
+        dnadiff_dist_matrix.parallel_run_dnadiff_pairwise(
+            [ospj(DATA_PATH, b) for b in
+                ["sample0_gt1000_bin0.fa", "sample0_gt1000_bin1.fa",
+                    "sample0_gt1000_bin2.fa"]],
+            names, TMP_BASENAME_DIR)
+        for f in [
+            ospj(TMP_BASENAME_DIR,
+                "{}_vs_{}".format(names[i], names[j]), "out.report")
+                for i in range(len(names))
+                for j in range(i + 1, len(names))]:
+            ok_(os.path.exists(f))
+
     def test_mummer_report_class(self):
         """Test mummer report class"""
         dnadiff_dist_matrix.run_dnadiff(ospj(DATA_PATH,
