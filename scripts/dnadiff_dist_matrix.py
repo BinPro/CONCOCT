@@ -4,11 +4,12 @@ Output distance matrix between fasta files using dnadiff from MUMmer.
 """
 import argparse
 import subprocess
-import utils
 import re
 from os.path import join as ospj
 import sys
 import numpy as np
+
+from concoct.utils import dir_utils
 
 
 class CmdException(Exception):
@@ -72,7 +73,7 @@ def run_dnadiff_pairwise(fasta_files, fasta_names, output_folder):
         for j in range(i + 1, len(fasta_files)):
             out_dir = ospj(output_folder, "{fn1}_vs_{fn2}".format(
                 fn1=fasta_names[i], fn2=fasta_names[j]))
-            utils.mkdir_p(out_dir)
+            dir_utils.mkdir_p(out_dir)
             run_dnadiff(fasta_files[i], fasta_files[j], ospj(out_dir, "out"))
 
 

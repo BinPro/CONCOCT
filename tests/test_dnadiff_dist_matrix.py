@@ -4,6 +4,8 @@ from os.path import join as ospj
 from nose.tools import ok_, assert_equal
 import numpy as np
 
+import concoct.utils.dir_utils as dir_utils
+
 FILE_PATH = os.path.realpath(__file__)
 TEST_DIR_PATH = os.path.dirname(FILE_PATH)
 DATA_PATH = os.path.abspath(ospj(TEST_DIR_PATH, "test_data", "bins"))
@@ -11,9 +13,9 @@ TMP_DIR_PATH = ospj(TEST_DIR_PATH, 'nose_tmp_output')
 TMP_BASENAME_DIR = ospj(TMP_DIR_PATH, 'dnadiff')
 SCRIPT_PATH = ospj(TEST_DIR_PATH, '..', 'scripts')
 
+# Add script dir to python path to import functions
 sys.path.append(SCRIPT_PATH)
 import dnadiff_dist_matrix
-import utils
 
 CWD = os.getcwd()
 
@@ -22,11 +24,11 @@ class TestDnaDiff(object):
     def setUp(self):
         """Delete temporary dir if it exists then create it"""
         self.tearDown()
-        utils.mkdir_p(TMP_BASENAME_DIR)
+        dir_utils.mkdir_p(TMP_BASENAME_DIR)
 
     def tearDown(self):
         """remove temporary output files"""
-        #utils.rm_rf(TMP_DIR_PATH)
+        dir_utils.rm_rf(TMP_DIR_PATH)
 
     def test_run_dnadiff(self):
         """Test single dnadiff run"""
@@ -94,8 +96,7 @@ class TestDnaDiff(object):
         np.testing.assert_almost_equal(matrix, matrix_exp, decimal=2)
 
     def test_plot_dist_matrix(self):
-        """Test dnadiff pairwise on multiple bins, get the resulting
-        distance matrix and plot the result"""
+        """Plot a distance matrix"""
         names = [
             "sample0_gt1000_bin0",
             "sample0_gt1000_bin10",
