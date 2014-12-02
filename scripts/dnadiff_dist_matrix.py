@@ -147,6 +147,8 @@ def get_dist_matrix(pairwise_folder, fasta_names, min_coverage):
 def plot_dist_matrix(matrix, fasta_names, output_file):
     """Cluster the distance matrix hierarchically and plot using seaborn.
     Average linkage method is used."""
+    import matplotlib
+    matplotlib.use('Agg')
     import seaborn as sns
     import pandas as pd
 
@@ -212,7 +214,7 @@ def main(output_folder, fasta_files, fasta_names, min_coverage, skip_dnadiff=Fal
         np.savetxt(sys.stdout, matrix, fmt="%.2f", delimiter="\t")
     if hclust_plot_file:
         plot_dist_matrix(matrix, fasta_names, hclust_plot_file)
-    write_fasta_names(fasta_names, fasta_files, ospj(output_folder, "fasta_names.tsv"), sep="\t")
+    write_fasta_names(fasta_names, fasta_files, ospj(output_folder, "fasta_names.tsv"), "\t")
 
 
 if __name__ == "__main__":
