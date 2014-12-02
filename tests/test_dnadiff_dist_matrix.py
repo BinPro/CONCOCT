@@ -124,8 +124,24 @@ class TestDnaDiff(object):
         ]
         matrix = np.genfromtxt(ospj(DATA_PATH, "expected_dist_matrix.tsv"),
                 delimiter="\t")
-        dnadiff_dist_matrix.plot_dist_matrix(matrix, names, ospj(TMP_BASENAME_DIR, "hclust.pdf"))
-        ok_(os.path.exists(ospj(TMP_BASENAME_DIR, "hclust.pdf")))
+        heatmap = ospj(TMP_BASENAME_DIR, "hclust_heatmap.pdf")
+        dendrogram = ospj(TMP_BASENAME_DIR, "hclust_dendrogram.pdf")
+        dnadiff_dist_matrix.plot_dist_matrix(matrix, names, heatmap, dendrogram)
+        ok_(os.path.exists(heatmap))
+        ok_(os.path.exists(dendrogram))
+
+    def test_plot_dist_matrix_88_bins(self):
+        """Plot a distance matrix with 88 samples"""
+        names = [
+            "sample0_gt1000_bin{}".format(i) for i in range(88)
+        ]
+        matrix = np.genfromtxt(ospj(DATA_PATH, "expected_dist_matrix_88_bins.tsv"),
+                delimiter="\t")
+        heatmap = ospj(TMP_BASENAME_DIR, "hclust_heatmap.pdf")
+        dendrogram = ospj(TMP_BASENAME_DIR, "hclust_dendrogram.pdf")
+        dnadiff_dist_matrix.plot_dist_matrix(matrix, names, heatmap, dendrogram)
+        ok_(os.path.exists(heatmap))
+        ok_(os.path.exists(dendrogram))
 
     def test_write_fasta_names(self):
         names = [

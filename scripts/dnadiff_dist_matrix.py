@@ -17,12 +17,15 @@ report files (not M-to-M):
 1 - AvgIdentity if min(AlignedBases) >= min_coverage. Otherwise distance is 1.
 Or 0 to itself.
 
-Resulting matrix is printed to stdout. The rows and columns of the matrix follow
-the order of the supplied fasta files. The names given to each fasta file are
-also outputted to the file output_folder/fasta_names.tsv
+Resulting matrix is printed to stdout and to output_folder/dist_matrix.tsv. The
+rows and columns of the matrix follow the order of the supplied fasta files. The
+names given to each fasta file are also outputted to the file
+output_folder/fasta_names.tsv
 
-A hierarchical clustering of the distance using average linkage clustering can
-be plotted by using the --hclust_plot_file option.
+A hierarchical clustering of the distance using euclidean average linkage
+clustering is plotted. This can be deactivated by using --skip_plot. The
+resulting heatmap is in output_folder/hclust_heatmap.pdf or
+output_folder/hclust_dendrogram.pdf. The image extension can be changed.
 """
 import argparse
 import subprocess
@@ -144,18 +147,37 @@ def get_dist_matrix(pairwise_folder, fasta_names, min_coverage):
     return matrix
 
 
-def plot_dist_matrix(matrix, fasta_names, output_file):
+def plot_dist_matrix(matrix, fasta_names, heatmap_out, dendrogram_out):
     """Cluster the distance matrix hierarchically and plot using seaborn.
     Average linkage method is used."""
+    # Load required modules for plotting
     import matplotlib
     matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
     import seaborn as sns
     import pandas as pd
+    from scipy.cluster.hierarchy import dendrogram, linkage
 
-    figsizex = max(10, int(0.25 * len(fasta_names)))
+    # Create
     pdm = pd.DataFrame(matrix, index=fasta_names, columns=fasta_names)
-    clustergrid = sns.clustermap(pdm, method='average', figsize=(figsizex, figsizex))
-    clustergrid.savefig(output_file)
+
+    # Plot heatmap
+    figsizex = max(10, len(fasta_names) / 4)
+    clustergrid = sns.clustermap(pdm, metric='euclidean', method='average',
+            figsize=(figsizex, figsizex))
+    clustergrid.savefig(heatmap_out)
+
+    # Plot dendrogram
+    sns.set_style('white')
+    figsizey = max(10, len(fasta_names) / 8)
+    f, ax = plt.subplots(figsize=(figsizex, figsizey))
+    link = linkage(pdm, metric='euclidean', method='average')
+    dendrogram(link, labels=pdm.index, ax=ax)
+    no_spine = {'left': True, 'bottom': True, 'right': True, 'top': True}
+    sns.despine(**no_spine)
+    plt.xticks(rotation=90)
+    f.tight_layout()
+    plt.savefig(dendrogram_out)
 
 
 def write_fasta_names(fasta_names, fasta_files, output_file, separator):
@@ -178,16 +200,18 @@ def parse_input():
             "genome names, whatever you want. The names are used when storing "
             "the MUMmer dnadiff results as in "
             "output_folder/fastaname1_vs_fastaname2/")
-    parser.add_argument("--hclust_plot_file", default=None, help="Cluster the "
-            "distance matrix hierarchically and plot using seaborn to given "
-            "file. Uses average linkage method for clustering. Type of image is "
-            "determined by extension.")
+    parser.add_argument("--plot_image_extension", default='pdf', help="Type of "
+            "image to plotted e.g. pdf, png, svg.")
     parser.add_argument("--skip_dnadiff", action="store_true", help="Skips "
             "running MUMmer and uses output_folder as given input to "
             "calculate the distance matrix. Expects dnadiff output as "
             "output_folder/fastaname1_vs_fastaname2/out.report")
     parser.add_argument("--skip_matrix", action="store_true", help="Skips "
-            "Calculating the distance matrix i.e. just runs dnadiff.")
+            "Calculating the distance matrix.")
+    parser.add_argument("--skip_plot", action="store_true", help="Skips "
+        "plotting the distance matrix. By default the distance matrix is "
+        "clustered hierarchically using euclidean average linkage clustering. "
+        "This step requires seaborn and scipy.")
     args = parser.parse_args()
     # Get fasta names
     if args.fasta_names is not None:
@@ -203,19 +227,31 @@ def parse_input():
 
     return args.output_folder, args.fasta_files, fasta_names, \
            args.min_coverage, args.skip_dnadiff, args.skip_matrix, \
-           args.hclust_plot_file
+           args.skip_plot, args.plot_image_extension
 
 
-def main(output_folder, fasta_files, fasta_names, min_coverage, skip_dnadiff=False, skip_matrix=False, hclust_plot_file=None):
+def main(output_folder, fasta_files, fasta_names, min_coverage,
+        skip_dnadiff=False, skip_matrix=False, skip_plot=False,
+        plot_image_extension="pdf"):
     """Output distance matrix between fasta files using MUMmer's dnadiff"""
     if not skip_dnadiff:
         parallel_run_dnadiff_pairwise(fasta_files, fasta_names, output_folder)
     if not skip_matrix:
         matrix = get_dist_matrix(output_folder, fasta_names, min_coverage)
+        # print to stdout and save to file
         np.savetxt(sys.stdout, matrix, fmt="%.2f", delimiter="\t")
-    if hclust_plot_file:
-        plot_dist_matrix(matrix, fasta_names, hclust_plot_file)
-    write_fasta_names(fasta_names, fasta_files, ospj(output_folder, "fasta_names.tsv"), "\t")
+        np.savetxt(ospj(output_folder, "dist_matrix.tsv"), matrix, fmt="%.2f",
+                delimiter="\t")
+    if not skip_plot:
+        if skip_matrix:
+            matrix = np.genfromtxt(ospj(output_folder, "dist_matrix.tsv"),
+                    delimiter="\t")
+        # plot distance matrix
+        plot_dist_matrix(matrix, fasta_names,
+            ospj(output_folder, "hclust_heatmap.{}".format(plot_image_extension)),
+            ospj(output_folder, "hclust_dendrogram.{}".format(plot_image_extension)))
+    write_fasta_names(fasta_names, fasta_files,
+        ospj(output_folder, "fasta_names.tsv"), "\t")
 
 
 if __name__ == "__main__":
