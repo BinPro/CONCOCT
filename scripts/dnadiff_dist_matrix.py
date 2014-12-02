@@ -152,8 +152,9 @@ def plot_dist_matrix(matrix, fasta_names, output_file):
     import seaborn as sns
     import pandas as pd
 
+    figsizex = max(10, int(0.25 * len(fasta_names)))
     pdm = pd.DataFrame(matrix, index=fasta_names, columns=fasta_names)
-    clustergrid = sns.clustermap(pdm, method='average')
+    clustergrid = sns.clustermap(pdm, method='average', figsize=(figsizex, figsizex))
     clustergrid.savefig(output_file)
 
 
