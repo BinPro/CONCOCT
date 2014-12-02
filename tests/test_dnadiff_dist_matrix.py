@@ -126,3 +126,19 @@ class TestDnaDiff(object):
                 delimiter="\t")
         dnadiff_dist_matrix.plot_dist_matrix(matrix, names, ospj(TMP_BASENAME_DIR, "hclust.pdf"))
         ok_(os.path.exists(ospj(TMP_BASENAME_DIR, "hclust.pdf")))
+
+    def test_write_fasta_names(self):
+        names = [
+            "sample0_gt1000_bin0",
+            "sample0_gt1000_bin10",
+            "sample0_gt1000_bin11",
+            "sample0_gt1000_bin1",
+            "sample0_gt1000_bin2",
+            "sample1_gt1000_bin51",
+            "sample1_gt1000_bin67",
+            "sample1_gt1000_bin6",
+        ]
+        files = [ospj(DATA_PATH, "{}.fa".format(n)) for n in names]
+        dnadiff_dist_matrix.write_fasta_names(names, files,
+                ospj(TMP_BASENAME_DIR, "fasta_names.tsv"), "\t")
+        ok_(os.path.exists(ospj(TMP_BASENAME_DIR, "fasta_names.tsv")))

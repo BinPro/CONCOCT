@@ -1,6 +1,28 @@
 #!/usr/bin/env python
 """
-Output distance matrix between fasta files using dnadiff from MUMmer.
+Output distance matrix between fasta files using dnadiff from MUMmer. Generates
+dnadiff output files in folders:
+
+output_folder/fastaname1_vs_fastaname2/
+output_folder/fastaname1_vs_fastaname3/
+
+etc
+
+where fastaname for each fasta file can be supplied as an option to the script.
+Otherwise they are just counted from 0 to len(fastafiles)
+
+The distance between each bin is computed using the 1-to-1 alignments of the
+report files (not M-to-M):
+
+1 - AvgIdentity if min(AlignedBases) >= min_coverage. Otherwise distance is 1.
+Or 0 to itself.
+
+Resulting matrix is printed to stdout. The rows and columns of the matrix follow
+the order of the supplied fasta files. The names given to each fasta file are
+also outputted to the file output_folder/fasta_names.tsv
+
+A hierarchical clustering of the distance using average linkage clustering can
+be plotted by using the --hclust_plot_file option.
 """
 import argparse
 import subprocess
@@ -133,6 +155,11 @@ def plot_dist_matrix(matrix, fasta_names, output_file):
     clustergrid.savefig(output_file)
 
 
+def write_fasta_names(fasta_names, fasta_files, output_file, separator):
+    fnames_files = np.array([fasta_names, fasta_files])
+    np.savetxt(output_file, fnames_files.transpose(), fmt="%s", delimiter=separator)
+
+
 def parse_input():
     """Return input arguments using argparse"""
     parser = argparse.ArgumentParser(description=__doc__,
@@ -185,6 +212,7 @@ def main(output_folder, fasta_files, fasta_names, min_coverage, skip_dnadiff=Fal
         np.savetxt(sys.stdout, matrix, fmt="%.2f", delimiter="\t")
     if hclust_plot_file:
         plot_dist_matrix(matrix, fasta_names, hclust_plot_file)
+    write_fasta_names(fasta_names, fasta_files, ospj(output_folder, "fasta_names.tsv"), sep="\t")
 
 
 if __name__ == "__main__":
