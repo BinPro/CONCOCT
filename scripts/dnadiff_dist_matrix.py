@@ -30,6 +30,7 @@ output_folder/hclust_dendrogram.pdf. The image extension can be changed.
 import argparse
 import subprocess
 import re
+import os
 from os.path import join as ospj
 import sys
 import numpy as np
@@ -194,12 +195,13 @@ def parse_input():
             help="fasta files to compare pairwise using MUMmer's dnadiff")
     parser.add_argument("--min_coverage", type=float, default=50,
             help="Minimum coverage of bin in percentage to calculate distance "
-                 "otherwise distance is 1.")
+                 "otherwise distance is 1. Default is 50.")
     parser.add_argument("--fasta_names", default=None, help="File with names "
             "for fasta file, one line each. Could be sample names, bin names, "
             "genome names, whatever you want. The names are used when storing "
             "the MUMmer dnadiff results as in "
-            "output_folder/fastaname1_vs_fastaname2/")
+            "output_folder/fastaname1_vs_fastaname2/. The names are also used "
+            "for the plots.")
     parser.add_argument("--plot_image_extension", default='pdf', help="Type of "
             "image to plotted e.g. pdf, png, svg.")
     parser.add_argument("--skip_dnadiff", action="store_true", help="Skips "
@@ -220,10 +222,16 @@ def parse_input():
             raise Exception("Nr of names in fasta_names should be equal to nr "
                     "of given fasta_files")
     else:
-        fasta_names = list(range(len(args.fasta_files)))
+        # Get basename from fasta files and see if those are unique
+        fasta_names = [os.path.basename(f).split(".")[0] for f in
+                args.fasta_files]
+        if len(set(fasta_names)) != len(args.fasta_files):
+            # assign integer id if non-unique fasta basenames
+            fasta_names = list(range(len(args.fasta_files)))
     if args.skip_dnadiff and args.skip_matrix:
-        raise Exception("If running dnadiff and calculating the distance matrix "
-                "are both skipped, the program does not run any steps at all.")
+        raise Exception("If running dnadiff and calculating the distance "
+                "matrix are both skipped, the program does not run any "
+                "steps at all.")
 
     return args.output_folder, args.fasta_files, fasta_names, \
            args.min_coverage, args.skip_dnadiff, args.skip_matrix, \
@@ -248,8 +256,10 @@ def main(output_folder, fasta_files, fasta_names, min_coverage,
                     delimiter="\t")
         # plot distance matrix
         plot_dist_matrix(matrix, fasta_names,
-            ospj(output_folder, "hclust_heatmap.{}".format(plot_image_extension)),
-            ospj(output_folder, "hclust_dendrogram.{}".format(plot_image_extension)))
+            ospj(output_folder,
+                "hclust_heatmap.{}".format(plot_image_extension)),
+            ospj(output_folder,
+                "hclust_dendrogram.{}".format(plot_image_extension)))
     write_fasta_names(fasta_names, fasta_files,
         ospj(output_folder, "fasta_names.tsv"), "\t")
 
