@@ -11,7 +11,7 @@ TEST_DIR_PATH = os.path.dirname(FILE_PATH)
 DATA_PATH = os.path.abspath(ospj(TEST_DIR_PATH, "test_data", "bins"))
 TMP_DIR_PATH = ospj(TEST_DIR_PATH, 'nose_tmp_output')
 TMP_BASENAME_DIR = ospj(TMP_DIR_PATH, 'dnadiff')
-SCRIPT_PATH = ospj(TEST_DIR_PATH, '..', 'scripts')
+SCRIPT_PATH = ospj(TEST_DIR_PATH, '..')
 
 # Add script dir to python path to import functions
 sys.path.append(SCRIPT_PATH)

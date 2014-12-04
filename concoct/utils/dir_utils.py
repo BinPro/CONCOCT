@@ -1,3 +1,4 @@
+"""Functions related to directory traversing/removement/creation"""
 import os
 import errno
 import shutil

@@ -32,11 +32,12 @@ import subprocess
 import re
 import os
 from os.path import join as ospj
-import sys
 import numpy as np
 from multiprocessing import Pool
+import logging
 
 from concoct.utils import dir_utils
+from concoct.utils import check_dependencies
 
 
 class CmdException(Exception):
@@ -94,7 +95,12 @@ def run_dnadiff(fasta1, fasta2, prefix):
 def run_dnadiff_star(args):
     """Converts given list to arguments for run_dnadiff. Useful for
     multiprocessing. http://stackoverflow.com/questions/5442910"""
-    return run_dnadiff(*args)
+    try:
+        return run_dnadiff(*args)
+    except CmdException as e:
+        # Custom CmdException doesn't work well with multiprocessing so change
+        # to regular Exception http://bugs.python.org/issue16558
+        raise(Exception(str(e)))
 
 
 def run_dnadiff_pairwise(fasta_files, fasta_names, output_folder):
@@ -238,20 +244,39 @@ def parse_input():
            args.skip_plot, args.plot_image_extension
 
 
+def verbose_check_dependencies(progs):
+    for p in progs:
+        path = check_dependencies.which(p)
+        if path:
+            logging.info("Using {}".format(path))
+        else:
+            raise(Exception("{} not installed").format(path))
+
+
 def main(output_folder, fasta_files, fasta_names, min_coverage,
         skip_dnadiff=False, skip_matrix=False, skip_plot=False,
         plot_image_extension="pdf"):
     """Output distance matrix between fasta files using MUMmer's dnadiff"""
+    logging.info("Checking dependencies")
+    verbose_check_dependencies(["dnadiff"])
     if not skip_dnadiff:
+        logging.info("Running dnadiff pairwise (this could take a while)")
         parallel_run_dnadiff_pairwise(fasta_files, fasta_names, output_folder)
+    else:
+        logging.info("Skipping dnadiff")
     if not skip_matrix:
         matrix = get_dist_matrix(output_folder, fasta_names, min_coverage)
-        # print to stdout and save to file
-        np.savetxt(sys.stdout, matrix, fmt="%.2f", delimiter="\t")
+        # save distance matrix to file
+        logging.info("Writing distance matrix to "
+                "{}".format(ospj(output_folder, "dist_matrix.tsv")))
         np.savetxt(ospj(output_folder, "dist_matrix.tsv"), matrix, fmt="%.2f",
                 delimiter="\t")
+    else:
+        logging.info("Skipping matrix calculation")
     if not skip_plot:
         if skip_matrix:
+            logging.info("Reading matrix from "
+                    "{}".format(ospj(output_folder, "dist_matrix.tsv")))
             matrix = np.genfromtxt(ospj(output_folder, "dist_matrix.tsv"),
                     delimiter="\t")
         # plot distance matrix
@@ -260,8 +285,13 @@ def main(output_folder, fasta_files, fasta_names, min_coverage,
                 "hclust_heatmap.{}".format(plot_image_extension)),
             ospj(output_folder,
                 "hclust_dendrogram.{}".format(plot_image_extension)))
+    else:
+        logging.info("Skipping plotting")
+    logging.info("Writing fasta names of fasta files to "
+            "{}".format(ospj(output_folder, "fasta_names.tsv")))
     write_fasta_names(fasta_names, fasta_files,
         ospj(output_folder, "fasta_names.tsv"), "\t")
+    logging.info("Done")
 
 
 if __name__ == "__main__":
