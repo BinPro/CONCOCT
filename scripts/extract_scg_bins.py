@@ -9,6 +9,9 @@ import pandas as pd
 import argparse
 from Bio import SeqIO
 from os.path import join as ospj
+import logging
+
+from concoct.utils import dir_utils
 
 
 def get_approved_bins(scg_tsv, max_missing_scg, max_multicopy_scg):
@@ -44,9 +47,10 @@ def write_approved_bins(app_binsdf, fasta_file, output_folder, prefix):
         rdict = SeqIO.to_dict(SeqIO.parse(handle, "fasta"))
 
     # print approved bins
+    dir_utils.mkdir_p(output_folder)
     for bin_id, contigs in app_binsdf.loc[:, ["Cluster",
             "Contigs"]].as_matrix():
-        contig_ids = [contigs.split("|")]
+        contig_ids = contigs.split("|")
         out_file = ospj(output_folder,
                 "{prefix}_bin{bin_id}.fa".format(bin_id=bin_id, prefix=prefix))
         with open(out_file, "w") as handle:
@@ -84,7 +88,7 @@ def parse_input():
     """Return input arguments using argparse"""
     parser = argparse.ArgumentParser(description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("output_folder", help="Output folder")
+    parser.add_argument("--output_folder", required=True, help="Output folder")
     parser.add_argument("--scg_tsvs", required=True, nargs='+', help="Single "
             "Copy  Genes (SCG) tsvs as outpututted by COG_table.py. Should "
             "have the same ordering as fasta_files.")
@@ -109,16 +113,24 @@ def main(output_folder, scg_tsvs, fasta_files, names, max_missing_scg,
     """Output approved bins in output folder. Find best scg scoring bins if
     necessary"""
     if len(scg_tsvs) > 1:
+        logging.info("Finding scg_tsv with highest number of approved bins with "
+                "max_missing_scg {} and max_multicopy_scg {}"
+                "{}".format(max_missing_scg, max_multicopy_scg))
         winning_index, app_binsdf = get_winning_bins(scg_tsvs, fasta_files,
                 max_missing_scg, max_multicopy_scg)
         name = names[winning_index]
+        logging.info("Winning scg_tsv: {}".format(name))
         fasta_file = fasta_files[winning_index]
     else:
+        logging.info("Get approved bins for {}".format(names[0]))
         app_binsdf = get_approved_bins(scg_tsvs[0], max_missing_scg,
                 max_multicopy_scg)
         name = names[0]
         fasta_file = fasta_files[0]
+    logging.info("Writing approved bins to {}*.fa".format(ospj(output_folder,
+        name)))
     write_approved_bins(app_binsdf, fasta_file, output_folder, name)
+    logging.info("Done")
 
 
 if __name__ == "__main__":

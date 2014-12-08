@@ -1,7 +1,7 @@
 import sys
 import os
 from os.path import join as ospj
-from nose.tools import assert_equal
+from nose.tools import assert_equal, ok_
 import pandas as pd
 
 import concoct.utils.dir_utils as dir_utils
@@ -16,7 +16,7 @@ SCRIPT_PATH = ospj(TEST_DIR_PATH, '..')
 # Add script dir to python path to import functions
 sys.path.append(SCRIPT_PATH)
 from extract_scg_bins import get_approved_bins, sum_bases_in_bins, \
-    get_winning_bins
+    get_winning_bins, write_approved_bins
 
 CWD = os.getcwd()
 
@@ -61,3 +61,16 @@ class TestDnaDiff(object):
             list(reversed(fasta_files)), max_missing_scg=2,
             max_multicopy_scg=4)
         assert_equal(0, winning_index)
+
+    def test_write_approved_bins(self):
+        """Test write_approved_bins"""
+        df = get_approved_bins(ospj(DATA_PATH, "sample1_gt500_scg.tsv"),
+                max_missing_scg=2, max_multicopy_scg=4)
+        assert_equal(6, int(df.Cluster))
+        write_approved_bins(df, ospj(DATA_PATH, "sample1_gt500.fa"),
+                TMP_BASENAME_DIR, "sample1_gt500")
+        ok_(os.path.exists(ospj(TMP_BASENAME_DIR, "sample1_gt500_bin6.fa")))
+        # make sure both have equal amount of records
+        assert_equal(
+            open(ospj(TMP_BASENAME_DIR, "sample1_gt500_bin6.fa")).read().count(">"),
+            open(ospj(DATA_PATH, "sample1_gt500_bin6.fa")).read().count(">"))
