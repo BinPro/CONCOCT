@@ -8,7 +8,7 @@ import concoct.utils.dir_utils as dir_utils
 
 FILE_PATH = os.path.realpath(__file__)
 TEST_DIR_PATH = os.path.dirname(FILE_PATH)
-DATA_PATH = os.path.abspath(ospj(TEST_DIR_PATH, "test_data", "scg_bins"))
+DATA_PATH = os.path.abspath(ospj(TEST_DIR_PATH, "test_data", "scg_bins_small"))
 TMP_DIR_PATH = ospj(TEST_DIR_PATH, 'nose_tmp_output')
 TMP_BASENAME_DIR = ospj(TMP_DIR_PATH, 'extract_scg_bins')
 SCRIPT_PATH = ospj(TEST_DIR_PATH, '..')
@@ -33,27 +33,27 @@ class TestDnaDiff(object):
 
     def test_get_approved_bins(self):
         """Test get_approved_bins"""
-        df = get_approved_bins(ospj(DATA_PATH, "sample1_gt500_scg.tsv"),
+        df = get_approved_bins(ospj(DATA_PATH, "sample0_gt500_scg.tsv"),
                 max_missing_scg=2, max_multicopy_scg=4)
-        assert_equal(6, int(df.Cluster))
+        assert_equal(2, int(df.Cluster))
 
     def test_sum_bases_in_bins(self):
         """Test sum_bases_in_bins"""
-        scg_tsv = ospj(DATA_PATH, "sample1_gt500_scg.tsv")
+        scg_tsv = ospj(DATA_PATH, "sample0_gt500_scg.tsv")
         b = sum_bases_in_bins(pd.read_csv(scg_tsv, sep="\t"),
-                ospj(DATA_PATH, "sample1_gt500.fa"))
-        assert_equal(16170706, b)
-        df = get_approved_bins(ospj(DATA_PATH, "sample1_gt500_scg.tsv"),
+                ospj(DATA_PATH, "sample0_gt500.fa"))
+        assert_equal(12, b)
+        df = get_approved_bins(ospj(DATA_PATH, "sample0_gt500_scg.tsv"),
                 max_missing_scg=2, max_multicopy_scg=4)
-        b = sum_bases_in_bins(df, ospj(DATA_PATH, "sample1_gt500.fa"))
-        assert_equal(5432170, b)
+        b = sum_bases_in_bins(df, ospj(DATA_PATH, "sample0_gt500.fa"))
+        assert_equal(4, b)
 
     def test_get_winning_bins(self):
         """Test get_winning_bins"""
-        scg_tsvs = [ospj(DATA_PATH, p) for p in ["sample1_gt300_scg.tsv",
-            "sample1_gt500_scg.tsv"]]
-        fasta_files = [ospj(DATA_PATH, p) for p in ["sample1_gt300.fa",
-            "sample1_gt500.fa"]]
+        scg_tsvs = [ospj(DATA_PATH, p) for p in ["sample0_gt300_scg.tsv",
+            "sample0_gt500_scg.tsv"]]
+        fasta_files = [ospj(DATA_PATH, p) for p in ["sample0_gt300.fa",
+            "sample0_gt500.fa"]]
         winning_index, df = get_winning_bins(scg_tsvs, fasta_files,
                 max_missing_scg=2, max_multicopy_scg=4)
         assert_equal(1, winning_index)
@@ -64,13 +64,13 @@ class TestDnaDiff(object):
 
     def test_write_approved_bins(self):
         """Test write_approved_bins"""
-        df = get_approved_bins(ospj(DATA_PATH, "sample1_gt500_scg.tsv"),
+        df = get_approved_bins(ospj(DATA_PATH, "sample0_gt500_scg.tsv"),
                 max_missing_scg=2, max_multicopy_scg=4)
-        assert_equal(6, int(df.Cluster))
-        write_approved_bins(df, ospj(DATA_PATH, "sample1_gt500.fa"),
-                TMP_BASENAME_DIR, "sample1_gt500")
-        ok_(os.path.exists(ospj(TMP_BASENAME_DIR, "sample1_gt500_bin6.fa")))
+        assert_equal(2, int(df.Cluster))
+        write_approved_bins(df, ospj(DATA_PATH, "sample0_gt500.fa"),
+                TMP_BASENAME_DIR, "sample0_gt500")
+        ok_(os.path.exists(ospj(TMP_BASENAME_DIR, "sample0_gt500_bin2.fa")))
         # make sure both have equal amount of records
         assert_equal(
-            open(ospj(TMP_BASENAME_DIR, "sample1_gt500_bin6.fa")).read().count(">"),
-            open(ospj(DATA_PATH, "sample1_gt500_bin6.fa")).read().count(">"))
+            open(ospj(TMP_BASENAME_DIR, "sample0_gt500_bin2.fa")).read().count(">"),
+            open(ospj(DATA_PATH, "sample0_gt500_bin2.fa")).read().count(">"))
