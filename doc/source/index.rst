@@ -47,4 +47,4 @@ Contents:
    installation
    usage
    complete_example
-
+   scripts/index

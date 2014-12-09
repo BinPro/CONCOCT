@@ -29,10 +29,9 @@ test:
 	nosetests
 
 docs:
-	python doc/add_cli_arguments_to_docs.py
 	$(MAKE) -C doc clean
 	$(MAKE) -C doc html
-	open doc/build/html/index.html
+	open doc/build/html/index.html || see doc/build/html/index.html
 
 release: clean
 	python setup.py sdist upload
