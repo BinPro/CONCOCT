@@ -31,6 +31,7 @@ import argparse
 import subprocess
 import re
 import os
+import sys
 from os.path import join as ospj
 import numpy as np
 from multiprocessing import Pool
@@ -257,6 +258,12 @@ def main(output_folder, fasta_files, fasta_names, min_coverage,
         skip_dnadiff=False, skip_matrix=False, skip_plot=False,
         plot_image_extension="pdf"):
     """Output distance matrix between fasta files using MUMmer's dnadiff"""
+    # create logger
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=logging.INFO,
+        format='%(asctime)s:%(levelname)s:%(name)s:%(message)s',
+    )
     logging.info("Checking dependencies")
     verbose_check_dependencies(["dnadiff"])
     if not skip_dnadiff:
