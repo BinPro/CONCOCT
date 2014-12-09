@@ -1,4 +1,5 @@
 # The requirements to build the documentation
--r ../requirements.txt
 sphinxcontrib-programoutput==0.8
 Sphinx==1.3b1
+mock==1.0.1
+sphinx-rtd-theme>=0.1.6
