@@ -1,0 +1,4 @@
+# The requirements to build the documentation
+-r ../requirements.txt
+sphinxcontrib-programoutput==0.8
+Sphinx==1.3b1
