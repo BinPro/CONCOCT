@@ -272,7 +272,7 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
-# -- Read the Docs C compilation issues -------------------------------------
+# -- Read the Docs C module import issues -------------------------------------
 
 # See:
 # http://read-the-docs.readthedocs.org/en/latest/faq.html#i-get-import-errors-on-libraries-that-depend-on-c-modules
@@ -283,6 +283,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return Mock()
 
-MOCK_MODULES = ['pygtk', 'gtk', 'gobject', 'argparse', 'numpy', 'pandas',
-    'Bio', 'concoct', 'vbgmm', 'concoct.utils']
+MOCK_MODULES = ['pygtk', 'gtk', 'gobject', 'numpy', 'pandas', 'Bio', 'concoct',
+'concoct.utils', 'concoct.output', 'concoct.parser', 'concoct.cluster',
+'concoct.input', 'concoct.transform', 'vbgmm']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

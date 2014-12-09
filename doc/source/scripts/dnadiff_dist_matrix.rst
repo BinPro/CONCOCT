@@ -2,16 +2,13 @@
 dnadiff_dist_matrix.py
 ======================
 
-.. command-output:: pwd
-
-Try again
-
 Usage
 =====
 The usage and help documentation of ``dnadiff_dist_matrix.py`` can be seen by
 running ``pyhton dnadiff_dist_matrix -h``:
 
-.. program-output:: python ../../scripts/dnadiff_dist_matrix.py --help
+.. program-output:: (echo 'import conf'; cat ../../scripts/dnadiff_dist_matrix.py) | python - --help
+   :shell:
 
 Example
 =======
