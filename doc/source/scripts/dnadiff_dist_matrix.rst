@@ -4,6 +4,8 @@ dnadiff_dist_matrix.py
 
 .. command-output:: pwd
 
+Try again
+
 Usage
 =====
 The usage and help documentation of ``dnadiff_dist_matrix.py`` can be seen by
