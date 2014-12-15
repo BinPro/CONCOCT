@@ -115,7 +115,7 @@ def main(output_folder, scg_tsvs, fasta_files, names, max_missing_scg,
     if len(scg_tsvs) > 1:
         logging.info("Finding scg_tsv with highest number of approved bins with "
                 "max_missing_scg {} and max_multicopy_scg {}"
-                "{}".format(max_missing_scg, max_multicopy_scg))
+                .format(max_missing_scg, max_multicopy_scg))
         winning_index, app_binsdf = get_winning_bins(scg_tsvs, fasta_files,
                 max_missing_scg, max_multicopy_scg)
         name = names[winning_index]
