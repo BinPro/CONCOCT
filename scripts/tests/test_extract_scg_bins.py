@@ -3,12 +3,13 @@ import os
 from os.path import join as ospj
 from nose.tools import assert_equal, ok_
 import pandas as pd
+import collections
 
 import concoct.utils.dir_utils as dir_utils
 
 FILE_PATH = os.path.realpath(__file__)
 TEST_DIR_PATH = os.path.dirname(FILE_PATH)
-DATA_PATH = os.path.abspath(ospj(TEST_DIR_PATH, "test_data", "scg_bins_small"))
+DATA_PATH = os.path.abspath(ospj(TEST_DIR_PATH, "test_data", "scg_bins"))
 TMP_DIR_PATH = ospj(TEST_DIR_PATH, 'nose_tmp_output')
 TMP_BASENAME_DIR = ospj(TMP_DIR_PATH, 'extract_scg_bins')
 SCRIPT_PATH = ospj(TEST_DIR_PATH, '..')
@@ -16,7 +17,7 @@ SCRIPT_PATH = ospj(TEST_DIR_PATH, '..')
 # Add script dir to python path to import functions
 sys.path.append(SCRIPT_PATH)
 from extract_scg_bins import get_approved_bins, sum_bases_in_bins, \
-    get_winning_bins, write_approved_bins
+    get_winning_bins, write_approved_bins, main
 
 CWD = os.getcwd()
 
@@ -29,7 +30,7 @@ class TestDnaDiff(object):
 
     def tearDown(self):
         """remove temporary output files"""
-        dir_utils.rm_rf(TMP_DIR_PATH)
+        #dir_utils.rm_rf(TMP_DIR_PATH)
 
     def test_get_approved_bins(self):
         """Test get_approved_bins"""
@@ -74,3 +75,22 @@ class TestDnaDiff(object):
         assert_equal(
             open(ospj(TMP_BASENAME_DIR, "sample0_gt500_bin2.fa")).read().count(">"),
             open(ospj(DATA_PATH, "sample0_gt500_bin2.fa")).read().count(">"))
+
+    def test_find_best_per_group(self):
+        fasta_files = [
+            ospj(DATA_PATH, "sample0_gt300.fa"),
+            ospj(DATA_PATH, "sample0_gt500.fa"),
+        ]
+        args = collections.namedtuple('Arguments', " ".join(["output_folder",
+            "scg_tsvs", "fasta_files", "names", "max_missing_scg",
+            "max_multicopy_scg", "groups"]))
+        groupargs = args(
+            output_folder=TMP_BASENAME_DIR,
+            scg_tsvs=[os.path.splitext(f)[0] + "_scg.tsv" for f in fasta_files],
+            fasta_files=fasta_files,
+            names=[os.path.splitext(os.path.basename(f))[0] for f in fasta_files],
+            max_missing_scg=2,
+            max_multicopy_scg=4,
+            groups=("gt300", "gt500")
+        )
+        main(groupargs)

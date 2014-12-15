@@ -5,11 +5,13 @@ as a combination of the maximum number of missing SCGs and the maximum number
 of multicopy SCGs. In case multiple clustering, SCG and fasta_file triplets are
 given only output the triplet with th
 """
-import pandas as pd
+import sys
 import argparse
-from Bio import SeqIO
 from os.path import join as ospj
 import logging
+
+import pandas as pd
+from Bio import SeqIO
 
 from concoct.utils import dir_utils
 
@@ -97,6 +99,10 @@ def parse_input():
     parser.add_argument("--names", required=True, nargs='+', help="Names for "
             "each scg_tsv and fasta_file pair. This is used as the prefix "
             "for the outputted bins.")
+    parser.add_argument("--groups", nargs='+', default=None, help="Select the best candidate "
+            "for each group of scg_tsv and fasta_file pairs. Number of group "
+            "names given should be equal to the number of scg_tsv and fasta_file "
+            "pairs. Identical group names indicate same groups.")
     parser.add_argument("--max_missing_scg", type=int, default=2)
     parser.add_argument("--max_multicopy_scg", type=int, default=4)
     args = parser.parse_args()
@@ -104,18 +110,22 @@ def parse_input():
             and len(args.scg_tsvs) == len(args.fasta_files)):
         raise(Exception("Should have equal number of scg_tsvs, fasta_files "
             "and names"))
-    return args.output_folder, args.scg_tsvs, args.fasta_files, args.names, \
-            args.max_missing_scg, args.max_multicopy_scg
+    if parser.groups and len(parser.groups) != len(args.names):
+        raise(Exception("Should have equal number of --groups as scg_tsvs, "
+            "fasta_files and names"))
+    if len(args.names) != len(set(args.names)):
+        raise(Exception("--names should be unique names"))
+    return args
 
 
-def main(output_folder, scg_tsvs, fasta_files, names, max_missing_scg,
-        max_multicopy_scg):
+def select_and_write_approved_bins(output_folder, scg_tsvs, fasta_files, names,
+        max_missing_scg, max_multicopy_scg):
     """Output approved bins in output folder. Find best scg scoring bins if
     necessary"""
     if len(scg_tsvs) > 1:
-        logging.info("Finding scg_tsv with highest number of approved bins with "
-                "max_missing_scg {} and max_multicopy_scg {}"
-                .format(max_missing_scg, max_multicopy_scg))
+        logging.info("Finding scg_tsv of {} with highest number of approved "
+                "bins with max_missing_scg {} and max_multicopy_scg {}"
+                .format(" ".join(names), max_missing_scg, max_multicopy_scg))
         winning_index, app_binsdf = get_winning_bins(scg_tsvs, fasta_files,
                 max_missing_scg, max_multicopy_scg)
         name = names[winning_index]
@@ -130,8 +140,34 @@ def main(output_folder, scg_tsvs, fasta_files, names, max_missing_scg,
     logging.info("Writing approved bins to {}*.fa".format(ospj(output_folder,
         name)))
     write_approved_bins(app_binsdf, fasta_file, output_folder, name)
-    logging.info("Done")
+    logging.info("Done writing")
+
+
+def main(args):
+    """
+    Run select_and_write_approved_bins for each group if necessary. Otherwise
+    run on all given arguments.
+    """
+    # create logger
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=logging.INFO,
+        format='%(asctime)s:%(levelname)s:%(name)s:%(message)s',
+    )
+    if args.groups:
+        group_indices = {g:[i for i, j in enumerate(args.groups) if j == g] for g in args.groups}
+        for g, indices in group_indices.iteritems():
+            logging.info("Selecting best SCG clustering for group "
+                    "{}".format(g))
+            select_and_write_approved_bins(args.output_folder, [args.scg_tsvs[i] for i in indices],
+                    [args.fasta_files[i] for i in indices], [args.names[i] for i in indices],
+                    args.max_missing_scg, args.max_multicopy_scg)
+    else:
+        logging.info("Selecting best SCG clustering of all given files")
+        select_and_write_approved_bins(args.output_folder, args.scg_tsvs, args.fasta_files,
+                args.names, args.max_missing_scg, args.max_multicopy_scg)
+    logging.info("Finished")
 
 
 if __name__ == "__main__":
-    main(*parse_input())
+    main(parse_input())
