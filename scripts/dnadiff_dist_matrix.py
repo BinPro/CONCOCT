@@ -251,7 +251,7 @@ def verbose_check_dependencies(progs):
         if path:
             logging.info("Using {}".format(path))
         else:
-            raise(Exception("{} not installed").format(path))
+            raise(Exception("{} not installed".format(p)))
 
 
 def main(output_folder, fasta_files, fasta_names, min_coverage,
