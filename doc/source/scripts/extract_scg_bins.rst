@@ -7,7 +7,7 @@ Usage
 The usage and help documentation of ``extract_scg_bins.py`` can be seen by
 running ``pyhton extract_scg_bins -h``:
 
-.. program-output:: (echo 'import conf'; cat ../../scripts/extract_scg_bins.py) | python - --help
+.. program-output:: cat ../../scripts/extract_scg_bins.py | sed 's/import argparse/import argparse, conf/' | python - --help
    :shell:
 
 Example
