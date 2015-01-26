@@ -2,8 +2,14 @@
 """
 Extract bins with given SCG (Single Copy genes) criteria. Criteria can be set
 as a combination of the maximum number of missing SCGs and the maximum number
-of multicopy SCGs. In case multiple clustering, SCG and fasta_file triplets are
-given only output the triplet with th
+of multicopy SCGs. By default the script selects from pairs of scg_tsvs and
+fasta_files, the pair that has the highest number of approved bins. In case
+there are multiple with the max amount of approved bins, it takes the one that
+has the highest sum of bases in those bins. If that is the same, it selects the
+first one passed as argument.
+
+One can also group the pairs of scg_tsvs and fasta_files with the --groups
+option so one can for instance find the best binning per sample.
 """
 import sys
 import argparse
@@ -110,7 +116,7 @@ def parse_input():
             and len(args.scg_tsvs) == len(args.fasta_files)):
         raise(Exception("Should have equal number of scg_tsvs, fasta_files "
             "and names"))
-    if parser.groups and len(parser.groups) != len(args.names):
+    if args.groups and len(args.groups) != len(args.names):
         raise(Exception("Should have equal number of --groups as scg_tsvs, "
             "fasta_files and names"))
     if len(args.names) != len(set(args.names)):
