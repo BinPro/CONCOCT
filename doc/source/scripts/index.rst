@@ -21,3 +21,4 @@ Contents:
     :maxdepth: 2
 
     dnadiff_dist_matrix
+    extract_scg_bins

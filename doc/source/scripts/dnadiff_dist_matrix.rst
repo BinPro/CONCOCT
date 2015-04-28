@@ -7,7 +7,7 @@ Usage
 The usage and help documentation of ``dnadiff_dist_matrix.py`` can be seen by
 running ``pyhton dnadiff_dist_matrix -h``:
 
-.. program-output:: (echo 'import conf'; cat ../../scripts/dnadiff_dist_matrix.py) | python - --help
+.. program-output:: cat ../../scripts/dnadiff_dist_matrix.py | sed 's/import argparse/import argparse, conf/' | python - --help
    :shell:
 
 Example
