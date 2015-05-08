@@ -392,7 +392,7 @@ required to let them know who you are.
     $CONCOCT/scripts/COG_table.py -b annotations/cog-annotations/velvet_71_c10K.out \
     -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt \
     -c concoct-output/clustering_gt1000.csv \
-    --cdd_cog_file $ONCOCT/scgs/cdd_to_cog.tsv > evaluation-output/clustering_gt1000_scg.tab
+    --cdd_cog_file $CONCOCT/scgs/cdd_to_cog.tsv > evaluation-output/clustering_gt1000_scg.tab
 
 The script requires the clustering output by concoct 
 ``concoct-output/clustering_gt1000.csv``, a file listing a set of SCGs
