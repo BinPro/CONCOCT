@@ -74,6 +74,7 @@ Optional dependencies
    -  Python packages: ``bcbio-gff>=0.4``
    -  R packages: ``gplots, reshape, ggplot2, ellipse, getopt`` and
       ``grid``
+   -  `BLAST <ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/>`__ >= 2.2.28+
 
 If you want to install these dependencies on your own server, you can
 take a look at `doc/Dockerfile.all\_dep <doc/Dockerfile.all_dep>`__ for
