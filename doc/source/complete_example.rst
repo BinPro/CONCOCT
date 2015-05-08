@@ -260,7 +260,7 @@ contig in each sample:
 ::
 
     cd $CONCOCT_EXAMPLE
-    cut -f1,3-26 concoct-input/concoct_inputtable.tsv > concoct-input/concoct_inputtableR.tsv
+    cut -f1,3- concoct-input/concoct_inputtable.tsv > concoct-input/concoct_inputtableR.tsv
 
 Then run concoct with 40 as the maximum number of cluster ``-c 40``,
 that we guess is appropriate for this data set:
