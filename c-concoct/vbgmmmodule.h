@@ -110,7 +110,8 @@ typedef struct s_Cluster
 
 
 #define DELIM ",\n"
-#define MAX_LINE_LENGTH   10000
+#define MAX_LINE_LENGTH   1048576
+#define MAX_FILE_NAME_LENGTH 1024
 #define MAX_WORD_LENGTH   128
 
 #define TRUE  1
