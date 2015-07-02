@@ -6,7 +6,7 @@ import pandas as pd
 import os
 import sys
 
-def main():
+def main(args):
     sample_dfs = []
     for i, sample in enumerate(args.quantfiles):
         if args.samplenames:
@@ -28,4 +28,5 @@ if __name__ == "__main__":
     parser.add_argument("quantfiles", nargs='+', help="Kallisto abundance.txt files")
     parser.add_argument("--samplenames", default=None, help="File with sample names, one line each, Should be the same order and the same number as the abundance.txt files")
     args = parser.parse_args()
-
+    
+    main(args)
