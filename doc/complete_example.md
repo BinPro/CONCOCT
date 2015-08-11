@@ -4,6 +4,12 @@ This documentation page aims to be a complete example walk through for the usage
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
+Login to the class servers
+-----------------------
+
+    ssh yourname@class.mbl.edu
+    ssh yourname@classxx
+
 Test data
 -----------------------
 The test data repository is located here /class/stamps-software/CONCOCT-test-data-0.3.2
