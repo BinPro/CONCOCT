@@ -32,7 +32,7 @@ Set three variables with full paths. One pointing to the root directory of the `
 
     export CONCOCT=/class/stamps-software/CONCOCT
     export CONCOCT_TEST=/class/stamps-software/CONCOCT-test-data
-    export CONCOCT_EXAMPLE=/class/username/CONCOCT-complete-example
+    export CONCOCT_EXAMPLE=/class/yourname/CONCOCT-complete-example
 
 You can see the full path of a directory you are located in by running the command ```pwd```.
 
@@ -171,6 +171,10 @@ First we can visualise the clusters in the first two PCA dimensions:
     Rscript $CONCOCT/scripts/ClusterPlot.R -c concoct-output/clustering_gt1000.csv -p concoct-output/PCA_transformed_data_gt1000.csv -m concoct-output/pca_means_gt1000.csv -r concoct-output/pca_variances_gt1000_dim -l -o evaluation-output/ClusterPlot.pdf
 
 <https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/ClusterPlot.pdf>
+
+To visualise your plots you will have to copy them off the server to a local directory. Move to that local directory on your computer and type:
+
+    scp cquince@class.mbl.edu:~/CONCOCT-complete-example/evaluation-output/ClusterPlot.pdf .
 
 We can also compare the clustering to species labels. For this test data set we know these labels, they are given in the file ```clustering_gt1000_s.csv```. For real data labels may be obtained through taxonomic classification, e.g. using:
 
