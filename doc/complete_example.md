@@ -90,15 +90,15 @@ It is typically located within your picard-tools installation.
 The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you created in the previous part. First create the index on the assembly for bowtie2:
 
 ~~cd $CONCOCT_EXAMPLE~~
-~~ bowtie2-build contigs/velvet_71_c10K.fa contigs/velvet_71_c10K.fa~~
+~~bowtie2-build contigs/velvet_71_c10K.fa contigs/velvet_71_c10K.fa~~
     
 ~~Then run this for loop, which for each sample creates a folder and runs ```map-bowtie2-markduplicates.sh```:~~
 
 ~~for f in $CONCOCT_TEST/reads/*_R1.fa; do~~
-~~  mkdir -p map/$(basename $f);~~
-~~  cd map/$(basename $f);~~
-~~  bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh -ct 1 -p '-f' $f $(echo $f | sed s/R1/R2/) pair $CONCOCT_EXAMPLE/contigs/velvet_71_c10K.fa asm bowtie2;~~
-~~  cd ../..;~~
+~~mkdir -p map/$(basename $f);~~
+~~cd map/$(basename $f);~~
+~~bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh -ct 1 -p '-f' $f $(echo $f | sed s/R1/R2/) pair $CONCOCT_EXAMPLE/contigs/velvet_71_c10K.fa asm bowtie2;~~
+~~cd ../..;~~
 ~~done~~
 
 The parameters used for `map-bowtie2-markduplicates.sh` are:
