@@ -174,7 +174,7 @@ First we can visualise the clusters in the first two PCA dimensions:
 
 To visualise your plots you will have to copy them off the server to a local directory. Move to that local directory on your computer and type:
 
-    scp cquince@class.mbl.edu:~/CONCOCT-complete-example/evaluation-output/ClusterPlot.pdf .
+    scp yourname@class.mbl.edu:~/CONCOCT-complete-example/evaluation-output/ClusterPlot.pdf .
 
 We can also compare the clustering to species labels. For this test data set we know these labels, they are given in the file ```clustering_gt1000_s.csv```. For real data labels may be obtained through taxonomic classification, e.g. using:
 
