@@ -1,6 +1,6 @@
-Complete Example V0.3 STAMPS 2014
+Complete Example V0.3 STAMPS 2015
 =================================
-This documentation page aims to be a complete example walk through for the usage of the CONCOCT package version 0.3 except for the assembly step.
+This documentation page aims to be a complete example walk through for the usage of the CONCOCT package version 0.3 except for the assembly and COG annotations step.
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
@@ -16,9 +16,11 @@ Move to your home directory, create a folder where you want all the output from 
     mkdir CONCOCT-complete-example
     cd CONCOCT-complete-example
 
-Then load the CONCOCT module:
-
-    module load concoct
+Then unload load stamps and load bioware modules:
+    
+    module unload stamps
+    module load bioware
+    
 
 Set three variables with full paths. One pointing to the root directory of the ```CONCOCT``` software, one pointing to the test data repository, named ```CONCOCT_TEST``` and one to the directory we just created. If you now have these in the folder ```/home/username/src/```, for instance, then use:
 
