@@ -76,7 +76,6 @@ After assembly we map the reads of each sample back to the assembly using [bowti
 
 We are not going to perform mapping ourselves. Instead just copy the pre-calculated files:
 
-    rm -r map
     cp -r $CONCOCT_TEST/map .
 
 These are the commands we ran.
