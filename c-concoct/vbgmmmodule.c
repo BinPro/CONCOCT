@@ -70,7 +70,7 @@ int driver(const char* szFileStub, int nKStart, int nLMin, unsigned long lSeed, 
   gsl_rng            *ptGSLRNG     = NULL;
   const gsl_rng_type *ptGSLRNGType = NULL;
   int i = 0, k = 0, nD = 0, nN = 0;
-  char szOFile[MAX_LINE_LENGTH];
+  char szOFile[MAX_FILE_NAME_LENGTH];
   FILE *ofp = NULL;
   t_VBParams tVBParams;
   t_Cluster  *ptBestCluster = NULL;
@@ -205,11 +205,11 @@ int driver(const char* szFileStub, int nKStart, int nLMin, unsigned long lSeed, 
 void setParams(t_Params *ptParams, const char *szFileStub)
 {
 
-  ptParams->szInputFile = (char *) malloc(MAX_LINE_LENGTH*sizeof(char));
+  ptParams->szInputFile = (char *) malloc(MAX_FILE_NAME_LENGTH*sizeof(char));
   if(!ptParams->szInputFile)
     goto memoryError;
 
-  ptParams->szPInputFile = (char *) malloc(MAX_LINE_LENGTH*sizeof(char));
+  ptParams->szPInputFile = (char *) malloc(MAX_FILE_NAME_LENGTH*sizeof(char));
   if(!ptParams->szInputFile)
     goto memoryError;
 
@@ -261,8 +261,11 @@ void readInputData(const char *szFile, t_Data *ptData)
 {
   double  **aadX = NULL;
   int  i = 0, j = 0, nD = 0, nN = 0;
-  char szLine[MAX_LINE_LENGTH];
+  char *szLine = (char *) malloc(sizeof(char)*MAX_LINE_LENGTH);
   FILE* ifp = NULL;
+
+  if(!szLine)
+    goto memoryError;
 
   ifp = fopen(szFile, "r");
 
@@ -343,6 +346,7 @@ void readInputData(const char *szFile, t_Data *ptData)
     exit(EXIT_FAILURE);
   }
 
+  free(szLine);
   ptData->nD = nD;
   ptData->nN = nN;
   ptData->aadX = aadX;
@@ -362,9 +366,12 @@ void readInputData(const char *szFile, t_Data *ptData)
 void readPInputData(const char *szFile, t_Data *ptData)
 {
   int  i = 0, j = 0, nD = ptData->nD, nT = 0;
-  char szLine[MAX_LINE_LENGTH];
+  char* szLine = (char *) malloc(sizeof(char)*MAX_LINE_LENGTH);
   FILE* ifp = NULL;
   
+  if(!szLine)
+    goto memoryError;
+
   ifp = fopen(szFile, "r");
 
   if(ifp){
@@ -421,6 +428,7 @@ void readPInputData(const char *szFile, t_Data *ptData)
     exit(EXIT_FAILURE);
   }
 
+  free(szLine);
   ptData->nT = nT;
   return;
 
@@ -1689,7 +1697,7 @@ void* runRThreads(void *pvpDCluster)
 
   for(r = 0; r < N_RTHREADS; r++){
     if(ptDCluster->szCOutFile != NULL){
-	szCOutFile = (char *) malloc(sizeof(char)*MAX_LINE_LENGTH);
+	szCOutFile = (char *) malloc(sizeof(char)*MAX_FILE_NAME_LENGTH);
 	sprintf(szCOutFile,"%sr%d.csv",ptDCluster->szCOutFile,r);
     }
 
