@@ -13,7 +13,7 @@ https://github.com/BinPro/CONCOCT/issues
 Features
 --------
 CONCOCT does unsupervised binning of metagenomic contigs by using nucleotide composition - kmer frequencies - and coverage data for multiple samples. 
-CONCOCT can accurately (up to species level) bin metagenomic contigs. For optmial performance:
+CONCOCT can accurately (up to species level) bin metagenomic contigs. For optimal performance:
 
 - Map several samples against your assembled contigs.
 - Cut longer contigs into 10 - 20 kb pieces prior to mapping.
