@@ -46,7 +46,7 @@ def _calculate_composition(comp_file, length_threshold, kmer_len):
         kmers = [
                 feature_mapping[kmer_tuple]
                 for kmer_tuple 
-                in window(seq.seq.tostring().upper(), kmer_len)
+                in window(str(seq.seq).upper(), kmer_len)
                 if kmer_tuple in feature_mapping
                 ]
         # numpy.bincount returns an array of size = max + 1

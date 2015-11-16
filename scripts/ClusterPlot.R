@@ -80,6 +80,6 @@ pdf(opt$ofile)
 theme_set(theme_bw(20))
 p <- ggplot(data=PCA.df, aes(x=x, y=y,colour=c)) + geom_point(size=1.0, alpha=.3) + xlab("PCA1") + ylab("PCA2") + scale_colour_manual(values=valuesC) + scale_shape_manual(values=valuesS) + geom_path(data=df_ell, aes(x=x, y=y,colour=as.factor(group)), size=0.5, linetype=2)
 
-if( !is.null(opt$legend)){ p + theme(legend.key.size = unit(0.3, "cm")) + guides(col = guide_legend(ncol = 2,override.aes = list(alpha = 1)))+ opts(legend.text=theme_text(size=4));}else{p + theme(legend.position="none");}
+if( !is.null(opt$legend)){ p + theme(legend.key.size = unit(0.3, "cm")) + guides(col = guide_legend(ncol = 2,override.aes = list(alpha = 1)))+ theme(legend.text=element_text(size=4));}else{p + theme(legend.position="none");}
 
 dev.off()

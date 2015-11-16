@@ -41,10 +41,11 @@ def main(args):
 
     logging.info('Performed PCA, resulted in %s dimensions' % transform_filter.shape[1])
     
-    Output.write_original_data(
-        joined,
-        args.length_threshold
-        )
+    if not args.no_original_data:
+        Output.write_original_data(
+            joined,
+            args.length_threshold
+            )
 
     Output.write_pca(
         transform_filter,

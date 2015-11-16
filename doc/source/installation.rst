@@ -74,6 +74,7 @@ Optional dependencies
    -  Python packages: ``bcbio-gff>=0.4``
    -  R packages: ``gplots, reshape, ggplot2, ellipse, getopt`` and
       ``grid``
+   -  `BLAST <ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/>`__ >= 2.2.28+
 
 If you want to install these dependencies on your own server, you can
 take a look at `doc/Dockerfile.all\_dep <doc/Dockerfile.all_dep>`__ for
@@ -89,7 +90,7 @@ rights (e.g. on a common computer cluster). The second option is
 suitable for a linux computer where you have root privileges and you
 prefer to use a virtual machine where all dependencies to run concoct
 are included. Docker does also run on Mac OS X through a virtual machine.
-For more information check out the [Docker documentation](http://docs.docker.com/installation/).
+For more information check out the `Docker documentation <http://docs.docker.com/installation/>`__.
 
 Using Anaconda
 ~~~~~~~~~~~~~~
@@ -154,7 +155,7 @@ image.
 We provide a Docker image:
 
 binpro/concoct\_latest contains CONCOCT and all its dependencies for the
-`complete workflow <doc/complete_example.rst>`__ with the exception of
+:doc:`complete_example` with the exception of
 the SCG evaluation.
 
 The following command will then download the image from the Docker image
