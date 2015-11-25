@@ -169,9 +169,12 @@ def plot_dist_matrix(matrix, fasta_names, heatmap_out, dendrogram_out):
     # Create
     pdm = pd.DataFrame(matrix, index=fasta_names, columns=fasta_names)
 
+    # Create linkage clustering
+    link = linkage(pdm, metric='euclidean', method='average')
+
     # Plot heatmap
     figsizex = max(10, len(fasta_names) / 4)
-    clustergrid = sns.clustermap(pdm, metric='euclidean', method='average',
+    clustergrid = sns.clustermap(pdm, col_linkage=link, row_linkage=link,
             figsize=(figsizex, figsizex))
     clustergrid.savefig(heatmap_out)
 
@@ -179,7 +182,6 @@ def plot_dist_matrix(matrix, fasta_names, heatmap_out, dendrogram_out):
     sns.set_style('white')
     figsizey = max(10, len(fasta_names) / 8)
     f, ax = plt.subplots(figsize=(figsizex, figsizey))
-    link = linkage(pdm, metric='euclidean', method='average')
     dendrogram(link, labels=pdm.index, ax=ax)
     no_spine = {'left': True, 'bottom': True, 'right': True, 'top': True}
     sns.despine(**no_spine)
