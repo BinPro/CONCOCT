@@ -25,7 +25,8 @@ output_folder/fasta_names.tsv
 A hierarchical clustering of the distance using euclidean average linkage
 clustering is plotted. This can be deactivated by using --skip_plot. The
 resulting heatmap is in output_folder/hclust_heatmap.pdf or
-output_folder/hclust_dendrogram.pdf. The image extension can be changed.
+output_folder/hclust_dendrogram.pdf and the resulting clustering is presented
+in output_folder/clustering.tsv. The image extension can be changed.
 """
 import argparse
 import subprocess
