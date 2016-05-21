@@ -4,6 +4,7 @@ from __future__ import division
 import sys
 import logging
 import vbgmm
+import numpy as np 
 
 from concoct.output import Output
 from concoct.parser import arguments
@@ -11,7 +12,6 @@ from concoct.cluster import cluster
 from concoct.input import load_data
 from concoct.transform import perform_pca
 
-import vbgmm
 
 def main(args):
     # Initialize output handling
@@ -61,8 +61,13 @@ def main(args):
     logging.info('PCA transformed data.')
 
     logging.info('Will call vbgmm with parameters: %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold))
+    import ipdb; ipdb.set_trace()
+    NC = transform_filter.shape[0]
+    assign = np.zeros(NC,dtype=np.int32)
+    debug=False
+    vbgmm.fit(transform_filter, assign, args.clusters, debug)
 
-    vbgmm.fit(Output.CONCOCT_PATH, args.clusters, args.length_threshold,args.seed,args.iterations,args.epsilon,args.converge_out)
+#    vbgmm.fit(Output.CONCOCT_PATH, args.clusters, args.length_threshold,args.seed,args.iterations,args.epsilon,args.converge_out)
 
     logging.info("CONCOCT Finished")
 

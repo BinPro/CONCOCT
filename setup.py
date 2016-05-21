@@ -2,13 +2,17 @@
 from setuptools import setup, find_packages
 import sys, os
 from distutils.core import Extension
+import numpy as np
+
+try:
+    from Cython.Distutils import build_ext
+except ImportError:
+    print "You need to have Cython installed on your system to run setup.py. Sorry!"
+    sys.exit()
 
 version = '0.4.1'
 
-module1 = Extension('vbgmm',
-        libraries =['gsl',  'gslcblas'],
-        include_dirs = ['c-concoct'],
-        sources = ['c-concoct/vbgmmmodule.c'])
+include_dirs_for_concoct = [np.get_include(), '/opt/local/include/']     
 
 setup(name='concoct',
       version=version,
@@ -29,7 +33,11 @@ setup(name='concoct',
       scripts=["bin/concoct"],
       include_package_data=True,
       zip_safe=False,
-      ext_modules=[module1],
+      cmdclass = {'build_ext': build_ext},
+      ext_modules = [
+                    Extension("vbgmm", sources=["./c-concoct2/vbgmm.pyx", "./c-concoct2/c_vbgmm_fit.c"],
+                                libraries =['gsl',  'gslcblas'], include_dirs=include_dirs_for_concoct),
+                    ],
       install_requires=['cython>=0.19.1',
                         'numpy>=1.7.1',
                         'scipy>=0.12.0',
