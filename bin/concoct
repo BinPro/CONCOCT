@@ -6,6 +6,8 @@ import logging
 import vbgmm
 import numpy as np 
 
+from sklearn.cluster import KMeans
+
 from concoct.output import Output
 from concoct.parser import arguments
 from concoct.cluster import cluster
@@ -65,7 +67,40 @@ def main(args):
     NC = transform_filter.shape[0]
     assign = np.zeros(NC,dtype=np.int32)
     debug=False
-    vbgmm.fit(transform_filter, assign, args.clusters, debug)
+    
+    nSplit=4
+    kmeans = KMeans(init='k-means++', n_clusters=nSplit, n_init=10)
+    kmeans.fit(transform_filter)
+    labels = kmeans.labels_
+    
+    l = 0
+    for s in range(nSplit):
+        transform_S = np.copy(transform_filter[labels==s,],order='C')
+        
+        NS=transform_S.shape[0]
+        
+        assign_S = np.zeros(NS,dtype=np.int32)
+        
+        vbgmm.fit(transform_S, assign_S, args.clusters, debug)
+        
+        map_S = np.where(labels==s)
+        
+        setS = sorted(list(set(assign_S)))
+        mapS = {}
+        for a in setS:
+            mapS[a] = l
+            l = l + 1 
+        
+        n = 0
+        for m in np.nditer(map_S):
+            assign[m] = mapS[assign_S[n]]
+            n=n+1
+        
+    Output.write_assign(
+        assign,
+        args.length_threshold,
+        joined.index,
+        )
 
 #    vbgmm.fit(Output.CONCOCT_PATH, args.clusters, args.length_threshold,args.seed,args.iterations,args.epsilon,args.converge_out)
 

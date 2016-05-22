@@ -21,7 +21,8 @@ class Output(object):
     PCA_FILE_BASE = None
     PCA_COMPONENTS_FILE_BASE = None
     FLOAT_FORMAT = '%1.8e'
-
+    INT_FORMAT = '%d'
+    
     @classmethod
     def __init__(self,basename,args):
         """
@@ -44,6 +45,8 @@ class Output(object):
         self.ORIGINAL_FILE_BASE = self.CONCOCT_PATH + "original_data_gt{0}.csv"
         self.PCA_FILE_BASE = self.CONCOCT_PATH + \
             "PCA_transformed_data_gt{0}.csv"
+        self.ASSIGN_FILE_BASE = self.CONCOCT_PATH + \
+            "clustering_gt{0}.csv"
         self.PCA_COMPONENTS_FILE_BASE = self.CONCOCT_PATH + \
             "PCA_components_data_gt{0}.csv"
         self.LOG_FILE_BASE = self.CONCOCT_PATH + 'log.txt'
@@ -70,6 +73,16 @@ class Output(object):
         transform_df.to_csv(
             self.PCA_FILE_BASE.format(threshold),
             float_format=self.FLOAT_FORMAT,
+            index_label="contig_id"
+            )
+        logging.info('Wrote PCA transformed file.')
+
+    @classmethod
+    def write_assign(self, assign, threshold, index):
+        transform_df = p.DataFrame(assign, index=index)
+        transform_df.to_csv(
+            self.ASSIGN_FILE_BASE.format(threshold),
+            int_format=self.INT_FORMAT,
             index_label="contig_id"
             )
         logging.info('Wrote PCA transformed file.')
