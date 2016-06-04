@@ -71,7 +71,7 @@ def main(args):
     assign = np.zeros(NC,dtype=np.int32)
     debug=False
     
-    nSplit=1
+    nSplit=4
     kmeans = KMeans(init='k-means++', n_clusters=nSplit, n_init=10)
     kmeans.fit(transform_filter)
     labels = kmeans.labels_
@@ -84,15 +84,15 @@ def main(args):
         
         NS=transform_S.shape[0]
         
-        assign_S = np.zeros(NS,dtype=np.int32)
+        #assign_S = np.zeros(NS,dtype=np.int32)
     
-        fit_arguments.append([transform_S, assign_S, args.clusters, debug])
+        fit_arguments.append([transform_S, args.clusters, debug])
         
-    prll_map(vbgmm_fit_wrapper, fit_arguments)
+    assigns = prll_map(vbgmm_fit_wrapper, fit_arguments)
     
     for s in range(nSplit):
-        [transform_S, assign_S, args.clusters, debug] = fit_arguments[s]
-                
+        #[transform_S, assign_S, args.clusters, debug] = fit_arguments[s]
+        assign_S = assigns[s]       
         map_S = np.where(labels==s)
         
         setS = sorted(list(set(assign_S)))
