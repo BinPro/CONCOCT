@@ -13,7 +13,10 @@ from concoct.parser import arguments
 from concoct.cluster import cluster
 from concoct.input import load_data
 from concoct.transform import perform_pca
+from concoct.processes import prll_map
 
+def vbgmm_fit_wrapper(args):
+    return vbgmm.fit(*args)
 
 def main(args):
     # Initialize output handling
@@ -68,10 +71,12 @@ def main(args):
     assign = np.zeros(NC,dtype=np.int32)
     debug=False
     
-    nSplit=4
+    nSplit=1
     kmeans = KMeans(init='k-means++', n_clusters=nSplit, n_init=10)
     kmeans.fit(transform_filter)
     labels = kmeans.labels_
+    
+    fit_arguments = []
     
     l = 0
     for s in range(nSplit):
@@ -80,9 +85,14 @@ def main(args):
         NS=transform_S.shape[0]
         
         assign_S = np.zeros(NS,dtype=np.int32)
+    
+        fit_arguments.append([transform_S, assign_S, args.clusters, debug])
         
-        vbgmm.fit(transform_S, assign_S, args.clusters, debug)
-        
+    prll_map(vbgmm_fit_wrapper, fit_arguments)
+    
+    for s in range(nSplit):
+        [transform_S, assign_S, args.clusters, debug] = fit_arguments[s]
+                
         map_S = np.where(labels==s)
         
         setS = sorted(list(set(assign_S)))
@@ -95,7 +105,7 @@ def main(args):
         for m in np.nditer(map_S):
             assign[m] = mapS[assign_S[n]]
             n=n+1
-        
+    
     Output.write_assign(
         assign,
         args.length_threshold,
