@@ -1,73 +1,73 @@
-Complete Example V0.3 STAMPS 2015
+#Complete Example V0.3 STAMPS 2016
 =================================
 This documentation page aims to be a complete example walk through for the usage of the CONCOCT package version 0.3 except for the assembly and COG annotations step.
 
 It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
-Login to the class servers
+##Login to the class servers
 -----------------------
 
     ssh yourname@class.mbl.edu
     ssh yourname@classxx
 
-Test data
------------------------
-The test data repository is located here /class/stamps-software/CONCOCT-test-data-0.3.2
 
-Setting up the test environment
+##Setting up the test environment
 -------------------------------
 Move to your home directory, create a folder where you want all the output from this example to go:
-    
+
+```
     cd ~
     mkdir CONCOCT-complete-example
     cd CONCOCT-complete-example
-
-Then unload load stamps and load bioware modules:
-    
-    module unload stamps
-    module load bioware
-    
+```
 
 Set three variables with full paths. One pointing to the root directory of the ```CONCOCT``` software, one pointing to the test data repository, named ```CONCOCT_TEST``` and one to the directory we just created. If you now have these in the folder ```/home/username/src/```, for instance, then use:
 
+```
     export CONCOCT=/class/stamps-software/CONCOCT
     export CONCOCT_TEST=/class/stamps-software/CONCOCT-test-data
     export CONCOCT_EXAMPLE=/class/yourname/CONCOCT-complete-example
+```
 
 You can see the full path of a directory you are located in by running the command ```pwd```.
 
-Assembling Metagenomic Reads
+Copy in the example data from the class folder:
+```
+    cp $CONCOCT_TEST/Example.tar.gz .
+```
+
+And extract:
+```
+    tar -xvzf Example.tar.gz
+```
+
+##Assembling Metagenomic Reads
 ----------------------------
-The first step in the analysis is to assemble all reads into contigs, in the standard tutorial we use the software [Velvet](http://www.ebi.ac.uk/~zerbino/velvet/) for this. This step can be computationaly intensive but for this small data set comprising a synthetic community of four species and 16 samples (100,000 reads per sample) it can be performed in a few minutes. We will not execute this step, the resulting contigs are already in the test data repository, and you can copy them from there instead:
+The first step in the analysis is to assemble all reads into contigs, even 
+for this small example, 1 million reads per sample and 16 samples, this is computationally 
+intensive. There are a number of assemblers available if you want a quick results \texttt{megahit} generally performs well but \texttt{Spades} is also good. The best choice is data set dependent.
 
-    mkdir contigs
-    cp $CONCOCT_TEST/contigs/velvet_71.fa contigs/velvet_71.fa
+Then assemble the reads. We recommend megahit for this. To perform the assembly I ran the following commands:
+```bash
+~~cd Example
+~~nohup megahit -1 $(<R1.csv) -2 $(<R2.csv) -t 8 -o Assembly --presets meta > megahit.out&
+```
+However, I do not suggest you do this now instead copy the Assembly directory from the class folders:
 
-Note in general we would not recommend velvet as an assembler for full size data sets, idba_ud, MEGAHIT or SPADES would all be 
-better choices.
-
-The commands we ran:
-
-~~cd $CONCOCT_EXAMPLE~~
-~~cat $CONCOCT_TEST/reads/Sample*_R1.fa > All_R1.fa~~
-~~cat $CONCOCT_TEST/reads/Sample*_R2.fa > All_R2.fa~~
-~~velveth velveth_k71 71 -fasta -shortPaired -separate All_R1.fa All_R2.fa~~
-~~velvetg velveth_k71 -ins_length 400 -exp_cov auto -cov_cutoff auto~~
-
-~~After the assembly is finished create a directory with the resulting contigs and copy the result of Velvet there (this output is also in ```$CONCOCT_TEST/contigs```):~~
-
-~~mkdir contigs~~
-~~cp velveth_k71/contigs.fa contigs/velvet_71.fa~~
-~~rm All_R1.fa~~
-~~rm All_R2.fa~~
+```
+    cp -r $CONCOCT_TEST/Assembly .
+```
 
 
-Cutting up contigs
+#Cutting up contigs
 ----------------------------
 In order to give more weight to larger contigs and mitigate the effect of assembly errors we cut up the contigs into chunks of 10 Kb. The final chunk is appended to the one before it if it is < 10 Kb to prevent generating small contigs. This means that no contig < 20 Kb is cut up. We use the script ``cut_up_fasta.py`` for this:
 
-    cd $CONCOCT_EXAMPLE
-    python $CONCOCT/scripts/cut_up_fasta.py -c 10000 -o 0 -m contigs/velvet_71.fa > contigs/velvet_71_c10K.fa
+Now lets cut up the contigs and index for the mapping program \texttt{bwa}:
+```
+mkdir contigs
+python $CONCOCT/scripts/cut_up_fasta.py -c 10000 -o 0 -m Assembly/final.contigs.fa > contigs/final_contigs_c10K.fa
+```
 
 
 Map the Reads onto the Contigs
