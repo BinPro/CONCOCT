@@ -49,8 +49,10 @@ intensive. There are a number of assemblers available if you want a quick result
 
 Then assemble the reads. We recommend megahit for this. To perform the assembly I ran the following commands:
 
-cd Example
+```
+cd Example 
 nohup megahit -1 $(<R1.csv) -2 $(<R2.csv) -t 8 -o Assembly --presets meta > megahit.out&
+```
 
 However, I **do not** suggest you do this now instead copy the Assembly directory from the class folders:
 
