@@ -48,10 +48,10 @@ for this small example, 1 million reads per sample and 16 samples, this is compu
 intensive. There are a number of assemblers available if you want a quick results \texttt{megahit} generally performs well but \texttt{Spades} is also good. The best choice is data set dependent.
 
 Then assemble the reads. We recommend megahit for this. To perform the assembly I ran the following commands:
-```bash
+
 ~~cd Example
 ~~nohup megahit -1 $(<R1.csv) -2 $(<R2.csv) -t 8 -o Assembly --presets meta > megahit.out&
-```
+
 However, I do not suggest you do this now instead copy the Assembly directory from the class folders:
 
 ```
