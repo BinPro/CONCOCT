@@ -45,9 +45,9 @@ And extract:
 ----------------------------
 The first step in the analysis is to assemble all reads into contigs, even 
 for this small example, 1 million reads per sample and 16 samples, this is computationally 
-intensive. There are a number of assemblers available if you want a quick results \texttt{megahit} generally performs well but \texttt{Spades} is also good. The best choice is data set dependent.
+intensive. There are a number of assemblers available if you want a quick results \megahit generally performs well but Spades is also good. The best choice is data set dependent.
 
-Then assemble the reads. We recommend megahit for this. To perform the assembly I ran the following commands:
+Then assemble the reads. We recommend megahit for this. To perform the assembly I ran the following commands, please **do not run this**:
 
 ```
 cd Example 
@@ -65,7 +65,7 @@ However, I **do not** suggest you do this now instead copy the Assembly director
 ----------------------------
 In order to give more weight to larger contigs and mitigate the effect of assembly errors we cut up the contigs into chunks of 10 Kb. The final chunk is appended to the one before it if it is < 10 Kb to prevent generating small contigs. This means that no contig < 20 Kb is cut up. We use the script ``cut_up_fasta.py`` for this:
 
-Now lets cut up the contigs and index for the mapping program \texttt{bwa}:
+Now lets cut up the contigs and index for the mapping program bwa:
 ```
 mkdir contigs
 python $CONCOCT/scripts/cut_up_fasta.py -c 10000 -o 0 -m Assembly/final.contigs.fa > contigs/final_contigs_c10K.fa
@@ -74,50 +74,33 @@ python $CONCOCT/scripts/cut_up_fasta.py -c 10000 -o 0 -m Assembly/final.contigs.
 
 Map the Reads onto the Contigs
 ------------------------------
-After assembly we map the reads of each sample back to the assembly using [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) and remove PCR duplicates with [MarkDuplicates](http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates). The coverage histogram for each bam file is computed with [BEDTools](https://github.com/arq5x/bedtools2) genomeCoverageBed. The script that calls these programs is provided with CONCOCT. 
+After assembly we map the reads of each sample back to the assembly using [bwa](https://github.com/lh3/bwa).
 
 We are not going to perform mapping ourselves. Instead just copy the pre-calculated files:
 
     cp -r $CONCOCT_TEST/map .
 
-These are the commands we ran.
+These are the commands we ran (**do not run this**).
 
-Set an environment variable with the full path to the MarkDuplicates jar file. ```$MRKDUP``` which should point to the MarkDuplicates jar file e.g.
+```
+mkdir Map
 
-~~export MRKDUP=/bioware/picard-tools-1.118/MarkDuplicates.jar~~
+for file in Example/*R1.fastq
+do 
+   
+   stub=${file%_R1.fastq}
+   stub2=${stub#Example\/}	
+   echo $stub
 
-It is typically located within your picard-tools installation.
+   file2=${stub}_R2.fastq
 
-The following command is to be executed in the ```$CONCOCT_EXAMPLE``` dir you created in the previous part. First create the index on the assembly for bowtie2:
-
-~~cd $CONCOCT_EXAMPLE~~
-~~bowtie2-build contigs/velvet_71_c10K.fa contigs/velvet_71_c10K.fa~~
-    
-~~Then run this for loop, which for each sample creates a folder and runs ```map-bowtie2-markduplicates.sh```:~~
-
-~~for f in $CONCOCT_TEST/reads/*_R1.fa; do~~
-~~mkdir -p map/$(basename $f);~~
-~~cd map/$(basename $f);~~
-~~bash $CONCOCT/scripts/map-bowtie2-markduplicates.sh -ct 1 -p '-f' $f $(echo $f | sed s/R1/R2/) pair $CONCOCT_EXAMPLE/contigs/velvet_71_c10K.fa asm bowtie2;~~
-~~cd ../..;~~
-~~done~~
-
-The parameters used for `map-bowtie2-markduplicates.sh` are:
-
-    * `-c` option to compute coverage histogram with genomeCoverageBed
-    * `-t` option is number of threads
-    * `-p` option is the extra parameters given to bowtie2. In this case `-f`.
-
-The five arguments are:
-    * pair1, the fasta/fastq file with the #1 mates
-    * pair2, the fasta/fastq file with the #2 mates
-    * pair_name, a name for the pair used to prefix output files
-    * assembly, a fasta file of the assembly to map the pairs to
-    * assembly_name, a name for the assembly, used to postfix outputfiles
-    * outputfolder, the output files will end up in this folder
+   bwa mem -t 4 contigs/final_contigs_c10K.fa $file $file2 > Map/${stub2}.sam
+done
+```
 
 Generate coverage table
 ------------------------
+
 Use the bam files of each sample to create a table with the coverage of each contig per sample.
 
     cd $CONCOCT_EXAMPLE/map
@@ -128,17 +111,7 @@ Use the bam files of each sample to create a table with the coverage of each con
     mkdir $CONCOCT_EXAMPLE/concoct-input
     mv concoct_inputtable.tsv $CONCOCT_EXAMPLE/concoct-input/
 
-Generate linkage table
-------------------------
-The same bam files can be used to give linkage per sample between contigs:
 
-    cd $CONCOCT_EXAMPLE/map
-    python $CONCOCT/scripts/bam_to_linkage.py -m 8 \
-        --regionlength 500 --fullsearch \
-        --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-        ../contigs/velvet_71_c10K.fa Sample*/bowtie2/asm_pair-smds.bam \
-    > concoct_linkage.tsv
-    mv concoct_linkage.tsv $CONCOCT_EXAMPLE/concoct-input/
     
 
 Run concoct
