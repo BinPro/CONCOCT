@@ -2,7 +2,7 @@
 =================================
 This documentation page aims to be a complete example walk through for the usage of the CONCOCT package version 0.3 except for the assembly and COG annotations step.
 
-It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository: https://github.com/BinPro/CONCOCT-test-data/releases. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
+It is not required to run all steps. The output files for each step are in the test data repository. At the end of this example the results should be the same as the results in the corresponding test data repository. The version numbers listed above are the ones used to generate the results in that repository. Using newer versions will probably not be a problem, but your results may be different in that case.
 
 ##Login to the class servers
 -----------------------
@@ -236,7 +236,7 @@ To view this also download off server to your local directory:
 scp yourname@class.mbl.edu:~/CONCOCT-complete-example/evaluation-output/clustering_gt1000_conf.pdf .
 ```
 
-Validation using single-copy core genes
+##Validation using single-copy core genes
 ---------------------------------------
 
 We can also evaluate the clustering based on single-copy core genes. We will use our results from above in ```Annotate_gt1000``` to do this.
@@ -267,3 +267,41 @@ The plot is downloadable here:
 
 ![scg plot](figs/clustering_gt1000_scg.pdf)
 
+##Comparison to MetaBat
+
+We will also compare to a competitor algorithm released last year [MetaBat](https://bitbucket.org/berkeleylab/metabat) and 
+[paper](https://peerj.com/articles/1165/). Note the claim 
+"MetaBAT outperforms alternative methods in accuracy and computational efficiency on both synthetic and real metagenome datasets.".
+
+```
+module load metabat
+mkdir Metabat
+cd Metabat
+runMetaBat.sh -m 1500 ../contigs/final_contigs_c10K.fa ../Map/Sample*_sub.bam
+```
+
+We run it on the same contigs utilising the same bam files. The minimum length that MetaBat will allow is 1500bp. So once this is done to provide a fair comparison we will 
+also rerun CONCOCT with this minimum contig length.
+
+```
+cd $CONCOCT_EXAMPLE
+mkdir Concoct_gt1500
+concoct --coverage_file ../Concoct/Coverage.tsv --composition_file ../contigs/final_contigs_c10K.fa -c 40 -l 1500
+```
+
+Lets compare the Metabat results with CONCOCT. First we maninpulate the cluster assignments into our format:
+
+```
+cd $CONCOCT_EXAMPLE/Metabat
+grep ">" final_contigs_c10K.fa.metabat-bins*fa | sed 's/.fa:>/,/g' | sed 's/final_contigs_c10K.fa.metabat-bins-_-m_1500\.//g' | awk -F, '{print $2,$1}' OFS=, > clustering_gt1500.csv
+```
+
+Then we run the validation script:
+```
+ $CONCOCT/scripts/Validate.pl --cfile=clustering_gt1500.csv --sfile=../AssignGenome/clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa
+```
+
+    N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+    6649	6649	5.2942e+07	17	29	0.872325	0.999852	0.937318	0.984568	0.868407
+    
+We can also generate the SCG table..
