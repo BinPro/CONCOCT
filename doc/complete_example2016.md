@@ -189,7 +189,7 @@ mkdir evaluation-output
 Rscript $CONCOCT/scripts/ClusterPlot.R -c Concoct/clustering_gt1000.csv -p Concoct/PCA_transformed_data_gt1000.csv -m Concoct/pca_means_gt1000.csv -r Concoct/pca_variances_gt1000_dim -l -o evaluation-output/ClusterPlot.pdf
 ```
 
-<https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/ClusterPlot.pdf>
+<figs/ClusterPlot.pdf>
 
 To visualise your plots you will have to copy them off the server to a local directory. Move to that local directory on your computer and type:
 
