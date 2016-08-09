@@ -175,6 +175,15 @@ cd $CONCOCT_EXAMPLE
 cp -r $CONCOCT_TEST/Annotate_gt1000 .
 ```
 
+How to determine number of genomes present?
+
+```
+cd Annotate_gt1000
+python /class/stamps-software/CONCOCT/scripts/ExtractCOGs.py -b final_contigs_gt1000_c10K.out --cdd_cog_file /class/stamps-software/CONCOCT/scgs/cdd_to_cog.tsv > final_contigs_gt1000_c10K.cogs
+$CONCOCT/scripts/CountSCGs.pl $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_generaR.txt < final_contigs_gt1000_c10K.cogs  | cut -d"," -f2 | awk -f $CONCOCT/scripts/median.awk
+```
+
+The result should be 15, this places an upper limit on the number of genomes we can bin.
 
 ##Evaluate output
 ---------------
@@ -267,6 +276,18 @@ The plot is downloadable here:
 
 ![scg plot](figs/clustering_gt1000_scg.pdf)
 
+How many 75% complete genomes did we get. Do this yourselves in R.
+```
+R
+> scg <- read.table("clustering_gt1000_scg.tab",header=TRUE,row.names=1)
+> scg <- scg[,-1]
+> scg <- scg[,-1]
+>sum(rowSums(scg == 1)/36. > 0.75)
+>q()
+```
+
+We got 13 75\% complete genomes.
+
 ##Comparison to MetaBat
 
 We will also compare to a competitor algorithm released last year [MetaBat](https://bitbucket.org/berkeleylab/metabat) and 
@@ -319,4 +340,14 @@ To generate:
 ![Metabat scg plot](figs/metabat_clustering_gt1500_scg.pdf)
 
 ![Metabat conf plot](figs/metabat_clustering_gt1500_conf.pdf)
+
+These confirm that Metabat suffers from fragmentation errors. We can compare to CONCOCT 
+at the same contig cut-off:
+
+```
+cd $CONCOCT_TEST
+mkdir Concoct_gt1500
+cd Concoct_g1500
+ concoct --coverage_file ../Concoct/Coverage.tsv --composition_file ../contigs/final_contigs_c10K.fa -c 40 -l 1500
+```
 
