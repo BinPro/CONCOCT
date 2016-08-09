@@ -196,7 +196,7 @@ To visualise your plots you will have to copy them off the server to a local dir
 
 The figure should look like this:
 
-![alt tag](figs/ClusterPlot.pdf)
+![Cluster PCA](figs/ClusterPlot.pdf)
 
 We can also compare the clustering to species labels. For this test data set we know these labels, they are given in the file ```$CONCOCT_TEST/AssignGenome/clustering_gt1000_smap.csv```. For real data labels may be obtained through taxonomic classification.
 In either case we provide a script Validate.pl for computing basic metrics on the cluster quality. Lets copy the validation data into our directory:
@@ -209,32 +209,32 @@ cp -r $CONCOCT_TEST/AssignGenome .
 And run our validation script:
 ```
 cd evaluation-output
-$CONCOCT/scripts/Validate.pl --cfile=../Concoct/clustering_gt1000.csv --sfile=clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa
+$CONCOCT/scripts/Validate.pl --cfile=../Concoct/clustering_gt1000.csv --sfile=../AssignGenome/clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa
 ```
 
-
-    cd $CONCOCT_EXAMPLE
-    cp $CONCOCT_TEST/evaluation-output/clustering_gt1000_s.csv evaluation-output/
-    $CONCOCT/scripts/Validate.pl --cfile=concoct-output/clustering_gt1000.csv --sfile=evaluation-output/clustering_gt1000_s.csv --ofile=evaluation-output/clustering_gt1000_conf.csv --ffile=contigs/velvet_71_c10K.fa
-    
-
-This script requires the clustering output by concoct ```concoct-output/clustering_gt1000.csv``` these have a simple format of a comma separated file listing each contig id followed by the cluster index and the species labels that have the same format but with a text label rather than a cluster index. The script should output:
+ This script requires the clustering output by concoct ```Concoct/clustering_gt1000.csv``` these have a simple format of a comma separated file listing each contig id followed by the cluster index and the species labels that have the same format but with a text label rather than a cluster index. The script should output:
 
     N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
-    684	684	6.8023e+06	5	4	0.897224	0.999604	0.841911	0.911563	0.823200
+    9176	9176	5.8291e+07	20	23	0.986723	0.950877	0.976244	0.993650    0.946975
 
 
 This gives the no. of contigs N clustered, the number with labels M, the number of unique labels S, the number of clusters K, the recall, the precision, the normalised mutual information (NMI), the Rand index, and the adjusted Rand index. It also generates a file called a `confusion matrix` with the frequencies of each species in each cluster. We provide a further script for visualising this as a heatmap:
 
-    Rscript $CONCOCT/scripts/ConfPlot.R  -c evaluation-output/clustering_gt1000_conf.csv -o  evaluation-output/clustering_gt1000_conf.pdf
+```
+cd $CONCOCT_EXAMPLE
+Rscript $CONCOCT/scripts/ConfPlot.R  -c evaluation-output/clustering_gt1000_conf.csv -o  evaluation-output/clustering_gt1000_conf.pdf
+```
 
 This generates a file with normalised frequencies of contigs from each cluster across species:
 
-<https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/clustering_gt1000_conf.pdf>
+![Confusion matrix](figs/clustering_gt1000_conf.pdf)
+
 
 To view this also download off server to your local directory:
 
-    scp yourname@class.mbl.edu:~/CONCOCT-complete-example/evaluation-output/clustering_gt1000_conf.pdf .
+```
+scp yourname@class.mbl.edu:~/CONCOCT-complete-example/evaluation-output/clustering_gt1000_conf.pdf .
+```
 
 Validation using single-copy core genes
 ---------------------------------------
