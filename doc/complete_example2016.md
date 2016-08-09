@@ -61,7 +61,7 @@ However, I **do not** suggest you do this now instead copy the Assembly director
 ```
 
 
-#Cutting up contigs
+##Cutting up contigs
 ----------------------------
 In order to give more weight to larger contigs and mitigate the effect of assembly errors we cut up the contigs into chunks of 10 Kb. The final chunk is appended to the one before it if it is < 10 Kb to prevent generating small contigs. This means that no contig < 20 Kb is cut up. We use the script ``cut_up_fasta.py`` for this:
 
@@ -72,7 +72,7 @@ python $CONCOCT/scripts/cut_up_fasta.py -c 10000 -o 0 -m Assembly/final.contigs.
 ```
 
 
-Map the Reads onto the Contigs
+##Map the Reads onto the Contigs
 ------------------------------
 After assembly we map the reads of each sample back to the assembly using [bwa](https://github.com/lh3/bwa).
 
@@ -113,7 +113,7 @@ do
 done
 ```
 
-Generate coverage table
+##Generate coverage table
 ------------------------
 
 Given the processed mapping files we can now generate the coverage table:
@@ -125,7 +125,7 @@ $CONCOCT/scripts/Collate.pl Map | tr "," "\t" > Coverage.tsv
 This is a simple tab delimited file with the coverage of each contig per sample.
 
 
-Run concoct
+##Run concoct
 -----------
 
 To see possible parameter settings with a description run
@@ -146,16 +146,26 @@ cd ..
 
 When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory that can be set with the `-b` parameter and will be the present working directory by default. 
 
-Evaluate output
+##Contig annotation
+
+We are going to annotate COGs on our contigs. You first need to find genes on the contigs and functionally annotate these. Here we used prodigal (https://github.com/hyattpd/Prodigal) for gene prediction and annotation, but you can use anything you want (**do not run this**):
+
+```
+
+```
+
+##Evaluate output
 ---------------
 
 This will require that you have Rscript with the R packages [gplots](http://cran.r-project.org/web/packages/gplots/index.html), [reshape](http://cran.r-project.org/web/packages/reshape/index.html), [ggplot2](http://cran.r-project.org/web/packages/ggplot2/index.html), [ellipse](http://cran.r-project.org/web/packages/ellipse/index.html), [getopt](http://cran.r-project.org/web/packages/getopt/index.html) and [grid](http://cran.r-project.org/web/packages/grid/index.html) installed. The package grid does not have to be installed for R version > 1.8.0
 
 First we can visualise the clusters in the first two PCA dimensions:
 
-    cd $CONCOCT_EXAMPLE
-    mkdir evaluation-output
-    Rscript $CONCOCT/scripts/ClusterPlot.R -c concoct-output/clustering_gt1000.csv -p concoct-output/PCA_transformed_data_gt1000.csv -m concoct-output/pca_means_gt1000.csv -r concoct-output/pca_variances_gt1000_dim -l -o evaluation-output/ClusterPlot.pdf
+```
+cd $CONCOCT_EXAMPLE
+mkdir evaluation-output
+Rscript $CONCOCT/scripts/ClusterPlot.R -c Concoct/clustering_gt1000.csv -p Concoct/PCA_transformed_data_gt1000.csv -m Concoct/pca_means_gt1000.csv -r Concoct/pca_variances_gt1000_dim -l -o evaluation-output/ClusterPlot.pdf
+```
 
 <https://github.com/BinPro/CONCOCT-test-data/tree/master/evaluation-output/ClusterPlot.pdf>
 
@@ -163,11 +173,20 @@ To visualise your plots you will have to copy them off the server to a local dir
 
     scp yourname@class.mbl.edu:~/CONCOCT-complete-example/evaluation-output/ClusterPlot.pdf .
 
-We can also compare the clustering to species labels. For this test data set we know these labels, they are given in the file ```clustering_gt1000_s.csv```. For real data labels may be obtained through taxonomic classification, e.g. using:
+We can also compare the clustering to species labels. For this test data set we know these labels, they are given in the file ```$CONCOCT_TEST/AssignGenome/clustering_gt1000_smap.csv```. For real data labels may be obtained through taxonomic classification.
+In either case we provide a script Validate.pl for computing basic metrics on the cluster quality. Lets copy the validation data into our directory:
 
-<https://github.com/umerijaz/TAXAassign>
+```
+cd $CONCOCT_EXAMPLE
+cp -r $CONCOCT_TEST/AssignGenome .
+```
 
-In either case we provide a script Validate.pl for computing basic metrics on the cluster quality:
+And run our validation script:
+```
+cd evaluation-output
+$CONCOCT/scripts/Validate.pl --cfile=../Concoct/clustering_gt1000.csv --sfile=clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa
+```
+
 
     cd $CONCOCT_EXAMPLE
     cp $CONCOCT_TEST/evaluation-output/clustering_gt1000_s.csv evaluation-output/
