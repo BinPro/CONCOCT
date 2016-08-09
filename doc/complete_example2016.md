@@ -368,8 +368,8 @@ Rscript $CONCOCT/scripts/COGPlot.R -s clustering_gt1500_scg.tab -o concoct_clust
 Rscript $CONCOCT/scripts/ConfPlot.R  -c clustering_gt1500_conf.csv -o concoct_clustering_gt1500_conf.pdf
 ```
 
+Now we have 14. Here are the plots..
+
 ![CONCOCT scg plot](figs/concoct_clustering_gt1500_scg.pdf)
 
 ![CONCOCT conf plot](figs/concoct_clustering_gt1500_conf.pdf)
-
-Now we have 14. Here are the plots..
