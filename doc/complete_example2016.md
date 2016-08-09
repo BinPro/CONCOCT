@@ -78,7 +78,9 @@ After assembly we map the reads of each sample back to the assembly using [bwa](
 
 We are not going to perform mapping ourselves. Instead just copy the pre-calculated files:
 
+```
     cp -r $CONCOCT_TEST/map .
+```
 
 These are the commands we ran (**do not run this**).
 
@@ -130,7 +132,9 @@ This is a simple tab delimited file with the coverage of each contig per sample.
 
 To see possible parameter settings with a description run
 
+```
     concoct --help
+```
 
 We will only run concoct for some standard settings here. The only one we vary is the cluster number which should be at least twice the number of genomes in your 
 co-assembly (see discussion below of how to estimate this). In this case we know it is 
@@ -151,8 +155,26 @@ When concoct has finished the message "CONCOCT Finished, the log shows how it we
 We are going to annotate COGs on our contigs. You first need to find genes on the contigs and functionally annotate these. Here we used prodigal (https://github.com/hyattpd/Prodigal) for gene prediction and annotation, but you can use anything you want (**do not run this**):
 
 ```
+mkdir Annotate_gt1000
+cd Annotate_gt1000
+python $CONCOCT/scripts/LengthFilter.py -m 1000 ../contigs/final_contigs_c10K.fa > final_contigs_gt1000_c10K.fa
+prodigal -i final_contigs_gt1000_c10K.fa -a final_contigs_gt1000_c10K.faa -d final_contigs_gt1000_c10K.fna  -f gff -p meta -o final_contigs_gt1000_c10K.gff
+```
+
+Then we assigned COGs (but on another server) - **do not run this**
 
 ```
+export COGSDB_DIR=/home/opt/rpsblast_db
+nohup $CONCOCT/scripts/RPSBLAST.sh -f final_contigs_gt1000_c10K.faa -p -c 32 -r 1 > r.out&
+```
+
+Instead just copy whole directory into your example dir (do run this)
+
+```
+cd $CONCOCT_EXAMPLE
+cp -r $CONCOCT_TEST/Annotate_gt1000 .
+```
+
 
 ##Evaluate output
 ---------------
