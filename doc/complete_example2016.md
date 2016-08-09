@@ -298,10 +298,25 @@ grep ">" final_contigs_c10K.fa.metabat-bins*fa | sed 's/.fa:>/,/g' | sed 's/fina
 
 Then we run the validation script:
 ```
- $CONCOCT/scripts/Validate.pl --cfile=clustering_gt1500.csv --sfile=../AssignGenome/clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa
+ $CONCOCT/scripts/Validate.pl --cfile=clustering_gt1500.csv --sfile=../AssignGenome/clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa --ofile=clustering_gt1500_conf.csv
 ```
 
     N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
     6649	6649	5.2942e+07	17	29	0.872325	0.999852	0.937318	0.984568	0.868407
     
-We can also generate the SCG table..
+We can also generate confusion plots and the the SCG table..
+
+```
+$CONCOCT/scripts/COG_table.py -b ../Annotate_gt1000/final_contigs_gt1000_c10K.out -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt -cclustering_gt1500.csv --cdd_cog_file $CONCOCT/scgs/cdd_to_cog.tsv > clustering_gt1500_scg.tab
+
+Rscript $CONCOCT/scripts/COGPlot.R -s clustering_gt1500_scg.tab -o metabat_clustering_gt1500_scg.pdf
+
+Rscript $CONCOCT/scripts/ConfPlot.R  -c clustering_gt1500_conf.csv -o metabat_clustering_gt1500_conf.pdf
+```
+
+To generate:
+
+![Metabat scg plot](figs/metabat_clustering_gt1500_scg.pdf)
+
+![Metabat conf plot](figs/metabat_clustering_gt1500_conf.pdf)
+
