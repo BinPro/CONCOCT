@@ -21,12 +21,12 @@ Move to your home directory, create a folder where you want all the output from 
     cd CONCOCT-complete-example
 ```
 
-Set three variables with full paths. One pointing to the root directory of the ```CONCOCT``` software, one pointing to the test data repository, named ```CONCOCT_TEST``` and one to the directory we just created. If you now have these in the folder ```/home/username/src/```, for instance, then use:
+Set three variables with full paths. One pointing to the root directory of the ```CONCOCT``` software, one pointing to the test data repository, named ```CONCOCT_TEST``` and one to the directory we just created. 
 
 ```
     export CONCOCT=/class/stamps-software/CONCOCT
     export CONCOCT_TEST=/class/stamps-software/CONCOCT-test-data
-    export CONCOCT_EXAMPLE=/class/yourname/CONCOCT-complete-example
+    export CONCOCT_EXAMPLE=$HOME/CONCOCT-complete-example
 ```
 
 You can see the full path of a directory you are located in by running the command ```pwd```.
