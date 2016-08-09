@@ -286,7 +286,7 @@ R
 >q()
 ```
 
-We got 13 75\% complete genomes.
+We got 13 75% complete genomes.
 
 ##Comparison to MetaBat
 
@@ -328,7 +328,7 @@ Then we run the validation script:
 We can also generate confusion plots and the the SCG table..
 
 ```
-$CONCOCT/scripts/COG_table.py -b ../Annotate_gt1000/final_contigs_gt1000_c10K.out -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt -cclustering_gt1500.csv --cdd_cog_file $CONCOCT/scgs/cdd_to_cog.tsv > clustering_gt1500_scg.tab
+$CONCOCT/scripts/COG_table.py -b ../Annotate_gt1000/final_contigs_gt1000_c10K.out -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt -c clustering_gt1500.csv --cdd_cog_file $CONCOCT/scgs/cdd_to_cog.tsv > clustering_gt1500_scg.tab
 
 Rscript $CONCOCT/scripts/COGPlot.R -s clustering_gt1500_scg.tab -o metabat_clustering_gt1500_scg.pdf
 
@@ -341,13 +341,35 @@ To generate:
 
 ![Metabat conf plot](figs/metabat_clustering_gt1500_conf.pdf)
 
-These confirm that Metabat suffers from fragmentation errors. We can compare to CONCOCT 
-at the same contig cut-off:
+These confirm that Metabat suffers from fragmentation errors. In fact we get 11 75% complete genomes.
+
+We can compare to CONCOCT at the same contig cut-off:
 
 ```
-cd $CONCOCT_TEST
+cd $CONCOCT_EXAMPLE
 mkdir Concoct_gt1500
-cd Concoct_g1500
+cd Concoct_gt1500
  concoct --coverage_file ../Concoct/Coverage.tsv --composition_file ../contigs/final_contigs_c10K.fa -c 40 -l 1500
 ```
 
+Run evaluation:
+```
+ $CONCOCT/scripts/Validate.pl --cfile=clustering_gt1500.csv --sfile=../AssignGenome/clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa --ofile=clustering_gt1500_conf.csv
+```
+
+    N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
+    7092	7092	5.5752e+07	20	21	0.996269	0.985881	0.991647	0.999236	0.993561
+    
+Substantially better. Looking at SCGs...
+
+```
+$CONCOCT/scripts/COG_table.py -b ../Annotate_gt1000/final_contigs_gt1000_c10K.out -m $CONCOCT/scgs/scg_cogs_min0.97_max1.03_unique_genera.txt -c clustering_gt1500.csv --cdd_cog_file $CONCOCT/scgs/cdd_to_cog.tsv > clustering_gt1500_scg.tab
+Rscript $CONCOCT/scripts/COGPlot.R -s clustering_gt1500_scg.tab -o concoct_clustering_gt1500_scg.pdf
+Rscript $CONCOCT/scripts/ConfPlot.R  -c clustering_gt1500_conf.csv -o concoct_clustering_gt1500_conf.pdf
+```
+
+![CONCOCT scg plot](figs/concoct_clustering_gt1500_scg.pdf)
+
+![CONCOCT conf plot](figs/concoct_clustering_gt1500_conf.pdf)
+
+Now we have 14. Here are the plots..
