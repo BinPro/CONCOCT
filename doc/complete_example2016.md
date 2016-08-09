@@ -98,21 +98,32 @@ do
 done
 ```
 
+Followed by these (** do not run**):
+
+```
+for file in Map/*.sam
+do
+    stub=${file%.sam}
+    stub2=${stub#Map\/}
+    echo $stub	
+    samtools view -h -b -S $file > ${stub}.bam
+    samtools view -b -F 4 ${stub}.bam > ${stub}.mapped.bam
+    samtools sort -m 1000000000 ${stub}.mapped.bam -o ${stub}.mapped.sorted.bam
+    bedtools genomecov -ibam ${stub}.mapped.sorted.bam -g contigs/final_contigs_c10K.len > ${stub}_cov.txt
+done
+```
+
 Generate coverage table
 ------------------------
 
-Use the bam files of each sample to create a table with the coverage of each contig per sample.
+Given the processed mapping files we can now generate the coverage table:
 
-    cd $CONCOCT_EXAMPLE/map
-    python $CONCOCT/scripts/gen_input_table.py --isbedfiles \
-        --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-        ../contigs/velvet_71_c10K.fa */bowtie2/asm_pair-smds.coverage \
-    > concoct_inputtable.tsv
-    mkdir $CONCOCT_EXAMPLE/concoct-input
-    mv concoct_inputtable.tsv $CONCOCT_EXAMPLE/concoct-input/
+```
+$CONCOCT/scripts/Collate.pl Map | tr "," "\t" > Coverage.tsv
+```
 
+This is a simple tab delimited file with the coverage of each contig per sample.
 
-    
 
 Run concoct
 -----------
@@ -121,15 +132,17 @@ To see possible parameter settings with a description run
 
     concoct --help
 
-We will only run concoct for some standard settings here. First we need to parse the input table to just contain the mean coverage for each contig in each sample:
+We will only run concoct for some standard settings here. The only one we vary is the cluster number which should be at least twice the number of genomes in your 
+co-assembly (see discussion below of how to estimate this). In this case we know it is 
+around 20 so run concoct with 40 as the maximum number of cluster `-c 40`:
 
-    cd $CONCOCT_EXAMPLE
-    cut -f1,3- concoct-input/concoct_inputtable.tsv > concoct-input/concoct_inputtableR.tsv
-
-Then run concoct with 40 as the maximum number of cluster `-c 40`, that we guess is appropriate for this data set:
-
-    cd $CONCOCT_EXAMPLE
-    concoct -c 40 --coverage_file concoct-input/concoct_inputtableR.tsv --composition_file contigs/velvet_71_c10K.fa -b concoct-output/
+```
+mkdir Concoct
+cd Concoct
+mv ../Coverage.tsv .
+concoct --coverage_file Coverage.tsv --composition_file ../contigs/final_contigs_c10K.fa
+cd ..
+```
 
 When concoct has finished the message "CONCOCT Finished, the log shows how it went." is piped to stdout. The program generates a number of files in the output directory that can be set with the `-b` parameter and will be the present working directory by default. 
 
