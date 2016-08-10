@@ -218,7 +218,7 @@ cp -r $CONCOCT_TEST/AssignGenome .
 And run our validation script:
 ```
 cd evaluation-output
-$CONCOCT/scripts/Validate.pl --cfile=../Concoct/clustering_gt1000.csv --sfile=../AssignGenome/clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa
+$CONCOCT/scripts/Validate.pl --cfile=../Concoct/clustering_gt1000.csv --sfile=../AssignGenome/clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa --ofile=clustering_gt1000_conf.csv
 ```
 
  This script requires the clustering output by concoct ```Concoct/clustering_gt1000.csv``` these have a simple format of a comma separated file listing each contig id followed by the cluster index and the species labels that have the same format but with a text label rather than a cluster index. The script should output:
@@ -347,14 +347,8 @@ We can compare to CONCOCT at the same contig cut-off:
 
 ```
 cd $CONCOCT_EXAMPLE
-mkdir Concoct_gt1500
 cd Concoct_gt1500
- concoct --coverage_file ../Concoct/Coverage.tsv --composition_file ../contigs/final_contigs_c10K.fa -c 40 -l 1500
-```
-
-Run evaluation:
-```
- $CONCOCT/scripts/Validate.pl --cfile=clustering_gt1500.csv --sfile=../AssignGenome/clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa --ofile=clustering_gt1500_conf.csv
+$CONCOCT/scripts/Validate.pl --cfile=clustering_gt1500.csv --sfile=../AssignGenome/clustering_gt1000_smap.csv --ffile=../Annotate_gt1000/final_contigs_gt1000_c10K.fa --ofile=clustering_gt1500_conf.csv
 ```
 
     N	M	TL	S	K	Rec.	Prec.	NMI	Rand	AdjRand
