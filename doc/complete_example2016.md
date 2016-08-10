@@ -79,7 +79,7 @@ After assembly we map the reads of each sample back to the assembly using [bwa](
 We are not going to perform mapping ourselves. Instead just copy the pre-calculated files:
 
 ```
-    cp -r $CONCOCT_TEST/map .
+    cp -r $CONCOCT_TEST/Map .
 ```
 
 These are the commands we ran (**do not run this**).
