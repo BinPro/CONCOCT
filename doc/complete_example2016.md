@@ -7,8 +7,8 @@ It is not required to run all steps. The output files for each step are in the t
 ##Login to the class servers
 -----------------------
 
-    ssh yourname@class.mbl.edu
-    ssh yourname@classxx
+    ssh -X yourname@class.mbl.edu
+    ssh -X yourname@classxx
 
 
 ##Setting up the test environment
@@ -199,13 +199,20 @@ Rscript $CONCOCT/scripts/ClusterPlot.R -c Concoct/clustering_gt1000.csv -p Conco
 ```
 
 
-To visualise your plots you will have to copy them off the server to a local directory. Move to that local directory on your computer and type:
+To visualise your plots if you have x-windows forwarding just try:
+```
+evince evaluation-output/ClusterPlot.pdf
+```
+
+If that fails you will have to copy them off the server to a local directory. 
+Move to that local directory on your computer and type:
 
     scp yourname@class.mbl.edu:~/CONCOCT-complete-example/evaluation-output/ClusterPlot.pdf .
 
 The figure should look like this:
 
 ![Cluster PCA](figs/ClusterPlot.pdf)
+
 
 We can also compare the clustering to species labels. For this test data set we know these labels, they are given in the file ```$CONCOCT_TEST/AssignGenome/clustering_gt1000_smap.csv```. For real data labels may be obtained through taxonomic classification.
 In either case we provide a script Validate.pl for computing basic metrics on the cluster quality. Lets copy the validation data into our directory:
