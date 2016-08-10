@@ -68,7 +68,7 @@ In order to give more weight to larger contigs and mitigate the effect of assemb
 Now lets cut up the contigs and index for the mapping program bwa:
 ```
 mkdir contigs
-python $CONCOCT/scripts/cut_up_fasta.py -c 10000 -o 0 -m Assembly/final.contigs.fa > contigs/final_contigs_c10K.fa
+python $CONCOCT/scripts/cut_up_fasta.py -c 10000 -o 0 -m $CONCOCT_TEST/Assembly/final.contigs.fa > contigs/final_contigs_c10K.fa
 ```
 
 
@@ -121,7 +121,7 @@ done
 Given the processed mapping files we can now generate the coverage table:
 
 ```
-$CONCOCT/scripts/Collate.pl Map | tr "," "\t" > Coverage.tsv
+$CONCOCT/scripts/Collate.pl $CONCOCT_TEST/Map | tr "," "\t" > Coverage.tsv
 ```
 
 This is a simple tab delimited file with the coverage of each contig per sample.
