@@ -32,7 +32,7 @@ typedef struct s_VBParams
     double dNu0;
 
     /*Inverse! of the Wishart scale precision-matrix*/
-    gsl_matrix *ptInvW0;
+    double *adInvW0;
 
     /*Log Wishart normalisation*/
     double dLogWishartB;
@@ -72,10 +72,10 @@ typedef struct s_Cluster
     double *adBeta;
     /*Scaled means Bishop 10.61*/
     double **aadM;
-    /*sample covariance matrix for each cluster storing this helps with lower bound calcn*/
-    gsl_matrix **aptCovar;
+    /*sample variances for each cluster*/
+    double **aadVar;
     /*Inverse regularised variances Bishop 10.62*/
-    gsl_matrix **aptSigma;
+    double **aadSigma;
     /*Bishop 10.63*/
     double *adNu;
     /*Responsibilities*/
@@ -148,15 +148,13 @@ double calcVBL(t_Cluster* ptCluster);
 
 void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData);
 
-double dLogWishartB(gsl_matrix *ptInvW, int nD, double dNu, int bInv);
+double dLogWishartB(double *adInvW, int nD, double dNu, int bInv);
 
 void updateMeans(t_Cluster *ptCluster, t_Data *ptData);
 
-double dWishartExpectLogDet(gsl_matrix *ptW, double dNu, int nD);
+double dWishartExpectLogDet(double *adW, double dNu, int nD);
 
 void calcZ(t_Cluster* ptCluster, t_Data *ptData);
-
-void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData);
 
 double calcDist(double* adX, double *adMu, int nD);
 

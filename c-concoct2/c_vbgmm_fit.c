@@ -94,7 +94,7 @@ int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned lon
 
     compressCluster(ptBestCluster);
 
-    calcCovarMatrices(ptBestCluster,&tData);
+    //calcCovarMatrices(ptBestCluster,&tData);
 
     for(i = 0; i < nN; i++){
       anAssign[i] = ptBestCluster->anMaxZ[i];
@@ -109,7 +109,7 @@ int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned lon
     free(ptBestCluster);
 
     gsl_rng_free(ptGSLRNG);
-    gsl_matrix_free(tVBParams.ptInvW0);
+    free(tVBParams.adInvW0);
 
     return EXIT_SUCCESS;
 }
@@ -194,21 +194,20 @@ void setVBParams(t_VBParams *ptVBParams, t_Data *ptData)
 
     ptVBParams->dBeta0 = DEF_BETA0;
     ptVBParams->dNu0 = (double) nD;
-    ptVBParams->ptInvW0 = gsl_matrix_alloc(nD,nD);
+    ptVBParams->adInvW0 = (double *) malloc(nD*sizeof(double));
 
     calcSampleVar(ptData,adVar, adMu);
-    gsl_matrix_set_zero (ptVBParams->ptInvW0);
-
+    
     for(i = 0; i < nD; i++){
         double dRD = adVar[i]*((double) nD);
-
-        gsl_matrix_set(ptVBParams->ptInvW0,i,i,dRD);
+        ptVBParams->adInvW0[i] = dRD;
     }
 
-    ptVBParams->dLogWishartB = dLogWishartB(ptVBParams->ptInvW0, nD, ptVBParams->dNu0, TRUE);
+    ptVBParams->dLogWishartB = dLogWishartB(ptVBParams->adInvW0, nD, ptVBParams->dNu0, TRUE);
 }
 
-void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed, int nMaxIter, double dEpsilon, char *szCOutFile)
+void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed, 
+                                        int nMaxIter, double dEpsilon, char *szCOutFile)
 {
     int i = 0, j = 0, k = 0;
 
@@ -292,21 +291,26 @@ void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptDat
             goto memoryError;
     }
 
-    ptCluster->aptSigma = (gsl_matrix **) malloc(nK*sizeof(gsl_matrix *));
-    if(!ptCluster->aptSigma)
+    ptCluster->aadSigma = (double **) malloc(nK*sizeof(double *));
+    if(!ptCluster->aadSigma)
         goto memoryError;
 
     for(i = 0; i < nK ; i++){
-        ptCluster->aptSigma[i] = (gsl_matrix*) gsl_matrix_alloc (nD, nD);
+        ptCluster->aadSigma[i] = (double *) malloc(nD*sizeof(double)); 
+        if(!ptCluster->aadSigma[i])
+            goto memoryError;
     }
-
-    ptCluster->aptCovar = (gsl_matrix **) malloc(nK*sizeof(gsl_matrix *));
-    if(!ptCluster->aptCovar)
+    
+    ptCluster->aadVar = (double **) malloc(nK*sizeof(double *));
+    if(!ptCluster->aadVar)
         goto memoryError;
 
     for(i = 0; i < nK ; i++){
-        ptCluster->aptCovar[i] = (gsl_matrix*) gsl_matrix_alloc (nD, nD);
+        ptCluster->aadVar[i] = (double *) malloc(nD*sizeof(double)); 
+        if(!ptCluster->aadVar[i])
+            goto memoryError;
     }
+
 
     return;
 
@@ -341,17 +345,14 @@ void destroyCluster(t_Cluster* ptCluster)
   for(i = 0; i < nKSize; i++){
     free(ptCluster->aadMu[i]);
     free(ptCluster->aadM[i]);
+    free(ptCluster->aadSigma[i]);
+    free(ptCluster->aadVar[i]);
   }
 
   free(ptCluster->aadMu);
   free(ptCluster->aadM);
-
-  for(i = 0; i < nKSize ; i++){
-    gsl_matrix_free(ptCluster->aptSigma[i]);
-    gsl_matrix_free(ptCluster->aptCovar[i]);
-  }
-  free(ptCluster->aptSigma);
-  free(ptCluster->aptCovar);
+  free(ptCluster->aadSigma);
+  free(ptCluster->aadVar);
   return;
 }
 
@@ -538,44 +539,29 @@ double decomposeMatrix(gsl_matrix *ptSigmaMatrix, int nD)
 
 
 void performMStep(t_Cluster *ptCluster, t_Data *ptData){
-    int i = 0, j = 0, k = 0, l = 0, m = 0;
+    int i = 0, j = 0, k = 0, l = 0;
     int nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
     double **aadZ = ptCluster->aadZ,**aadX = ptData->aadX;
     double *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
-    double **aadCovar = NULL, **aadInvWK = NULL;
+    double *adVar = NULL, *adInvWK = NULL;
     t_VBParams *ptVBParams = ptCluster->ptVBParams;
 
-    aadCovar = (double **) malloc(nD*sizeof(double*));
-    if(!aadCovar)
+    adVar = (double *) malloc(nD*sizeof(double));
+    if(!adVar)
         goto memoryError;
 
-    for(i = 0; i < nD; i++){
-        aadCovar[i] = (double *) malloc(nD*sizeof(double));
-        if(!aadCovar[i])
-            goto memoryError;
-    }
-
-    aadInvWK = (double **) malloc(nD*sizeof(double*));
-    if(!aadInvWK)
+    adInvWK = (double *) malloc(nD*sizeof(double));
+    if(!adInvWK)
         goto memoryError;
-
-    for(i = 0; i < nD; i++){
-        aadInvWK[i] = (double *) malloc(nD*sizeof(double));
-        if(!aadInvWK[i])
-            goto memoryError;
-    }
 
     /*perform M step*/
     for(k = 0; k < nK; k++){ /*loop components*/
         double*     adMu          = ptCluster->aadMu[k];
-        gsl_matrix  *ptSigmaMatrix = ptCluster->aptSigma[k];
         double      dF = 0.0;
         /*recompute mixture weights and means*/
         for(j = 0; j < nD; j++){
             adMu[j] = 0.0;
-            for(l = 0; l < nD; l++){
-                aadCovar[j][l] = 0.0;
-            }
+            adVar[j] = 0.0;
         }
 
         /* compute weight associated with component k*/
@@ -603,7 +589,7 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
             ptCluster->adNu[k] = ptVBParams->dNu0 + adPi[k];
 
 
-        /*calculate covariance matrices*/
+        /*calculate Variances*/
         for(i = 0; i < nN; i++){
             if(aadZ[i][k] > MIN_Z){
                 double adDiff[nD];
@@ -613,53 +599,34 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
                 }
 
                 for(l = 0; l < nD; l++){
-                    for(m = 0; m <=l ; m++){
-                        aadCovar[l][m] += aadZ[i][k]*adDiff[l]*adDiff[m];
-                    }
+                    adVar[l] += aadZ[i][k]*adDiff[l]*adDiff[l];
                 }
             }
         }
 
-        for(l = 0; l < nD; l++){
-            for(m = l + 1; m < nD; m++){
-                aadCovar[l][m] = aadCovar[m][l];
-            }
-        }
 
         /*save sample covariances for later use*/
         for(l = 0; l < nD; l++){
-            for(m = 0; m < nD; m++){
-                double dC = aadCovar[l][m] / adPi[k];
-                gsl_matrix_set(ptCluster->aptCovar[k],l,m,dC);
-            }
+            ptCluster->aadVar[k][l] = adVar[l] / adPi[k];
         }
 
         /*Now perform equation 10.62*/
         dF = (ptVBParams->dBeta0*adPi[k])/ptCluster->adBeta[k];
         for(l = 0; l < nD; l++){
-            for(m = 0; m <= l; m++){
-                aadInvWK[l][m] = gsl_matrix_get(ptVBParams->ptInvW0, l,m) + aadCovar[l][m] + dF*adMu[l]*adMu[m];
-            }
+            adInvWK[l] = ptVBParams->adInvW0[l] + adVar[l] + dF*adMu[l]*adMu[l];
         }
 
+        /*Implement Equation 10.65*/
+        adLDet[k] = ((double) nD)*log(2.0);
         for(l = 0; l < nD; l++){
-            for(m = 0; m <= l ; m++){
-                aadCovar[l][m] /= adPi[k];
-                gsl_matrix_set(ptSigmaMatrix, l, m, aadInvWK[l][m]);
-                gsl_matrix_set(ptSigmaMatrix, m, l, aadInvWK[l][m]);
-            }
-       }
-
-
-    /*Implement Equation 10.65*/
-      adLDet[k] = ((double) nD)*log(2.0);
-
-      for(l = 0; l < nD; l++){
-        double dX = 0.5*(ptCluster->adNu[k] - (double) l);
-        adLDet[k] += gsl_sf_psi (dX);
-      }
-
-      adLDet[k] -= decomposeMatrix(ptSigmaMatrix,nD);
+            double dX = 0.5*(ptCluster->adNu[k] - (double) l);
+            
+            adVar[l] /= adPi[k];
+            adLDet[k] -= log(adInvWK[l]);
+            adLDet[k] += gsl_sf_psi (dX);
+            
+            ptCluster->aadSigma[k][l] = 1.0/adInvWK[l];
+        }
     }
     else{
       /*Equation 10.60*/
@@ -676,23 +643,8 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
       ptCluster->adNu[k] = ptVBParams->dNu0;
 
       for(l = 0; l < nD; l++){
-        for(m = 0; m <= l; m++){
-          aadInvWK[l][m] = gsl_matrix_get(ptVBParams->ptInvW0, l,m);
-        }
-      }
-
-      for(l = 0; l < nD; l++){
-        for(m = 0; m <= l ; m++){
-            aadInvWK[l][m] = gsl_matrix_get(ptVBParams->ptInvW0, l,m);
-        }
-      }
-
-      for(l = 0; l < nD; l++){
-        for(m = 0; m <= l ; m++){
-            gsl_matrix_set(ptSigmaMatrix, l, m, aadInvWK[l][m]);
-            gsl_matrix_set(ptSigmaMatrix, m, l, aadInvWK[l][m]);
-        }
-      }
+           adInvWK[l] = ptVBParams->adInvW0[l];
+       }
 
       /*Implement Equation 10.65*/
       adLDet[k] = ((double) nD)*log(2.0);
@@ -700,9 +652,9 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
       for(l = 0; l < nD; l++){
         double dX = 0.5*(ptCluster->adNu[k] - (double) l);
         adLDet[k] += gsl_sf_psi (dX);
+        adLDet[k] -= log(adInvWK[l]);
+        ptCluster->aadSigma[k][l] = 1.0/adInvWK[l];
       }
-
-      adLDet[k] -= decomposeMatrix(ptSigmaMatrix,nD);
     }
   }
 
@@ -720,14 +672,8 @@ void performMStep(t_Cluster *ptCluster, t_Data *ptData){
     }
   }
 
-  /*free up memory*/
-  for(i = 0; i < nD; i++){
-    free(aadCovar[i]);
-    free(aadInvWK[i]);
-  }
-
-  free(aadCovar);
-  free(aadInvWK);
+  free(adVar);
+  free(adInvWK);
 
   return;
 
@@ -813,9 +759,6 @@ double calcVBL(t_Cluster* ptCluster)
   int i = 0, k = 0, l = 0, nN = ptCluster->nN;
   int nK = ptCluster->nK, nD = ptCluster->nD;
   double dBishop1 = 0.0, dBishop2 = 0.0, dBishop3 = 0.0, dBishop4 = 0.0, dBishop5 = 0.0; /*Bishop equations 10.71...*/
-  gsl_matrix *ptRes  = gsl_matrix_alloc(nD,nD);
-  gsl_vector *ptDiff = gsl_vector_alloc(nD);
-  gsl_vector *ptR = gsl_vector_alloc(nD);
   double dD = (double) nD;
   double** aadMu = ptCluster->aadMu, **aadM = ptCluster->aadM, **aadZ = ptCluster->aadZ;
   double* adBeta = ptCluster->adBeta, *adNu = ptCluster->adNu, *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
@@ -848,19 +791,15 @@ double calcVBL(t_Cluster* ptCluster)
     if(adNK[k] > 0.0){
       double dT1 = 0.0, dT2 = 0.0, dF = 0.0;
 
-      gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0,ptCluster->aptCovar[k],ptCluster->aptSigma[k],0.0,ptRes);
-
       for(l = 0; l < nD; l++){
-	    dT1 += gsl_matrix_get(ptRes,l,l);
+	    dT1 += ptCluster->aadVar[k][l]*ptCluster->aadSigma[k][l]; 
       }
 
       for(l = 0; l < nD; l++){
-	    gsl_vector_set(ptDiff,l,aadMu[k][l] - aadM[k][l]);
+        double dDiff = aadMu[k][l] - aadM[k][l];
+        dT2 += dDiff*dDiff*ptCluster->aadSigma[k][l];
+	    
       }
-
-      gsl_blas_dsymv (CblasLower, 1.0, ptCluster->aptSigma[k], ptDiff, 0.0, ptR);
-
-      gsl_blas_ddot (ptDiff, ptR, &dT2);
 
       dF = adLDet[k] - adNu[k]*(dT1 + dT2) - dD*(log(d2Pi) + (1.0/adBeta[k]));
 
@@ -873,19 +812,14 @@ double calcVBL(t_Cluster* ptCluster)
     if(adNK[k] > 0.0){
       double dT1 = 0.0, dT2 = 0.0, dF = 0.0;
 
-      gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0,ptCluster->ptVBParams->ptInvW0,ptCluster->aptSigma[k],0.0,ptRes);
 
       for(l = 0; l < nD; l++){
-	    dT1 += gsl_matrix_get(ptRes,l,l);
+	    dT1 += ptCluster->ptVBParams->adInvW0[l]*ptCluster->aadSigma[k][l];
       }
 
       for(l = 0; l < nD; l++){
-	    gsl_vector_set(ptDiff,l,aadM[k][l]);
+        dT2 += aadM[k][l]*aadM[k][l]*ptCluster->aadSigma[k][l];
       }
-
-      gsl_blas_dsymv (CblasLower, 1.0, ptCluster->aptSigma[k], ptDiff, 0.0, ptR);
-
-      gsl_blas_ddot (ptDiff, ptR, &dT2);
 
       dF = dD*log(dBeta0/d2Pi) + adLDet[k] - ((dD*dBeta0)/adBeta[k]) - dBeta0*adNu[k]*dT2 - adNu[k]*dT1;
 
@@ -907,13 +841,9 @@ double calcVBL(t_Cluster* ptCluster)
   /*Equation 10.77*/
   for(k = 0; k < nK; k++){
     if(adNK[k] > 0.0){
-      dBishop5 += 0.5*adLDet[k] + 0.5*dD*log(adBeta[k]/d2Pi) - 0.5*dD - dWishartExpectLogDet(ptCluster->aptSigma[k], adNu[k], nD);
+      dBishop5 += 0.5*adLDet[k] + 0.5*dD*log(adBeta[k]/d2Pi) - 0.5*dD - dWishartExpectLogDet(ptCluster->aadSigma[k], adNu[k], nD);
     }
   }
-
-  gsl_matrix_free(ptRes);
-  gsl_vector_free(ptDiff);
-  gsl_vector_free(ptR);
 
   dRet = dBishop1 + dBishop2 + dBishop3 - dBishop4 - dBishop5;
 
@@ -924,8 +854,6 @@ void calcZ(t_Cluster* ptCluster, t_Data *ptData){
     double **aadX = ptData->aadX, **aadZ = ptCluster->aadZ;
     int i = 0, k = 0, l = 0;
     int nK = ptCluster->nK, nD = ptCluster->nD, nN = ptData->nN;
-    gsl_vector *ptDiff = gsl_vector_alloc(nD);
-    gsl_vector *ptRes = gsl_vector_alloc(nD);
     double adDist[nK], dD = (double) nD;
     double** aadM = ptCluster->aadM, *adPi = ptCluster->adPi;
 
@@ -937,13 +865,11 @@ void calcZ(t_Cluster* ptCluster, t_Data *ptData){
         for(k = 0; k < nK; k++){
             if(adPi[k] > 0.){
                 /*set vector to data point*/
+                adDist[k] = 0.0;
                 for(l = 0; l < nD; l++){
-                    gsl_vector_set(ptDiff,l,aadX[i][l] - aadM[k][l]);
+                    double dDiff = aadX[i][l] - aadM[k][l];
+                    adDist[k] +=  dDiff*dDiff*ptCluster->aadSigma[k][l];
                 }
-
-                gsl_blas_dsymv (CblasLower, 1.0, ptCluster->aptSigma[k], ptDiff, 0.0, ptRes);
-
-                gsl_blas_ddot (ptDiff, ptRes, &adDist[k]);
 
                 adDist[k] *= ptCluster->adNu[k];
 
@@ -981,8 +907,6 @@ void calcZ(t_Cluster* ptCluster, t_Data *ptData){
         }
     }
 
-    gsl_vector_free(ptRes);
-    gsl_vector_free(ptDiff);
     return;
 }
 
@@ -1052,107 +976,19 @@ void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData)
     return;
 }
 
-void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData)
-{
-    int i = 0, j = 0, k = 0, l = 0, m = 0;
-    int nN = ptData->nN, nK = ptCluster->nK, nD = ptData->nD;
-    double **aadZ = ptCluster->aadZ,**aadX = ptData->aadX;
-    double *adPi = ptCluster->adPi, **aadCovar = NULL;
-    double dN = (double) nN;
-
-    aadCovar = (double **) malloc(nD*sizeof(double*));
-    if(!aadCovar)
-        goto memoryError;
-
-    for(i = 0; i < nD; i++){
-        aadCovar[i] = (double *) malloc(nD*sizeof(double));
-        if(!aadCovar[i])
-            goto memoryError;
-    }
 
 
-    for(k = 0; k < nK; k++){ /*loop components*/
-        double*     adMu          = ptCluster->aadMu[k];
-        gsl_matrix  *ptSigmaMatrix = ptCluster->aptSigma[k];
-        /*recompute mixture weights and means*/
-        for(j = 0; j < nD; j++){
-            adMu[j] = 0.0;
-            for(l = 0; l < nD; l++){
-	            aadCovar[j][l] = 0.0;
-            }
-            /*prevents singularities*/
-        aadCovar[j][j] = MIN_COVAR;
-    }
-
-    /* compute weight associated with component k*/
-    adPi[k] = 0.0;
-    for(i = 0; i < nN; i++){
-        adPi[k] += aadZ[i][k];
-        for(j = 0; j < nD; j++){
-	        adMu[j] += aadZ[i][k]*aadX[i][j];
-        }
-    }
-    /*normalise means*/
-    for(j = 0; j < nD; j++){
-        adMu[j] /= adPi[k];
-    }
-
-    /*calculate covariance matrices*/
-    for(i = 0; i < nN; i++){
-        double adDiff[nD];
-
-        for(j = 0; j < nD; j++){
-	        adDiff[j] = aadX[i][j] - adMu[j];
-        }
-
-        for(l = 0; l < nD; l++){
-	        for(m = 0; m <=l ; m++){
-	            aadCovar[l][m] += aadZ[i][k]*adDiff[l]*adDiff[m];
-	        }
-        }
-    }
-
-    for(l = 0; l < nD; l++){
-        for(m = l + 1; m < nD; m++){
-	        aadCovar[l][m] = aadCovar[m][l];
-        }
-    }
-
-    for(l = 0; l < nD; l++){
-        for(m = 0; m < nD; m++){
-	        aadCovar[l][m] /= adPi[k];
-	        gsl_matrix_set(ptSigmaMatrix, l, m, aadCovar[l][m]);
-        }
-    }
-
-    adPi[k] /= dN; /*normalise weights*/
-  }
-  /*free up memory*/
-  for(i = 0; i < nD; i++){
-    free(aadCovar[i]);
-  }
-
-  //gsl_matrix_free(ptSigmaMatrix);
-  free(aadCovar);
-
-  return;
- memoryError:
-  fprintf(stderr, "Failed allocating memory in performMStep\n");
-  fflush(stderr);
-  exit(EXIT_FAILURE);
-}
-
-/*note assuming you are using inverse W matrix*/
-double dLogWishartB(gsl_matrix *ptInvW, int nD, double dNu, int bInv)
+/*note assuming you are using inverse diagonal W matrix*/
+double dLogWishartB(double *adInvW, int nD, double dNu, int bInv)
 {
   int i = 0;
   double dRet = 0.0, dT = 0.0;
   double dLogDet = 0.0, dD = (double) nD;
-  gsl_matrix* ptTemp = gsl_matrix_alloc(nD,nD);
 
-  gsl_matrix_memcpy(ptTemp, ptInvW);
-
-  dLogDet = decomposeMatrix(ptTemp, nD);
+  /*dLogDet = decomposeMatrix(ptTemp, nD);*/
+  for(i = 0; i < nD; i++){
+    dLogDet += log(adInvW[i]);
+  }
 
   if(bInv == TRUE){
     dRet = 0.5*dNu*dLogDet;
@@ -1169,28 +1005,23 @@ double dLogWishartB(gsl_matrix *ptInvW, int nD, double dNu, int bInv)
     dT += gsl_sf_lngamma(0.5*(dNu - (double) i));
   }
 
-  gsl_matrix_free(ptTemp);
-
   return dRet - dT;
 }
 
-double dWishartExpectLogDet(gsl_matrix *ptW, double dNu, int nD)
+double dWishartExpectLogDet(double *adW, double dNu, int nD)
 {
   int i = 0;
   double dRet = 0.0, dLogDet = 0.0, dD = (double) nD;
-  gsl_matrix* ptTemp = gsl_matrix_alloc(nD,nD);
 
-  gsl_matrix_memcpy(ptTemp, ptW);
-
-  dLogDet = decomposeMatrix(ptW, nD);
+  for(i = 0; i < nD; i++){
+    dLogDet += log(adW[i]);
+  }
 
   dRet = dD*log(2.0) + dLogDet;
 
   for(i = 0; i < nD; i++){
     dRet += gsl_sf_psi(0.5*(dNu - (double) i));
   }
-
-  gsl_matrix_free(ptTemp);
 
   return dRet;
 }
