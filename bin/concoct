@@ -34,53 +34,31 @@ def main(args):
     else:
         joined = composition
 
-    # Fix special case in pca_components
-    if args.pca_components == "All":
-        args.pca_components = joined[args.length_threshold_filter].shape[1]
-
-    #PCA on the contigs that have kmer count greater than length_threshold
-    transform_filter, pca = perform_pca(
-        joined,
-        args.pca_components
-        )
-
-    logging.info('Performed PCA, resulted in %s dimensions' % transform_filter.shape[1])
-    
+   
     if not args.no_original_data:
         Output.write_original_data(
             joined,
             args.length_threshold
             )
-
-    Output.write_pca(
-        transform_filter,
-        args.length_threshold,
-        joined.index,
-        )
-
-    Output.write_pca_components(
-        pca.components_,
-        args.length_threshold
-        )
-
-    logging.info('PCA transformed data.')
-
-    logging.info('Will call vbgmm with parameters: %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold))
     import ipdb; ipdb.set_trace()
-    NC = transform_filter.shape[0]
+    cov_filter = cov.loc[joined.index]
+    cov_filter_matrix = cov_filter.as_matrix()
+    logging.info('Will call vbgmm with parameters: %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold))
+
+    NC = cov_filter_matrix.shape[0]
     assign = np.zeros(NC,dtype=np.int32)
     debug=False
     
     nSplit=4
     kmeans = KMeans(init='k-means++', n_clusters=nSplit, n_init=10)
-    kmeans.fit(transform_filter)
+    kmeans.fit(cov_filter_matrix)
     labels = kmeans.labels_
     
     fit_arguments = []
     
     l = 0
     for s in range(nSplit):
-        transform_S = np.copy(transform_filter[labels==s,],order='C')
+        transform_S = np.copy(cov_filter_matrix[labels==s,],order='C')
         
         NS=transform_S.shape[0]
         
