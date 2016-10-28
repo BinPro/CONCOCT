@@ -35,14 +35,15 @@
 /*User includes*/
 #include "c_vbgmm_fit.h"
 
-void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign, int debug)
+void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign, int debug, int bAssign)
 {
-    driver(adX, nN, nD, anAssign, nK, DEF_SEED, DEF_MAX_ITER, DEF_EPSILON, debug);
+    driver(adX, nN, nD, anAssign, nK, DEF_SEED, DEF_MAX_ITER, DEF_EPSILON, debug, bAssign);
 
     return;
 }
 
-int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned long lSeed, int nMaxIter, double dEpsilon, int debug)
+int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned long lSeed, 
+                                        int nMaxIter, double dEpsilon, int debug, int bAssign)
 {
     t_Params           tParams;
     t_Data             tData;
@@ -65,7 +66,7 @@ int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned lon
     tParams.nMaxIter = nMaxIter;
     tParams.dEpsilon = dEpsilon;
     tParams.lSeed    = lSeed;
-
+    printf("Generate input data\n");
     generateInputData(adX, nN, nD, &tData);
 
     setVBParams(&tVBParams, &tData);
@@ -90,6 +91,18 @@ int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned lon
 	    ptBestCluster->szCOutFile = NULL;
     }
 
+    if(bAssign > 0){
+        ptBestCluster->anMaxZ = (int *) malloc(nN*sizeof(int));
+        if(!ptBestCluster->anMaxZ){
+            goto memoryError;
+        }
+        
+        for(i = 0; i < nN; i++){
+            ptBestCluster->anMaxZ[i] = anAssign[i];
+        }
+    }
+    
+    printf("Run threads\n");
     runRThreads((void *) &ptBestCluster);
 
     compressCluster(ptBestCluster);
@@ -112,6 +125,11 @@ int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned lon
     gsl_matrix_free(tVBParams.ptInvW0);
 
     return EXIT_SUCCESS;
+    
+    memoryError:
+        fprintf(stderr, "Failed allocating memory in driver\n");
+        fflush(stderr);
+        exit(EXIT_FAILURE);
 }
 
 
@@ -360,15 +378,26 @@ void* fitEM(void *pvCluster)
     t_Cluster          *ptCluster = (t_Cluster *) pvCluster;
     gsl_rng            *ptGSLRNG     = NULL;
     const gsl_rng_type *ptGSLRNGType = NULL;
-
+    int i = 0, k = 0;
     /*initialise GSL RNG*/
     ptGSLRNGType = gsl_rng_default;
     ptGSLRNG     = gsl_rng_alloc(ptGSLRNGType);
 
     gsl_rng_set (ptGSLRNG, ptCluster->lSeed);
 
-    initKMeans(ptGSLRNG, ptCluster, ptCluster->ptData);
-
+    if(ptCluster->bAssign == FALSE){
+        initKMeans(ptGSLRNG, ptCluster, ptCluster->ptData);
+    }
+    else{
+        for(i = 0; i < ptCluster->nN; i++){
+            for(k = 0; k < ptCluster->nK; k++){
+                ptCluster->aadZ[i][k] = 0.0;
+            }
+            ptCluster->aadZ[i][ptCluster->anMaxZ[i]] = 1.0;
+        }
+        performMStep(ptCluster, ptCluster->ptData);
+    }
+    
     gmmTrainVB(ptCluster, ptCluster->ptData);
 
     gsl_rng_free(ptGSLRNG);
@@ -386,6 +415,7 @@ void* runRThreads(void *pvpDCluster)
     int         iret[N_RTHREADS];
     int         r = 0, nBestR = -1;
     char        *szCOutFile = NULL;
+    int         i = 0;
     aptCluster = (t_Cluster **) malloc(N_RTHREADS*sizeof(t_Cluster*));
     if(!aptCluster)
         goto memoryError;
@@ -399,8 +429,16 @@ void* runRThreads(void *pvpDCluster)
 
         aptCluster[r] = (t_Cluster *) malloc(sizeof(t_Cluster));
 
-        allocateCluster(aptCluster[r],ptDCluster->nN,ptDCluster->nK,ptDCluster->nD,ptDCluster->ptData,ptDCluster->lSeed + r*R_PRIME,ptDCluster->nMaxIter,ptDCluster->dEpsilon,szCOutFile);
+        allocateCluster(aptCluster[r],ptDCluster->nN,ptDCluster->nK,ptDCluster->nD,ptDCluster->ptData,
+                ptDCluster->lSeed + r*R_PRIME,ptDCluster->nMaxIter,ptDCluster->dEpsilon,szCOutFile);
         aptCluster[r]->ptVBParams = ptDCluster->ptVBParams;
+        aptCluster[r]->bAssign = ptDCluster->bAssign;
+        if(ptDCluster->bAssign > 0){
+            for(i = 0; i < ptDCluster->nN; i++){
+                aptCluster[r]->anMaxZ[i] = ptDCluster->anMaxZ[i];
+            }
+        }
+        
         aptCluster[r]->nThread = r;
         iret[r] = pthread_create(&atRestarts[r], NULL, fitEM, (void*) aptCluster[r]);
     }
@@ -409,6 +447,8 @@ void* runRThreads(void *pvpDCluster)
         pthread_join(atRestarts[r], NULL);
     }
 
+    printf("Free up memory associated with input\n");
+    fflush(stdout);
     /*free up memory associated with input cluster*/
     free(ptDCluster);
 

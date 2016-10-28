@@ -88,6 +88,8 @@ typedef struct s_Cluster
     int *anMaxZ;
     /*frequencies for each cluster*/
     int *anW;
+    /*whether initial assignments provided*/
+    int bAssign;
 } t_Cluster;
 
 
@@ -118,7 +120,7 @@ typedef struct s_Cluster
 #define DEF_SEED         1l
 
 /*user defines*/
-int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned long lSeed, int nMaxIter, double dEpsilon, int debug);
+int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned long lSeed, int nMaxIter, double dEpsilon, int debug, int bAssign);
 
 void generateInputData(double *adX, int nN, int nD, t_Data *ptData);
 
