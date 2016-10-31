@@ -155,6 +155,8 @@ void initKMeans(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData);
 
 double calcVBL(t_Cluster* ptCluster);
 
+double calcVBL_MP(t_Cluster* ptCluster);
+
 void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData);
 
 void gmmTrainVB_MP(t_Cluster *ptCluster, t_Data *ptData);

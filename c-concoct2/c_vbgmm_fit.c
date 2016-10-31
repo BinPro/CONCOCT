@@ -64,15 +64,16 @@ int driverMP(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned l
     /*set OMP thread number*/
     nNthreads = omp_get_max_threads();
     omp_set_num_threads(nNthreads);
-    printf("Setting %d OMP threads\n",nNthreads);
-    
+    fprintf(stderr,"Setting %d OMP threads\n",nNthreads);
+
     /*set clusters params*/
     tParams.nKStart  = nKStart;
     tParams.nMaxIter = nMaxIter;
     tParams.dEpsilon = dEpsilon;
     tParams.lSeed    = lSeed;
     
-    printf("Generate input data\n");
+    fprintf(stderr,"Generate input data\n");
+    fflush(stderr);
     generateInputData(adX, nN, nD, &tData);
 
     setVBParams(&tVBParams, &tData);
@@ -1312,6 +1313,162 @@ double calcVBL(t_Cluster* ptCluster)
   return dRet;
 }
 
+double eqnA(int nD, gsl_matrix *ptCovarK, gsl_matrix *ptSigmaK, double *adMuK, double *adMK, double dLDetK, double dNuK, double logd2Pi, double dBetaK,double dNK)
+{
+    int l = 0;
+    gsl_matrix *ptRes  = gsl_matrix_alloc(nD,nD);
+    gsl_vector *ptDiff = gsl_vector_alloc(nD); 
+    double dT1 = 0.0, dT2 = 0.0, dF = 0.0;
+    gsl_vector *ptR = gsl_vector_alloc(nD);
+    double dD = (double) nD;
+    double dRet = 0.0;
+    
+    gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0,ptCovarK,ptSigmaK,0.0,ptRes);
+
+    for(l = 0; l < nD; l++){
+	    dT1 += gsl_matrix_get(ptRes,l,l);
+    }
+
+    for(l = 0; l < nD; l++){
+        gsl_vector_set(ptDiff,l,adMuK[l] - adMK[l]);
+    }
+
+    gsl_blas_dsymv (CblasLower, 1.0, ptSigmaK, ptDiff, 0.0, ptR);
+
+    gsl_blas_ddot (ptDiff, ptR, &dT2);
+
+    dF = dLDetK - dNuK*(dT1 + dT2) - dD*(logd2Pi + (1.0/dBetaK));
+
+    dRet = 0.5*dNK*dF;
+
+    gsl_matrix_free(ptRes);
+    gsl_vector_free(ptDiff);
+    gsl_vector_free(ptR);
+
+    return dRet;
+}
+
+double eqnB(int nD, gsl_matrix *ptInvW0, t_matrix *ptSigmaK, double* adMK, double dBeta0, double d2Pi, double dLDetK, double dBetaK, double dNuK)
+{
+    int l = 0;
+    double dD = (double) nD;
+    gsl_matrix *ptRes  = gsl_matrix_alloc(nD,nD);
+    gsl_vector *ptDiff = gsl_vector_alloc(nD);
+    gsl_vector *ptR = gsl_vector_alloc(nD); 
+    double dT1 = 0.0, dT2 = 0.0, dF = 0.0;
+    double dRet = 0.0;
+    
+    gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0,ptInvW0,ptSigmaK,0.0,ptRes);
+
+    for(l = 0; l < nD; l++){
+        dT1 += gsl_matrix_get(ptRes,l,l);
+    }
+
+    for(l = 0; l < nD; l++){
+	    gsl_vector_set(ptDiff,l,adMK[l]);
+    }
+
+    gsl_blas_dsymv (CblasLower, 1.0, ptSigmaK, ptDiff, 0.0, ptR);
+
+    gsl_blas_ddot (ptDiff, ptR, &dT2);
+
+    dF = dD*log(dBeta0/d2Pi) + dLDetK - ((dD*dBeta0)/dBetaK) - dBeta0*dNuK*dT2 - dNuK*dT1;
+
+    dRet = 0.5*(dF + (dNu0 - dD - 1.0)*dLDetK);
+
+    gsl_matrix_free(ptRes);
+    gsl_vector_free(ptDiff);
+    gsl_vector_free(ptR);
+    
+    return dRet;
+}
+
+
+double calcVBL_MP(t_Cluster* ptCluster)
+{
+    int nN = ptCluster->nN;
+    int nK = ptCluster->nK, nD = ptCluster->nD;
+    double dBishop1 = 0.0, dBishop2 = 0.0, dBishop3 = 0.0, dBishop4 = 0.0, dBishop5 = 0.0; /*Bishop equations 10.71...*/
+    double dD = (double) nD;
+    double** aadMu = ptCluster->aadMu, **aadM = ptCluster->aadM, **aadZ = ptCluster->aadZ;
+    double* adBeta = ptCluster->adBeta, *adNu = ptCluster->adNu, *adLDet = ptCluster->adLDet, *adPi = ptCluster->adPi;
+    double adNK[nK], adRet[nK];
+    double d2Pi = 2.0*M_PI, logd2Pi = log(d2Pi), dBeta0 = ptCluster->ptVBParams->dBeta0, dNu0 = ptCluster->ptVBParams->dNu0, dRet = 0.0;
+    double dK = 0.0;
+
+    for(k = 0; k < nK; k++){
+        adNK[k] = 0.0;
+    }
+
+    /*Equation 10.72*/
+    for(i = 0; i < nN; i++){
+        for(k = 0; k < nK; k++){
+            adNK[k] += aadZ[i][k];
+            if(adPi[k] > 0.0){
+	            dBishop2 += aadZ[i][k]*log(adPi[k]);
+            }
+        }
+    }
+
+
+    for(k = 0; k < nK; k++){
+        if(adNK[k] > 0.0){
+            dK++;
+        }
+    }
+
+    /*Equation 10.71*/
+#pragma omp parallel for
+    for(int k = 0; k < nK; k++){
+        if(adNK[k] > 0.0){
+            adRet[k] = eqnA(nD, ptCluster->aptCovar[k], ptCluster->aptSigma[k], aadMu[k],         aadM[k], adLDet[k], adNu[k], logd2Pi, adBeta[k],adNK[k]);
+        }
+        else{
+            adRet[k] = 0.0;
+        }
+    }
+  
+    for(int k = 0; k < nK; k++){
+        dBishop1 += adRet[k];
+    }
+  
+ 
+    /*Equation 10.74*/
+#pragma omp parallel for
+    for(int k = 0; k < nK; k++){
+        if(adNK[k] > 0.0){
+            adRet[k] = eqnB(nD, ptCluster->ptVBParams->ptInvW0, ptCluster->aptSigma[k], aadM[k], ptCluster->ptVBParams->dBeta0, d2Pi, adLDet[k], adBeta[k], adNu[k])
+        }  
+    }
+
+    for(int k = 0; k < nK; k++){
+        dBishop3 += adRet[k];
+    }
+
+    dBishop3 += dK*ptCluster->ptVBParams->dLogWishartB;
+
+    /*Equation 10.75*/
+    for(int i = 0; i < nN; i++){
+        for(int k = 0; k < nK; k++){
+            if(aadZ[i][k] > 0.0){
+	            dBishop4 += aadZ[i][k]*log(aadZ[i][k]);
+            }
+        }
+    }
+
+    /*Equation 10.77*/
+    for(int k = 0; k < nK; k++){
+        if(adNK[k] > 0.0){
+            dBishop5 += 0.5*adLDet[k] + 0.5*dD*log(adBeta[k]/d2Pi) - 0.5*dD - dWishartExpectLogDet(ptCluster->aptSigma[k], adNu[k], nD);
+        }
+    }
+
+    dRet = dBishop1 + dBishop2 + dBishop3 - dBishop4 - dBishop5;
+
+    return dRet;
+}
+
+
 void calcZ(t_Cluster* ptCluster, t_Data *ptData){
     double **aadX = ptData->aadX, **aadZ = ptCluster->aadZ;
     int i = 0, k = 0, l = 0;
@@ -1533,8 +1690,8 @@ void gmmTrainVB_MP(t_Cluster *ptCluster, t_Data *ptData)
     }
 
     /*calculate data likelihood*/
-    calcZ(ptCluster,ptData);
-    ptCluster->dVBL = calcVBL(ptCluster);
+    calcZ_MP(ptCluster,ptData);
+    ptCluster->dVBL = calcVBL_MP(ptCluster);
 
     while(nIter < nMaxIter && dDelta > dEpsilon){
 
@@ -1545,9 +1702,11 @@ void gmmTrainVB_MP(t_Cluster *ptCluster, t_Data *ptData)
         calcZ_MP(ptCluster,ptData);
 
         dLastVBL = ptCluster->dVBL;
-        ptCluster->dVBL = calcVBL(ptCluster);
+        ptCluster->dVBL = calcVBL_MP(ptCluster);
         dDelta = fabs(ptCluster->dVBL - dLastVBL);
 
+        fprintf(stderr,"%d,%f,%f\n",nIter, ptCluster->dVBL, dDelta);
+        fflush(stderr);
         if(ofp){
     	    fprintf(ofp,"%d,%f,%f,",nIter, ptCluster->dVBL, dDelta);
     	    for(k = 0; k < nK-1; k++){
