@@ -167,6 +167,8 @@ double dWishartExpectLogDet(gsl_matrix *ptW, double dNu, int nD);
 
 void calcZ(t_Cluster* ptCluster, t_Data *ptData);
 
+void calcZ_MP(t_Cluster* ptCluster, t_Data *ptData);
+
 void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData);
 
 double calcDist(double* adX, double *adMu, int nD);

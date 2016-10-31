@@ -527,7 +527,7 @@ void* fitEM_MP(void *pvCluster)
         performMStepMP(ptCluster, ptCluster->ptData);
     }
     
-    gmmTrainVB(ptCluster, ptCluster->ptData);
+    gmmTrainVB_MP(ptCluster, ptCluster->ptData);
 
     gsl_rng_free(ptGSLRNG);
 
@@ -1378,6 +1378,75 @@ void calcZ(t_Cluster* ptCluster, t_Data *ptData){
     return;
 }
 
+void calcZ_MP(t_Cluster* ptCluster, t_Data *ptData){
+    double **aadX = ptData->aadX, **aadZ = ptCluster->aadZ;
+    int nK = ptCluster->nK, nD = ptCluster->nD, nN = ptData->nN;
+    double dD = (double) nD;
+    double** aadM = ptCluster->aadM, *adPi = ptCluster->adPi;
+
+#pragma omp parallel for
+    for(int i = 0; i < nN; i++){
+        double dMinDist = DBL_MAX;
+        double dTotalZ  = 0.0;
+        double dNTotalZ = 0.0;
+        double adDist[nK];
+        int k = 0, l = 0;
+        gsl_vector *ptDiff = gsl_vector_alloc(nD);
+        gsl_vector *ptRes = gsl_vector_alloc(nD);
+    
+
+        for(k = 0; k < nK; k++){
+            if(adPi[k] > 0.){
+                /*set vector to data point*/
+                for(l = 0; l < nD; l++){
+                    gsl_vector_set(ptDiff,l,aadX[i][l] - aadM[k][l]);
+                }
+
+                gsl_blas_dsymv (CblasLower, 1.0, ptCluster->aptSigma[k], ptDiff, 0.0, ptRes);
+
+                gsl_blas_ddot (ptDiff, ptRes, &adDist[k]);
+
+                adDist[k] *= ptCluster->adNu[k];
+
+                adDist[k] -= ptCluster->adLDet[k];
+
+                adDist[k] += dD/ptCluster->adBeta[k];
+
+                if(adDist[k] < dMinDist){
+                    dMinDist = adDist[k];
+                }
+            }
+        }
+
+        for(k = 0; k < nK; k++){
+            if(adPi[k] > 0.){
+                aadZ[i][k] = adPi[k]*exp(-0.5*(adDist[k]-dMinDist));
+                dTotalZ += aadZ[i][k];
+            }
+            else{
+                aadZ[i][k] = 0.0;
+            }
+        }
+
+        for(k = 0; k < nK; k++){
+            double dF = aadZ[i][k] / dTotalZ;
+            if(dF < MIN_Z){
+                aadZ[i][k] = 0.0;
+            }
+            dNTotalZ += aadZ[i][k];
+        }
+        if(dNTotalZ > 0.){
+            for(k = 0; k < nK; k++){
+                aadZ[i][k] /= dNTotalZ;
+            }
+        }
+        gsl_vector_free(ptRes);
+        gsl_vector_free(ptDiff);
+    }
+
+    return;
+}
+
 void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData)
 {
     int i = 0, k = 0,nIter = 0;
@@ -1473,7 +1542,7 @@ void gmmTrainVB_MP(t_Cluster *ptCluster, t_Data *ptData)
         performMStepMP(ptCluster, ptData);
 
         /*calculate responsibilities*/
-        calcZ(ptCluster,ptData);
+        calcZ_MP(ptCluster,ptData);
 
         dLastVBL = ptCluster->dVBL;
         ptCluster->dVBL = calcVBL(ptCluster);
