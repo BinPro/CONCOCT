@@ -35,11 +35,13 @@ void readInputData(const char *szFile, t_Data *ptData);
 
 void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign, int debug, int bAssign);
 
+void readAssigns(const char *szFile, int *anAssign, int nN);
+
 int main()
 {
     t_Data tData;
     int *anAssign = NULL;
-    int i = 0, j = 0, nN = -1, nD = -1;
+    int i = 0, j = 0, nN = -1, nD = -1, nK = 0;
     double* adX = NULL;
     const gsl_rng_type * T;
     gsl_rng * r;
@@ -57,14 +59,21 @@ int main()
     
     adX = (double *) malloc(nN*nD*sizeof(double));
     anAssign = (int *) malloc(nN*sizeof(int));
+    
+    readAssigns("clustering_gt1000.csv", anAssign, nN);
+    
     for(i = 0; i < nN; i++){
-        anAssign[i] = gsl_rng_uniform_int (r, 20);
+        if(anAssigns[i] > nK){
+            nK = anAssigns[i];
+        }
         for(j = 0; j < nD; j++){
             adX[i*nD + j] = tData.aadX[i][j];    
         }
     }
     
-    c_vbgmm_fit (adX, nN, nD, 400, anAssign, FALSE, FALSE);
+    printf("Run c_vbgmm_fit with %d clusters\n",nK);
+    nK = nK + 1;
+    c_vbgmm_fit (adX, nN, nD, nK, anAssign, FALSE, TRUE);
     for(i = 0; i < nN; i++){
         printf("%d,%d\n",i,anAssign[i]);
     }
@@ -166,6 +175,55 @@ void readInputData(const char *szFile, t_Data *ptData)
   ptData->nD = nD;
   ptData->nN = nN;
   ptData->aadX = aadX;
+  return;
+
+ memoryError:
+  fprintf(stderr, "Failed allocating memory in readInputData\n");
+  fflush(stderr);
+  exit(EXIT_FAILURE);
+
+ formatError:
+  fprintf(stderr, "Incorrectly formatted abundance data file\n");
+  fflush(stderr);
+  exit(EXIT_FAILURE);
+}
+
+void readAssigns(const char *szFile, int *anAssign, int nN)
+{
+  int  i = 0;
+  char *szLine = (char *) malloc(sizeof(char)*MAX_LINE_LENGTH);
+  FILE* ifp = NULL;
+
+  if(!szLine)
+    goto memoryError;
+
+  ifp = fopen(szFile, "r");
+
+  if(ifp){
+    char* szTok   = NULL;
+    char* pcError = NULL;
+
+    for(i = 0; i < nN; i++){ 
+        if(fgets(szLine, MAX_LINE_LENGTH, ifp) == NULL)
+            goto formatError;
+
+        szTok = strtok(szLine, DELIM);
+
+    	anAssign[i] = strtod(szTok,&pcError);
+
+	    if(*pcError != '\0'){
+	        goto formatError;
+	    }
+    }
+  }
+  else{
+    fprintf(stderr, "Failed to open abundance data file %s aborting\n", szFile);
+    fflush(stderr);
+    exit(EXIT_FAILURE);
+  }
+
+  free(szLine);
+
   return;
 
  memoryError:

@@ -173,6 +173,5 @@ void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData);
 
 double calcDist(double* adX, double *adMu, int nD);
 
-void readInputData(const char *szFile, t_Data *ptData);
 
 #endif
