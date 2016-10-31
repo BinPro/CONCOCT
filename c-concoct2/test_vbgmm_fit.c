@@ -203,12 +203,15 @@ void readAssigns(const char *szFile, int *anAssign, int nN)
     char* szTok   = NULL;
     char* pcError = NULL;
 
+    if(fgets(szLine, MAX_LINE_LENGTH, ifp) == NULL)
+        goto formatError;
+
     for(i = 0; i < nN; i++){ 
         if(fgets(szLine, MAX_LINE_LENGTH, ifp) == NULL)
             goto formatError;
 
         szTok = strtok(szLine, DELIM);
-
+        szTok = strtok(NULL, DELIM);
     	anAssign[i] = strtod(szTok,&pcError);
 
 	    if(*pcError != '\0'){
