@@ -1348,7 +1348,7 @@ double eqnA(int nD, gsl_matrix *ptCovarK, gsl_matrix *ptSigmaK, double *adMuK, d
     return dRet;
 }
 
-double eqnB(int nD, gsl_matrix *ptInvW0, t_matrix *ptSigmaK, double* adMK, double dBeta0, double d2Pi, double dLDetK, double dBetaK, double dNuK)
+double eqnB(int nD, gsl_matrix *ptInvW0, gsl_matrix *ptSigmaK, double* adMK, double dBeta0, double d2Pi, double dLDetK, double dBetaK, double dNuK, double dNu0)
 {
     int l = 0;
     double dD = (double) nD;
@@ -1396,13 +1396,13 @@ double calcVBL_MP(t_Cluster* ptCluster)
     double d2Pi = 2.0*M_PI, logd2Pi = log(d2Pi), dBeta0 = ptCluster->ptVBParams->dBeta0, dNu0 = ptCluster->ptVBParams->dNu0, dRet = 0.0;
     double dK = 0.0;
 
-    for(k = 0; k < nK; k++){
+    for(int k = 0; k < nK; k++){
         adNK[k] = 0.0;
     }
 
     /*Equation 10.72*/
-    for(i = 0; i < nN; i++){
-        for(k = 0; k < nK; k++){
+    for(int i = 0; i < nN; i++){
+        for(int k = 0; k < nK; k++){
             adNK[k] += aadZ[i][k];
             if(adPi[k] > 0.0){
 	            dBishop2 += aadZ[i][k]*log(adPi[k]);
@@ -1411,7 +1411,7 @@ double calcVBL_MP(t_Cluster* ptCluster)
     }
 
 
-    for(k = 0; k < nK; k++){
+    for(int k = 0; k < nK; k++){
         if(adNK[k] > 0.0){
             dK++;
         }
@@ -1437,7 +1437,7 @@ double calcVBL_MP(t_Cluster* ptCluster)
 #pragma omp parallel for
     for(int k = 0; k < nK; k++){
         if(adNK[k] > 0.0){
-            adRet[k] = eqnB(nD, ptCluster->ptVBParams->ptInvW0, ptCluster->aptSigma[k], aadM[k], ptCluster->ptVBParams->dBeta0, d2Pi, adLDet[k], adBeta[k], adNu[k])
+            adRet[k] = eqnB(nD, ptCluster->ptVBParams->ptInvW0, ptCluster->aptSigma[k], aadM[k], ptCluster->ptVBParams->dBeta0, d2Pi, adLDet[k], adBeta[k], adNu[k],ptCluster->ptVBParams->dNu0);
         }  
     }
 
