@@ -1444,6 +1444,72 @@ void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData)
     return;
 }
 
+void gmmTrainVB_MP(t_Cluster *ptCluster, t_Data *ptData)
+{
+    int i = 0, k = 0,nIter = 0;
+    int nN = ptData->nN, nK = ptCluster->nK;
+    /*change in log-likelihood*/
+    double dLastVBL = 0.0, dDelta = DBL_MAX;
+    double   **aadZ = ptCluster->aadZ;
+    int    nMaxIter = ptCluster->nMaxIter;
+    double dEpsilon = ptCluster->dEpsilon;
+    FILE   *ofp = NULL;
+
+    if(ptCluster->szCOutFile){
+	    ofp = fopen(ptCluster->szCOutFile,"w");
+	    if(!ofp){
+		    fprintf(stderr, "Failed to open file %s in gmmTrainVB\n",ptCluster->szCOutFile);
+		    fflush(stderr);
+	    }
+    }
+
+    /*calculate data likelihood*/
+    calcZ(ptCluster,ptData);
+    ptCluster->dVBL = calcVBL(ptCluster);
+
+    while(nIter < nMaxIter && dDelta > dEpsilon){
+
+        /*update parameter estimates*/
+        performMStepMP(ptCluster, ptData);
+
+        /*calculate responsibilities*/
+        calcZ(ptCluster,ptData);
+
+        dLastVBL = ptCluster->dVBL;
+        ptCluster->dVBL = calcVBL(ptCluster);
+        dDelta = fabs(ptCluster->dVBL - dLastVBL);
+
+        if(ofp){
+    	    fprintf(ofp,"%d,%f,%f,",nIter, ptCluster->dVBL, dDelta);
+    	    for(k = 0; k < nK-1; k++){
+    		    fprintf(ofp,"%f,",ptCluster->adPi[k]);
+    	    }
+    	    fprintf(ofp,"%f\n",ptCluster->adPi[nK - 1]);
+	        fflush(ofp);
+        }
+        nIter++;
+    }
+
+    if(ofp){
+	    fclose(ofp);
+    }
+
+    /*assign to best clusters*/
+    for(i = 0; i < nN; i++){
+        double dMaxZ = aadZ[i][0];
+        int    nMaxK = 0;
+        for(k = 1; k < nK; k++){
+            if(aadZ[i][k] > dMaxZ){
+	            nMaxK = k;
+	            dMaxZ = aadZ[i][k];
+            }
+        }
+        ptCluster->anMaxZ[i] = nMaxK;
+    }
+
+    return;
+}
+
 void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData)
 {
     int i = 0, j = 0, k = 0, l = 0, m = 0;

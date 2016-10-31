@@ -157,6 +157,8 @@ double calcVBL(t_Cluster* ptCluster);
 
 void gmmTrainVB(t_Cluster *ptCluster, t_Data *ptData);
 
+void gmmTrainVB_MP(t_Cluster *ptCluster, t_Data *ptData);
+
 double dLogWishartB(gsl_matrix *ptInvW, int nD, double dNu, int bInv);
 
 void updateMeans(t_Cluster *ptCluster, t_Data *ptData);
