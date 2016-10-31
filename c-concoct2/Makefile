@@ -1,8 +1,8 @@
 CC     = gcc
-CFLAGS = -g -I/usr/local/include/
+CFLAGS = -std=c99 -g -I/usr/local/include/
 EFLAGS =  
 EFILE  = test_vbgmmfit
-LIBS   = -lm -lgsl -lgslcblas -L/usr/local/lib
+LIBS   = -lgomp -lpthread -lm -lgsl -lgslcblas -L/usr/local/lib
 OBJS   = c_vbgmm_fit.o test_vbgmm_fit.o 
 
 $(EFILE) : $(OBJS)

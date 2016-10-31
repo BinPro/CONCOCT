@@ -120,6 +120,9 @@ typedef struct s_Cluster
 #define DEF_SEED         1l
 
 /*user defines*/
+int driverMP(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned long lSeed, 
+                                        int nMaxIter, double dEpsilon, int debug, int bAssign);
+
 int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned long lSeed, int nMaxIter, double dEpsilon, int debug, int bAssign);
 
 void generateInputData(double *adX, int nN, int nD, t_Data *ptData);
@@ -132,6 +135,8 @@ void setVBParams(t_VBParams *ptVBParams, t_Data *ptData);
 
 void* fitEM(void *pvCluster);
 
+void* fitEM_MP(void *pvCluster);
+
 void* runRThreads(void *pvpDCluster);
 
 void allocateCluster(t_Cluster *ptCluster, int nN, int nK, int nD, t_Data *ptData, long lSeed, int nMaxIter, double dEpsilon, char *szCOutFile);
@@ -143,6 +148,8 @@ void compressCluster(t_Cluster *ptCluster);
 double decomposeMatrix(gsl_matrix *ptSigmaMatrix, int nD);
 
 void performMStep(t_Cluster *ptCluster, t_Data *ptData);
+
+void performMStepMP(t_Cluster *ptCluster, t_Data *ptData);
 
 void initKMeans(gsl_rng *ptGSLRNG, t_Cluster *ptCluster, t_Data *ptData);
 
@@ -161,5 +168,7 @@ void calcZ(t_Cluster* ptCluster, t_Data *ptData);
 void calcCovarMatrices(t_Cluster *ptCluster, t_Data *ptData);
 
 double calcDist(double* adX, double *adMu, int nD);
+
+void readInputData(const char *szFile, t_Data *ptData);
 
 #endif

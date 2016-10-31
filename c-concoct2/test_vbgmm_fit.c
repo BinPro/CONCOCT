@@ -55,7 +55,7 @@ int main()
     nN = tData.nN;
     nD = tData.nD;
     
-    adX = (double *) malloc(sizeof(nN*nD*sizeof(double)));
+    adX = (double *) malloc(nN*nD*sizeof(double));
     anAssign = (int *) malloc(nN*sizeof(int));
     for(i = 0; i < nN; i++){
         anAssign[i] = gsl_rng_uniform_int (r, 20);
@@ -64,7 +64,7 @@ int main()
         }
     }
     
-    c_vbgmm_fit (adX, nN, nD, 20, anAssign, FALSE, TRUE);
+    c_vbgmm_fit (adX, nN, nD, 400, anAssign, FALSE, FALSE);
     for(i = 0; i < nN; i++){
         printf("%d,%d\n",i,anAssign[i]);
     }
