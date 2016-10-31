@@ -36,7 +36,7 @@
 
 void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign, int debug, int bAssign)
 {
-    driver(adX, nN, nD, anAssign, nK, DEF_SEED, DEF_MAX_ITER, DEF_EPSILON, debug, bAssign);
+    driverMP(adX, nN, nD, anAssign, nK, DEF_SEED, DEF_MAX_ITER, DEF_EPSILON, debug, bAssign);
 
     return;
 }
@@ -50,7 +50,7 @@ int driverMP(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned l
     const gsl_rng_type *ptGSLRNGType = NULL;
     t_VBParams tVBParams;
     t_Cluster  *ptCluster = NULL;
-    int i = 0, nK = nKStart;
+    int i = 0, nK = nKStart, nNthreads = 0;
     char *szCOutFile = NULL;
 
     /*initialise GSL RNG*/
@@ -61,6 +61,11 @@ int driverMP(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned l
     ptGSLRNGType = gsl_rng_default;
     ptGSLRNG     = gsl_rng_alloc(ptGSLRNGType);
 
+    /*set OMP thread number*/
+    nNthreads = omp_get_max_threads();
+    omp_set_num_threads(nNthreads);
+    printf("Setting %d OMP threads\n",nNthreads);
+    
     /*set clusters params*/
     tParams.nKStart  = nKStart;
     tParams.nMaxIter = nMaxIter;
@@ -1088,7 +1093,7 @@ void performMStepMP(t_Cluster *ptCluster, t_Data *ptData){
     double **aadZ = ptCluster->aadZ,**aadX = ptData->aadX;
     double **aadCovar = NULL, **aadInvWK = NULL;
     t_VBParams *ptVBParams = ptCluster->ptVBParams;
-    omp_set_num_threads(64);
+
     /*perform M step*/
 #pragma omp parallel for
     for(int k = 0; k < nK; k++){ /*loop components*/
