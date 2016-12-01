@@ -51,6 +51,7 @@ int driverMP(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned l
     t_VBParams tVBParams;
     t_Cluster  *ptCluster = NULL;
     int i = 0, nK = nKStart, nNthreads = 0;
+    int nT = 0;
     char *szCOutFile = NULL;
 
     /*initialise GSL RNG*/
@@ -62,7 +63,13 @@ int driverMP(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned l
     ptGSLRNG     = gsl_rng_alloc(ptGSLRNGType);
 
     /*set OMP thread number*/
-    nNthreads = omp_get_max_threads();
+    nNthreads = 192;//omp_get_max_threads();
+    nT = nN / 32  + 1;
+    printf("%d %d %d\n",nN,nT,nNthreads);
+    if (nT < nNthreads){
+        nNthreads = nT;
+    }
+    
     omp_set_num_threads(nNthreads);
     fprintf(stderr,"Setting %d OMP threads\n",nNthreads);
 

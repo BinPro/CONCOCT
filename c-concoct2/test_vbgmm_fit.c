@@ -52,7 +52,7 @@ int main()
     r = gsl_rng_alloc (T);    
     
     
-    readInputData("PCA_transformed_data_gt1000.csv", &tData);
+    readInputData("PCA_transformed_data_gt2000.csv", &tData);
     
     nN = tData.nN;
     nD = tData.nD;
@@ -60,19 +60,21 @@ int main()
     adX = (double *) malloc(nN*nD*sizeof(double));
     anAssign = (int *) malloc(nN*sizeof(int));
     
-    readAssigns("clustering_gt1000.csv", anAssign, nN);
+    readAssigns("clustering_gt2000.csv", anAssign, nN);
     
     for(i = 0; i < nN; i++){
-        if(anAssigns[i] > nK){
-            nK = anAssigns[i];
+        if(anAssign[i] > nK){
+            nK = anAssign[i];
         }
         for(j = 0; j < nD; j++){
             adX[i*nD + j] = tData.aadX[i][j];    
         }
     }
     
-    printf("Run c_vbgmm_fit with %d clusters\n",nK);
     nK = nK + 1;
+    fprintf(stderr,"Run c_vbgmm_fit with %d clusters\n",nK);
+    fflush(stderr);
+    
     c_vbgmm_fit (adX, nN, nD, nK, anAssign, FALSE, TRUE);
     for(i = 0; i < nN; i++){
         printf("%d,%d\n",i,anAssign[i]);

@@ -28,7 +28,7 @@ def main(argv):
 
     args = parser.parse_args()
 
-    import ipdb; ipdb.set_trace()
+#    import ipdb; ipdb.set_trace()
     
     clusters    = p.read_csv(args.cluster_file, header=None, index_col=0)
     
@@ -48,7 +48,7 @@ def main(argv):
     
     K = cluster_freq.shape[0]
     new_clusters_matrix = np.copy(clusters_matrix,order='C')
-    nNewK = K
+    nNewK = K - 1
     for k in range(K):
         if med_scgs[k] > 1:
             
@@ -61,7 +61,7 @@ def main(argv):
             pca_object = PCA(n_components=0.90).fit(slice_k)
             transform_k = pca_object.transform(slice_k)
             
-            NK = med_scgs[k]*2
+            NK = med_scgs[k]*8
             print "Run CONCOCT for " + str(k) + "with " + str(NK) + "clusters"
             assigns = vbgmm.fit(np.copy(transform_k,order='C'),int(NK),False)
             kK = np.max(assigns) + 1

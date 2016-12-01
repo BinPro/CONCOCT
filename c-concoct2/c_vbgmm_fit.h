@@ -115,8 +115,8 @@ typedef struct s_Cluster
 #define R_PRIME          1009
 
 
-#define DEF_EPSILON      1.0e-6
-#define DEF_MAX_ITER     500
+#define DEF_EPSILON      1.0e-4
+#define DEF_MAX_ITER     1000
 #define DEF_SEED         1l
 
 /*user defines*/
