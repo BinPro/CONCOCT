@@ -26,6 +26,9 @@ def main(argv):
 
     parser.add_argument("scg_file", help="string specifying scg frequency file")
 
+    parser.add_argument('-e','--expansion_factor',default=2, type=int,
+                                        help=("number of clusters to expand by"))
+
     parser.add_argument('-t','--threads',default=1, type=int, 
                         help=("number of threads to use defaults to one"))
 
@@ -64,7 +67,7 @@ def main(argv):
             pca_object = PCA(n_components=0.90).fit(slice_k)
             transform_k = pca_object.transform(slice_k)
             
-            NK = med_scgs[k]*2
+            NK = med_scgs[k]*args.expansion_factor
             print "Run CONCOCT for " + str(k) + "with " + str(NK) + "clusters" + " using " + str(args.threads) + "threads"
             assigns = vbgmm.fit(np.copy(transform_k,order='C'),int(NK),False,int(args.threads))
             kK = np.max(assigns) + 1
