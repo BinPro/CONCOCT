@@ -65,54 +65,20 @@ def main(args):
 
     logging.info('PCA transformed data.')
 
-    logging.info('Will call vbgmm with parameters: %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold))
-    import ipdb; ipdb.set_trace()
+    logging.info('Will call vbgmm with parameters: %s, %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold, args.threads))
+    #import ipdb; ipdb.set_trace()
     NC = transform_filter.shape[0]
     assign = np.zeros(NC,dtype=np.int32)
     debug=False
-    
-    nSplit=4
-    kmeans = KMeans(init='k-means++', n_clusters=nSplit, n_init=10)
-    kmeans.fit(transform_filter)
-    labels = kmeans.labels_
-    
-    fit_arguments = []
-    
-    l = 0
-    for s in range(nSplit):
-        transform_S = np.copy(transform_filter[labels==s,],order='C')
-        
-        NS=transform_S.shape[0]
-        
-        #assign_S = np.zeros(NS,dtype=np.int32)
-    
-        fit_arguments.append([transform_S, args.clusters, debug])
-        
-    assigns = prll_map(vbgmm_fit_wrapper, fit_arguments)
-    
-    for s in range(nSplit):
-        #[transform_S, assign_S, args.clusters, debug] = fit_arguments[s]
-        assign_S = assigns[s]       
-        map_S = np.where(labels==s)
-        
-        setS = sorted(list(set(assign_S)))
-        mapS = {}
-        for a in setS:
-            mapS[a] = l
-            l = l + 1 
-        
-        n = 0
-        for m in np.nditer(map_S):
-            assign[m] = mapS[assign_S[n]]
-            n=n+1
+   
+    assign = vbgmm.fit(np.copy(transform_filter,order='C'),int(args.clusters),False,int(args.threads))
+ 
     
     Output.write_assign(
         assign,
         args.length_threshold,
         joined.index,
         )
-
-#    vbgmm.fit(Output.CONCOCT_PATH, args.clusters, args.length_threshold,args.seed,args.iterations,args.epsilon,args.converge_out)
 
     logging.info("CONCOCT Finished")
 
