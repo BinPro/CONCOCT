@@ -39,6 +39,10 @@ def arguments():
     #Kmer length, kmer count threshold and read length
     parser.add_argument('-k','--kmer_length', type=int, default=4,
         help='specify kmer length, default 4.')
+
+    parser.add_argument('-t','--threads', type=int, default=1,
+                    help='Number of threads to use')
+    
     parser.add_argument('-l','--length_threshold', type=int, default=1000,
         help=("specify the sequence length threshold, contigs shorter than this "
               "value will not be included. Defaults to 1000."))
