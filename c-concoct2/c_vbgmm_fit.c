@@ -34,15 +34,15 @@
 /*User includes*/
 #include "c_vbgmm_fit.h"
 
-void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign, int debug, int bAssign)
+void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign, int debug, int bAssign, int nThreads)
 {
-    driverMP(adX, nN, nD, anAssign, nK, DEF_SEED, DEF_MAX_ITER, DEF_EPSILON, debug, bAssign);
+    driverMP(adX, nN, nD, anAssign, nK, DEF_SEED, DEF_MAX_ITER, DEF_EPSILON, debug, bAssign, nThreads);
 
     return;
 }
 
 int driverMP(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned long lSeed, 
-                                        int nMaxIter, double dEpsilon, int debug, int bAssign)
+                                        int nMaxIter, double dEpsilon, int debug, int bAssign, int nThreads)
 {
     t_Params           tParams;
     t_Data             tData;
@@ -63,7 +63,7 @@ int driverMP(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned l
     ptGSLRNG     = gsl_rng_alloc(ptGSLRNGType);
 
     /*set OMP thread number*/
-    nNthreads = 192;//omp_get_max_threads();
+    nNthreads = nThreads;
     nT = nN / 32  + 1;
     printf("%d %d %d\n",nN,nT,nNthreads);
     if (nT < nNthreads){

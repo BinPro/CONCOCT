@@ -12,13 +12,13 @@ import numpy as np
 cimport numpy as np
 
 # declare the interface to the C code
-cdef extern void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign, int debug, int bAssign)
+cdef extern void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign, int debug, int bAssign, int nThreads)
 @cython.boundscheck(False)
 @cython.wraparound(False)
 
-def fit(np.ndarray[double, ndim=2, mode="c"] xarray not None, nClusters, debug):
+def fit(np.ndarray[double, ndim=2, mode="c"] xarray not None, nClusters, debug, threads):
     """
-    fit (xarray, assign, nK, debug)
+    fit (xarray, assign, nK, debug, nThreads)
 
     Takes a numpy array xarray as input, fits the vbgmm using nK initial clusters
 
@@ -28,16 +28,18 @@ def fit(np.ndarray[double, ndim=2, mode="c"] xarray not None, nClusters, debug):
     param: assigns -- cluster assignments must have same number of rows as xarray
 
     """
-    cdef int nN, nD, nK, nS, bAssign
+    cdef int nN, nD, nK, nS, bAssign, nThreads
         
     nN, nD = xarray.shape[0], xarray.shape[1]
 
     nK = nClusters
 
+    nThreads = threads
+
     bAssign = 0
     
     cdef np.ndarray[int, ndim=1,mode="c"] assign = np.zeros((nN), dtype=np.intc)
     
-    c_vbgmm_fit (&xarray[0,0], nN, nD, nK, &assign[0], debug, bAssign)
+    c_vbgmm_fit (&xarray[0,0], nN, nD, nK, &assign[0], debug, bAssign, nThreads)
 
     return assign

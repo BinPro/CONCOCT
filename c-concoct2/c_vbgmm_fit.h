@@ -121,7 +121,7 @@ typedef struct s_Cluster
 
 /*user defines*/
 int driverMP(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned long lSeed, 
-                                        int nMaxIter, double dEpsilon, int debug, int bAssign);
+                                        int nMaxIter, double dEpsilon, int debug, int bAssign, int nThreads);
 
 int driver(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned long lSeed, int nMaxIter, double dEpsilon, int debug, int bAssign);
 
