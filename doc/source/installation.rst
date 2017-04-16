@@ -38,6 +38,7 @@ Python packages
     pandas>=0.11.0
     biopython>=1.62b
     scikit-learn>=0.13.1
+    Pysam>=0.6
 
 These are the python packages that need to be installed in order to run
 concoct. If you follow the installation instructions below, these will
@@ -123,7 +124,7 @@ then install the concoct dependencies into this environment:
 
 ::
 
-    conda install cython numpy scipy biopython pandas pip scikit-learn
+    conda install cython numpy scipy biopython pandas pip scikit-learn pysam
 
 Finally, download the CONCOCT distribution from
 https://github.com/BinPro/CONCOCT/releases (stable) and extract the
