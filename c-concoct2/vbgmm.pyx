@@ -16,7 +16,7 @@ cdef extern void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign
 @cython.boundscheck(False)
 @cython.wraparound(False)
 
-def fit(np.ndarray[double, ndim=2, mode="c"] xarray not None, nClusters, debug, threads):
+def fit(np.ndarray[double, ndim=2, mode="c"] xarray not None, nClusters, threads):
     """
     fit (xarray, assign, nK, debug, nThreads)
 
@@ -28,7 +28,7 @@ def fit(np.ndarray[double, ndim=2, mode="c"] xarray not None, nClusters, debug, 
     param: assigns -- cluster assignments must have same number of rows as xarray
 
     """
-    cdef int nN, nD, nK, nS, bAssign, nThreads
+    cdef int nN, nD, nK, nS, bAssign, nThreads, debug
         
     nN, nD = xarray.shape[0], xarray.shape[1]
 
@@ -37,7 +37,7 @@ def fit(np.ndarray[double, ndim=2, mode="c"] xarray not None, nClusters, debug, 
     nThreads = threads
 
     bAssign = 0
-    
+    debug = 0    
     cdef np.ndarray[int, ndim=1,mode="c"] assign = np.zeros((nN), dtype=np.intc)
     
     c_vbgmm_fit (&xarray[0,0], nN, nD, nK, &assign[0], debug, bAssign, nThreads)

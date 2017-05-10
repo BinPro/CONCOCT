@@ -69,9 +69,8 @@ def main(args):
     #import ipdb; ipdb.set_trace()
     NC = transform_filter.shape[0]
     assign = np.zeros(NC,dtype=np.int32)
-    debug=False
    
-    assign = vbgmm.fit(np.copy(transform_filter,order='C'),int(args.clusters),False,int(args.threads))
+    assign = vbgmm.fit(np.copy(transform_filter,order='C'),int(args.clusters),int(args.threads))
  
     
     Output.write_assign(

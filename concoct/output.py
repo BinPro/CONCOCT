@@ -82,10 +82,9 @@ class Output(object):
         transform_df = p.DataFrame(assign, index=index)
         transform_df.to_csv(
             self.ASSIGN_FILE_BASE.format(threshold),
-            int_format=self.INT_FORMAT,
             index_label="contig_id"
             )
-        logging.info('Wrote PCA transformed file.')
+        logging.info('Wrote assign file.')
 
     
     @classmethod

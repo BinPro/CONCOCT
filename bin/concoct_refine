@@ -69,7 +69,7 @@ def main(argv):
             
             NK = med_scgs[k]*args.expansion_factor
             print "Run CONCOCT for " + str(k) + "with " + str(NK) + "clusters" + " using " + str(args.threads) + "threads"
-            assigns = vbgmm.fit(np.copy(transform_k,order='C'),int(NK),False,int(args.threads))
+            assigns = vbgmm.fit(np.copy(transform_k,order='C'),int(NK),int(args.threads))
             kK = np.max(assigns) + 1
             
             
