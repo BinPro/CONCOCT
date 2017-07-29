@@ -12,7 +12,7 @@ import numpy as np
 cimport numpy as np
 
 # declare the interface to the C code
-cdef extern void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign, int debug, int bAssign, int nThreads)
+cdef extern void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int* anAssign, int nThreads)
 @cython.boundscheck(False)
 @cython.wraparound(False)
 
@@ -36,10 +36,8 @@ def fit(np.ndarray[double, ndim=2, mode="c"] xarray not None, nClusters, threads
 
     nThreads = threads
 
-    bAssign = 0
-    debug = 0    
     cdef np.ndarray[int, ndim=1,mode="c"] assign = np.zeros((nN), dtype=np.intc)
     
-    c_vbgmm_fit (&xarray[0,0], nN, nD, nK, &assign[0], debug, bAssign, nThreads)
+    c_vbgmm_fit (&xarray[0,0], nN, nD, nK, &assign[0], nThreads)
 
     return assign
