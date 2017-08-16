@@ -11,10 +11,10 @@ def cut_up_fasta(fastfiles, chunk_size, overlap, merge_last):
             if (not merge_last and len(record.seq) > chunk_size) or (merge_last and len(record.seq) >= 2 * chunk_size):
                 i = 0
                 for split_seq in chunks(record.seq, chunk_size, overlap, merge_last):
-                    print ">%s.%i\n%s" % (record.id, i, split_seq)
+                    print(">%s.%i\n%s" % (record.id, i, split_seq))
                     i = i + 1
             else:
-                print ">%s\n%s" % (record.id, record.seq)
+                print(">%s\n%s" % (record.id, record.seq))
 
 
 def chunks(l, n, o, merge_last):
@@ -24,10 +24,10 @@ def chunks(l, n, o, merge_last):
     assert n > o
 
     if not merge_last:
-        for i in xrange(0, len(l), n - o):
+        for i in range(0, len(l), n - o):
             yield l[i:i + n]
     else:
-        for i in xrange(0, len(l) - n + 1, n - o):
+        for i in range(0, len(l) - n + 1, n - o):
             yield l[i:i + n] if i + n + n - o <= len(l) else l[i:]
 
 

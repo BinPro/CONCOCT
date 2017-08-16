@@ -177,7 +177,7 @@ def main(args):
     markers.sort()
 
     # print header
-    print "\t".join(["Cluster", "Contigs", "Num_contigs"] + markers)
+    print("\t".join(["Cluster", "Contigs", "Num_contigs"] + markers))
 
     # Per cluster, count the number of features
     for cluster in clusters:
@@ -192,7 +192,7 @@ def main(args):
                     if feature == marker:
                         count += 1
             counts.append(str(count))
-        print "\t".join(counts)
+        print("\t".join(counts))
 
 if __name__ == "__main__":
    parser = argparse.ArgumentParser(usage=usage())

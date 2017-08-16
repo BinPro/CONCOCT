@@ -328,12 +328,12 @@ class TestCMD(object):
         validate_so = subprocess.check_output(['perl', validate_path, 
                                                '--sfile={}'.format(clustering_reference),
                                                '--cfile={}'.format(clustering_file) ])
-        print "Results for large clustering file: "
-        print validate_so
+        print("Results for large clustering file: ")
+        print(validate_so)
         
         headers = validate_so.split('\n')[0].split('\t')
         stats = validate_so.split('\n')[1].split('\t')
-        stats_dict = dict(zip(headers, stats))
+        stats_dict = dict(list(zip(headers, stats)))
 
         assert_true(float(stats_dict['AdjRand']) > 0.85,
                     msg=("Insufficient adjusted rand index "

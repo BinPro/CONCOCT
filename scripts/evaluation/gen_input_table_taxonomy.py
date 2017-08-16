@@ -179,7 +179,7 @@ def get_taxonomy_dict(taxonomyfile):
         # Genus, Species.
         assert(len(cols) == len(TAXONOMY) + 1)
 
-        outdict[cols[0]] = dict(zip(TAXONOMY, cols[1:-1] + [cols[-1].rstrip('\n')]))
+        outdict[cols[0]] = dict(list(zip(TAXONOMY, cols[1:-1] + [cols[-1].rstrip('\n')])))
 
     return outdict
 

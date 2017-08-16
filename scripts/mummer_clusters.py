@@ -26,7 +26,7 @@ with open(coveragefn, 'r') as csvfile:
 
 with open(coveragefn, 'r') as csvfile:
 	reader = csv.reader(csvfile, dialect='excel-tab')
-	reader.next()
+	next(reader)
 	for row in reader:
 		vals = [row[0], row[1], row[2], str(sum([float(x) for x in row[col1:col2+1]]))]
 		covmap[row[0]] = vals
@@ -38,7 +38,7 @@ refs = { 'NC_018658' : 'OutbreakGenome',
 
 contig_set = defaultdict(dict)
 
-for chrom, label in refs.iteritems():
+for chrom, label in refs.items():
 	if not os.path.exists("%s_%s.delta" % (tag, chrom)):
 		os.system("nucmer --prefix=%s_%s %s.fna %s" % (tag, chrom, chrom, tag))
 	#os.system("show-tiling %s_%s.delta > %s_%s.tiling" % (tag, chrom, tag, chrom))
@@ -56,16 +56,16 @@ for chrom, label in refs.iteritems():
 			start = cols[0]
 			contig_set[label][contig] = start
 
-print "Contig",
+print("Contig", end=' ')
 for label in sorted(contig_set.keys()):
-	print "\t" + label,
-print
+	print("\t" + label, end=' ')
+print()
 
 for rec in SeqIO.parse(tag, "fasta"):
-	print "%s\t%s\t%s" % (rec.id, contigmap[rec.id], "\t".join(covmap[rec.id])),
+	print("%s\t%s\t%s" % (rec.id, contigmap[rec.id], "\t".join(covmap[rec.id])), end=' ')
 	for label in sorted(contig_set.keys()):
-		if rec.id in contig_set[label].keys():
-			print "\tY\t%s" % (contig_set[label][rec.id]),
+		if rec.id in list(contig_set[label].keys()):
+			print("\tY\t%s" % (contig_set[label][rec.id]), end=' ')
 		else:
-			print "\tN\tNA",
-	print
+			print("\tN\tNA", end=' ')
+	print()

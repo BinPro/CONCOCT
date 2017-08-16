@@ -27,10 +27,10 @@ def get_approved_bins(scg_tsv, max_missing_scg, max_multicopy_scg):
     with COG_table.py"""
     scgdf = pd.read_csv(scg_tsv, sep="\t")
     # number of multicopy genes
-    multi_scgs = scgdf.iloc[:, range(3, len(scgdf.columns))] \
+    multi_scgs = scgdf.iloc[:, list(range(3, len(scgdf.columns)))] \
             .apply(lambda x: x > 1).sum(axis=1)
     # number of missing scgs
-    miss_scgs = scgdf.iloc[:, range(3, len(scgdf.columns))] \
+    miss_scgs = scgdf.iloc[:, list(range(3, len(scgdf.columns)))] \
             .apply(lambda x: x == 0).sum(axis=1)
     app_bins = scgdf[(miss_scgs <= max_missing_scg) & (multi_scgs <=
         max_multicopy_scg)].loc[:, ["Cluster", "Contigs"]]
@@ -114,13 +114,11 @@ def parse_input():
     args = parser.parse_args()
     if not (len(args.names) == len(args.scg_tsvs)
             and len(args.scg_tsvs) == len(args.fasta_files)):
-        raise(Exception("Should have equal number of scg_tsvs, fasta_files "
-            "and names"))
+        raise Exception
     if args.groups and len(args.groups) != len(args.names):
-        raise(Exception("Should have equal number of --groups as scg_tsvs, "
-            "fasta_files and names"))
+        raise Exception
     if len(args.names) != len(set(args.names)):
-        raise(Exception("--names should be unique names"))
+        raise Exception
     return args
 
 
@@ -162,7 +160,7 @@ def main(args):
     )
     if args.groups:
         group_indices = {g:[i for i, j in enumerate(args.groups) if j == g] for g in args.groups}
-        for g, indices in group_indices.iteritems():
+        for g, indices in group_indices.items():
             logging.info("Selecting best SCG clustering for group "
                     "{}".format(g))
             select_and_write_approved_bins(args.output_folder, [args.scg_tsvs[i] for i in indices],

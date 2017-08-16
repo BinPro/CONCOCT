@@ -58,11 +58,11 @@ class Output(object):
         logging.info("Results created at {0}".format(
             os.path.abspath(self.CONCOCT_PATH)))
 
-        print >> sys.stderr, "Up and running. Check {0} for progress".format(
-            os.path.abspath(self.LOG_FILE_BASE))
+        print("Up and running. Check {0} for progress".format(
+            os.path.abspath(self.LOG_FILE_BASE)), file=sys.stderr)
         #Write header to bic.csv
         with open(self.ARGS_FILE,"w+") as fh:
-            print >> fh, args
+            print(args, file=fh)
     
     @classmethod
     def write_pca(self, transform, threshold, index):

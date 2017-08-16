@@ -101,7 +101,7 @@ def run_dnadiff_star(args):
     except CmdException as e:
         # Custom CmdException doesn't work well with multiprocessing so change
         # to regular Exception http://bugs.python.org/issue16558
-        raise(Exception(str(e)))
+        raise Exception
 
 
 def run_dnadiff_pairwise(fasta_files, fasta_names, output_folder):
@@ -251,7 +251,7 @@ def verbose_check_dependencies(progs):
         if path:
             logging.info("Using {}".format(path))
         else:
-            raise(Exception("{} not installed".format(p)))
+            raise Exception
 
 
 def main(output_folder, fasta_files, fasta_names, min_coverage,
