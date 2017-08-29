@@ -10,3 +10,4 @@ python-dateutil>=2.2
 pytz>=2013.9
 scikit-learn>=0.14.1
 scipy>=0.13.3
+tqdm>=4.11.2

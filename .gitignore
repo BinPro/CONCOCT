@@ -11,6 +11,10 @@ c-concoct/build/*
 *.egg*
 c-concoct/build/*
 c-concoct/dist/*
+c-concoct2/build/*
+c-concoct2/build/*
+c-concoct2/dist/*
+c-concoct2/*.c
 #ignore screen file
 .screenrc
 #ignore test folder
