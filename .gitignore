@@ -10,7 +10,7 @@ build/*
 c-concoct/build/*
 *.egg*
 c-concoct/dist/*
-c-concoct/*.pyx
+c-concoct/vbgmm.c
 #ignore screen file
 .screenrc
 #ignore test folder
