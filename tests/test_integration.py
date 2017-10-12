@@ -94,7 +94,7 @@ class TestCMD(object):
         assert_true(isfile(tmp_basename_file+'_clustering_gt1000.csv'),
                     msg = "Clustering file is not created, when file is used as basename")
         L = listdir(tmp_basename_dir)
-        assert_true(len(L) == 26,
+        assert_true(len(L) == 6,
                     msg = "Wrong number of output files, observed {0}".format(L))
 
     def test_prior_to_clustering(self):
@@ -119,27 +119,6 @@ class TestCMD(object):
             msg='Large contigs clustering file is not created'
             )
         assert_true(
-            isfile(d_p+ '/pca_means_gt1000.csv'),
-            msg='Large contigs cluster pca means file is not created'
-            )
-        assert_true(
-            isfile(d_p+ '/pca_variances_gt1000_dim1.csv'),
-            msg='Large contigs cluster pca variances file is not created'
-            )
-        assert_true(
-            isfile(d_p+ '/means_gt1000.csv'),
-            msg='Large contigs cluster means file is not created'
-            )
-        
-        assert_true(
-            isfile(d_p+ '/variances_gt1000_dim1.csv'),
-            msg='Large contigs cluster variance file is not created'
-            )
-        assert_true(
-            isfile(d_p+ '/responsibilities.csv'),
-            msg='Large contigs responsibilities file is not created'
-            )
-        assert_true(
             isfile(d_p+ '/PCA_transformed_data_gt1000.csv'),
             msg='PCA file is not created'
             )
@@ -157,27 +136,6 @@ class TestCMD(object):
         assert_true(
             isfile(d_p+ 'clustering_gt1000.csv'),
             msg='Large contigs clustering file is not created'
-            )
-        assert_true(
-            isfile(d_p+ 'pca_means_gt1000.csv'),
-            msg='Large contigs cluster means file is not created'
-            )
-        assert_true(
-            isfile(d_p+ 'pca_variances_gt1000_dim1.csv'),
-            msg='Large contigs cluster variances file is not created'
-            )
-        assert_true(
-            isfile(d_p+ 'means_gt1000.csv'),
-            msg='Large contigs cluster means file is not created'
-            )
-
-        assert_true(
-            isfile(d_p+ 'variances_gt1000_dim1.csv'),
-            msg='Large contigs cluster variance file is not created'
-            )
-        assert_true(
-            isfile(d_p+ 'responsibilities.csv'),
-            msg='Large contigs responsibilities file is not created'
             )
         assert_true(
             isfile(d_p+ 'PCA_transformed_data_gt1000.csv'),
