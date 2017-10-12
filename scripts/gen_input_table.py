@@ -8,7 +8,7 @@ import argparse
 import subprocess
 import errno
 from signal import signal, SIGPIPE, SIG_DFL
-
+import gzip
 from Bio import SeqIO
 
 def get_gc_and_len_dict(fastafile):
@@ -16,10 +16,16 @@ def get_gc_and_len_dict(fastafile):
     for the inner dictionary."""
     out_dict = {}
 
-    for rec in SeqIO.parse(fastafile, "fasta"):
-        out_dict[rec.id] = {}
-        out_dict[rec.id]["length"] = len(rec.seq)
-
+    if fastafile.endswith('.gz'):
+        with gzip.open(fastafile) as fhandle:
+            for rec in SeqIO.parse(fhandle, "fasta"):
+                out_dict[rec.id] = {}
+                out_dict[rec.id]["length"] = len(rec.seq)
+    else:
+        with open(fastafile) as fhandle:
+            for rec in SeqIO.parse(fhandle, "fasta"):
+                out_dict[rec.id] = {}
+                out_dict[rec.id]["length"] = len(rec.seq)
     return out_dict
 
 
