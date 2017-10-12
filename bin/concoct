@@ -13,10 +13,7 @@ from concoct.parser import arguments
 from concoct.cluster import cluster
 from concoct.input import load_data
 from concoct.transform import perform_pca
-from concoct.processes import prll_map
 
-def vbgmm_fit_wrapper(args):
-    return vbgmm.fit(*args)
 
 def main(args):
     # Initialize output handling
@@ -66,9 +63,9 @@ def main(args):
     logging.info('PCA transformed data.')
 
     logging.info('Will call vbgmm with parameters: %s, %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold, args.threads))
-    #import ipdb; ipdb.set_trace()
-    NC = transform_filter.shape[0]
-    assign = np.zeros(NC,dtype=np.int32)
+
+    N_contigs = transform_filter.shape[0]
+    assign = np.zeros(N_contigs, dtype=np.int32)
    
     assign = vbgmm.fit(np.copy(transform_filter,order='C'),int(args.clusters),int(args.threads))
  
