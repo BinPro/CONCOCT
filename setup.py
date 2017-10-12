@@ -35,7 +35,7 @@ setup(name='concoct',
       zip_safe=False,
       cmdclass = {'build_ext': build_ext},
       ext_modules = [
-                    Extension("vbgmm", sources=["./c-concoct2/vbgmm.pyx", "./c-concoct2/c_vbgmm_fit.c"],
+                    Extension("vbgmm", sources=["./c-concoct/vbgmm.pyx", "./c-concoct/c_vbgmm_fit.c"],
                                 libraries =['gsl',  'gslcblas','gomp'], include_dirs=include_dirs_for_concoct, extra_compile_args = ['-fopenmp','-O3','-std=c99']) 
                     ],
       install_requires=['cython>=0.19.1',
