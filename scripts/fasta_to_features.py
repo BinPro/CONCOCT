@@ -36,7 +36,7 @@ def generate_features_from_fasta(fasta_file,nr_datapoints,kmer_len,outfile):
     contigs_id = []
     for i,seq in enumerate(seqs):
         contigs_id.append(seq.id)
-        for kmer_tuple in window(seq.seq.tostring().upper(),kmer_len):
+        for kmer_tuple in window(str(seq.seq).upper(),kmer_len):
             contigs[i,kmer_dict["".join(kmer_tuple)]] += 1
     df = pd.DataFrame(contigs,index=contigs_id)
     df.to_csv(outfile)
