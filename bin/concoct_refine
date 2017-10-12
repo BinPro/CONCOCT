@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 from __future__ import division
+DESC="""A script that iterates over concoct results and reruns the concoct algorithm 
+for clusters where the median SCG presence is at least 2."""
+
 
 import sys
 import logging
@@ -10,15 +13,10 @@ import pandas as p
 
 from sklearn.decomposition import PCA
 
-from sklearn.cluster import KMeans
-
 from concoct.transform import perform_pca
 
-def vbgmm_fit_wrapper(args):
-    return vbgmm.fit(*args)
-
 def main(argv):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=DESC)
 
     parser.add_argument("cluster_file", help="string specifying cluster file")
 
@@ -34,8 +32,6 @@ def main(argv):
 
     args = parser.parse_args()
 
-#    import ipdb; ipdb.set_trace()
-    
     clusters    = p.read_csv(args.cluster_file, header=None, index_col=0)
     
     original_data = p.read_csv(args.original_data, header=0, index_col=0)
@@ -83,4 +79,4 @@ def main(argv):
     new_assign_df.to_csv("clustering_refine.csv")
 if __name__ == "__main__":
     main(sys.argv[1:])
-        
+
