@@ -38,7 +38,8 @@ def main(args):
     #PCA on the contigs that have kmer count greater than length_threshold
     transform_filter, pca = perform_pca(
         joined,
-        args.pca_components
+        args.pca_components,
+        args.seed
         )
 
     logging.info('Performed PCA, resulted in %s dimensions' % transform_filter.shape[1])
@@ -67,7 +68,7 @@ def main(args):
     N_contigs = transform_filter.shape[0]
     assign = np.zeros(N_contigs, dtype=np.int32)
    
-    assign = vbgmm.fit(np.copy(transform_filter,order='C'),int(args.clusters),int(args.threads))
+    assign = vbgmm.fit(np.copy(transform_filter,order='C'), int(args.clusters), int(args.seed), int(args.threads))
  
     
     Output.write_assign(
