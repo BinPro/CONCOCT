@@ -10,7 +10,7 @@ except ImportError:
     print "You need to have Cython installed on your system to run setup.py. Sorry!"
     sys.exit()
 
-version = '0.4.1'
+version = '0.5.0'
 
 include_dirs_for_concoct = [np.get_include(), '/opt/local/include/']     
 

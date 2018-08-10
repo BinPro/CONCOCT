@@ -1,4 +1,4 @@
-## CONCOCT 1.0.0 development version [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)
+## CONCOCT 0.5.0 development version [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)
 
 A program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
 coverage data in multiple samples and linkage data from paired end reads.
@@ -15,7 +15,7 @@ Johannes Alneberg, Brynjar Smári Bjarnason, Ino de Bruijn, Melanie Schirmer, Jo
 ## Documentation ##
 A comprehensive documentation for concoct is hosted on [readthedocs](https://concoct.readthedocs.org).
 
-##Support##
+## Support ##
 If you are having issues, please let us know. We have a mailing list located at: concoct-support@lists.sourcefourge.net which you can also subscribe to [here](https://lists.sourceforge.net/lists/listinfo/concoct-support).
 
 ## Contribute ##
