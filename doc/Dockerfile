@@ -6,7 +6,7 @@
 #
 # To login to the docker with a shared directory from the host do:
 #
-# sudo docker run -v /my/host/shared/directory:/my/docker/location -i -t binnisb/concoct_0.5.0 /bin/bash
+# docker run -v /my/host/shared/directory:/my/docker/location -i -t alneberg/concoct_0.5.0 /bin/bash
 #
 
 FROM continuumio/miniconda
@@ -23,7 +23,7 @@ RUN conda update --yes conda;\
 
 # Install python dependencies and fetch and install CONCOCT 0.5.0
 RUN cd /opt;\
-    conda install --yes python=2.7 atlas cython numpy scipy biopython pandas pip scikit-learn pysam tqdm;\
+    conda install --yes python=2.7 atlas cython numpy scipy biopython pandas pip scikit-learn pysam;\
     pip install bcbio-gff
     
 #    wget --no-check-certificate https://github.com/BinPro/CONCOCT/archive/0.5.0.tar.gz;\
