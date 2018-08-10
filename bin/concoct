@@ -4,6 +4,9 @@ from __future__ import division
 import sys
 import logging
 import vbgmm
+import numpy as np 
+
+from sklearn.cluster import KMeans
 
 from concoct.output import Output
 from concoct.parser import arguments
@@ -11,7 +14,6 @@ from concoct.cluster import cluster
 from concoct.input import load_data
 from concoct.transform import perform_pca
 
-import vbgmm
 
 def main(args):
     # Initialize output handling
@@ -31,12 +33,13 @@ def main(args):
 
     # Fix special case in pca_components
     if args.pca_components == "All":
-        args.pca_components = joined[args.length_threshold_filter].shape[1]
+        args.pca_components = joined.shape[1]
 
     #PCA on the contigs that have kmer count greater than length_threshold
     transform_filter, pca = perform_pca(
         joined,
-        args.pca_components
+        args.pca_components,
+        args.seed
         )
 
     logging.info('Performed PCA, resulted in %s dimensions' % transform_filter.shape[1])
@@ -60,9 +63,19 @@ def main(args):
 
     logging.info('PCA transformed data.')
 
-    logging.info('Will call vbgmm with parameters: %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold))
+    logging.info('Will call vbgmm with parameters: %s, %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold, args.threads))
 
-    vbgmm.fit(Output.CONCOCT_PATH, args.clusters, args.length_threshold,args.seed,args.iterations,args.epsilon,args.converge_out)
+    N_contigs = transform_filter.shape[0]
+    assign = np.zeros(N_contigs, dtype=np.int32)
+   
+    assign = vbgmm.fit(np.copy(transform_filter,order='C'), int(args.clusters), int(args.seed), int(args.threads))
+ 
+    
+    Output.write_assign(
+        assign,
+        args.length_threshold,
+        joined.index,
+        )
 
     logging.info("CONCOCT Finished")
 

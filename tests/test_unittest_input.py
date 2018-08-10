@@ -58,7 +58,7 @@ class TestInput(object):
        
         seq_strings = {}
         for i, s in enumerate(seqs):
-            seq_strings[s.id] = s.seq.tostring().upper()
+            seq_strings[s.id] = str(s.seq).upper()
 
         composition, contig_lengths = _calculate_composition(f, 0, 4)  
         
