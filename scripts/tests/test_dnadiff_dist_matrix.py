@@ -126,9 +126,12 @@ class TestDnaDiff(object):
                 delimiter="\t")
         heatmap = ospj(TMP_BASENAME_DIR, "hclust_heatmap.pdf")
         dendrogram = ospj(TMP_BASENAME_DIR, "hclust_dendrogram.pdf")
-        dnadiff_dist_matrix.plot_dist_matrix(matrix, names, heatmap, dendrogram)
+        clustering = ospj(TMP_BASENAME_DIR, "clustering.tsv")
+        clustering_threshold = 0.05
+        dnadiff_dist_matrix.plot_dist_matrix(matrix, names, heatmap, dendrogram, clustering_threshold, clustering)
         ok_(os.path.exists(heatmap))
         ok_(os.path.exists(dendrogram))
+        ok_(os.path.exists(clustering))
 
     def test_plot_dist_matrix_88_bins(self):
         """Plot a distance matrix with 88 samples"""
@@ -139,9 +142,12 @@ class TestDnaDiff(object):
                 delimiter="\t")
         heatmap = ospj(TMP_BASENAME_DIR, "hclust_heatmap.pdf")
         dendrogram = ospj(TMP_BASENAME_DIR, "hclust_dendrogram.pdf")
-        dnadiff_dist_matrix.plot_dist_matrix(matrix, names, heatmap, dendrogram)
+        clustering = ospj(TMP_BASENAME_DIR, "clustering.tsv")
+        clustering_threshold = 0.05
+        dnadiff_dist_matrix.plot_dist_matrix(matrix, names, heatmap, dendrogram, clustering_threshold, clustering)
         ok_(os.path.exists(heatmap))
         ok_(os.path.exists(dendrogram))
+        ok_(os.path.exists(clustering))
 
     def test_write_fasta_names(self):
         names = [
