@@ -9,22 +9,18 @@
 # docker run -v /my/host/shared/directory:/my/docker/location -i -t alneberg/concoct_0.5.0 /bin/bash
 #
 
-FROM continuumio/miniconda
-MAINTAINER CONCOCT developer group, concoct-support@lists.sourceforge.net
+FROM ubuntu:18.04
 COPY . /opt/CONCOCT
 
 # Get basic ubuntu packages needed
 RUN apt-get update -qq
-RUN apt-get install -qq wget build-essential libgsl0-dev git zip unzip bedtools
+RUN apt-get install -qq wget build-essential libgsl0-dev git zip unzip bedtools python-pip
 
-RUN conda update --yes conda;\
-    conda install --yes python=2.7;\
-    pip install --upgrade pip
+RUN pip install --upgrade pip
 
 # Install python dependencies and fetch and install CONCOCT 0.5.0
-RUN cd /opt;\
-    conda install --yes python=2.7 atlas cython numpy scipy biopython pandas pip scikit-learn pysam;\
-    pip install bcbio-gff
+RUN cd /opt/CONCOCT;\
+    pip install -r requirements.txt;\
     
 #    wget --no-check-certificate https://github.com/BinPro/CONCOCT/archive/0.5.0.tar.gz;\
 #    tar xf 0.5.0.tar.gz;\
