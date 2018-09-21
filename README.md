@@ -1,6 +1,6 @@
 ## CONCOCT 0.5.0 development version [![Build Status](https://travis-ci.org/BinPro/CONCOCT.png?branch=master)](https://travis-ci.org/BinPro/CONCOCT)
 
-A program for unsupervised binning of metagenomic contigs by using nucleotide composition, 
+A program for unsupervised binning of metagenomic contigs by using nucleotide composition,
 coverage data in multiple samples and linkage data from paired end reads.
 
 Warning! This software is to be considered under development. Functionality and the user interface may still change significantly from one version to another.

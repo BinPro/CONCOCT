@@ -19,6 +19,7 @@ confFile <- opt$confile
 
 Conf <- read.csv(confFile,header=TRUE,row.names=1)
 Conf.t <- t(Conf)
+Conf.t <- Conf.t[rowSums(Conf.t) > 0,]
 ConfP <- Conf.t/rowSums(Conf.t)
 
 crp <- colorRampPalette(c("blue","red","orange","yellow"))(100)
