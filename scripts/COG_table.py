@@ -161,7 +161,10 @@ def main(args):
         seq_cov_above_threshold =  percent_seq_covered >= RPSBLAST_SCOVS_THRESHOLD
         
         if pident_above_threshold and seq_cov_above_threshold:
-            cog_accession = cogrecords[record_d['sseqid'].split('|')[2]]['Accession']
+            thisacc = record_d['sseqid'].split('|')[2]
+            cog_accession = 'unknown'
+            if thisacc in cogrecords:
+                cog_accession = cogrecords[thisacc]['Accession']
             if args.gfffile:
                 contig = featureid_locations[record_d['qseqid']]
             else:
