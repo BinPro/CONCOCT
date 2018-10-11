@@ -173,7 +173,7 @@ def parse_linkage_info_bam(bamfile, readlength, min_contig_length, regionlength,
 
     # Remove default generators
     linkdict.default_factory = None
-    for v in linkdict.itervalues():
+    for v in linkdict.values():
         v.default_factory = None
     read_count_dict.default_factory = None
 
@@ -221,15 +221,15 @@ def print_linkage_info(linkdict, read_count_dict, samplenames):
     where n represents sample name. Number of columns is thus 2 + 6 * n.
     """
     # Header
-    print ("%s\t%s" + "\t%s" * len(samplenames)) % (("contig1", "contig2") +
+    print(("%s\t%s" + "\t%s" * len(samplenames)) % (("contig1", "contig2") +
         tuple(["nr_links_inward_%s\tnr_links_outward_%s\tnr_links_inline_%s\tnr_links_inward_or_outward_%s\t"
-               "read_count_contig1_%s\tread_count_contig2_%s" % ((s,) * 6) for s in samplenames]))
+               "read_count_contig1_%s\tread_count_contig2_%s" % ((s,) * 6) for s in samplenames])))
 
     # Content
-    allcontigs = tuple(set([k for k in linkdict[s].keys() for s in samplenames]))
+    allcontigs = tuple(set([k for k in list(linkdict[s].keys()) for s in samplenames]))
     for c in allcontigs:
-        for c2 in set([k for k in linkdict[s][c].keys() for s in samplenames]):
-            print get_string_link_row(linkdict, read_count_dict, samplenames, c, c2)
+        for c2 in set([k for k in list(linkdict[s][c].keys()) for s in samplenames]):
+            print(get_string_link_row(linkdict, read_count_dict, samplenames, c, c2))
             
 
 def parallel_get_linkage(bamfiles, readlength, min_contig_length, regionlength, max_n_cores, fullsearch):
@@ -308,14 +308,12 @@ if __name__ == "__main__":
     if args.samplenames is not None:
         samplenames = [s[:-1] for s in open(args.samplenames).readlines()]
         if len(samplenames) != len(args.bamfiles):
-            raise(Exception("Nr of names in samplenames should be equal to nr "
-            "of given bamfiles"))
+            raise Exception
     else:
         samplenames = [str(i) for i in range(len(args.bamfiles))]
 
     for bf in args.bamfiles:
         if not os.path.isfile(bf + ".bai"):
-            raise(Exception("No index for %s file found, run samtools index "
-            "first on bam file." % bf))
+            raise Exception
 
     main(args.fastafile, args.bamfiles, samplenames, args.readlength, args.mincontiglength, args.regionlength, args.max_n_cores, args.fullsearch)

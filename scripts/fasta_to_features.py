@@ -6,14 +6,14 @@ from Bio import SeqIO
 
 # optimized sliding window function from
 # http://stackoverflow.com/a/7636587
-from itertools import tee, izip
+from itertools import tee
 
 def window(seq,n):
     els = tee(seq,n)
     for i,el in enumerate(els):
-        for _ in xrange(i):
+        for _ in range(i):
             next(el, None)
-    return izip(*els)
+    return zip(*els)
 
 def generate_feature_mapping(kmer_len):
     BASE_COMPLEMENT = {"A":"T","T":"A","G":"C","C":"G"}

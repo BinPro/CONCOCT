@@ -27,6 +27,20 @@ linux (ubuntu) this is installed through:
 
     apt-get install build-essential libgsl0-dev
 
+Making it work on Mac OSX:
+
+::
+
+    conda install llvm gcc libgcc pip
+    export CC=/Users/johannes.alneberg/miniconda3/envs/concoct_py3/bin/gcc
+    export CXX=/Users/johannes.alneberg/miniconda3/envs/concoct_py3/bin/g++
+    conda install gsl
+    pip install -r requirements.txt
+    unset CC
+    unset CXX
+    pip install pysam
+
+
 Python packages
 ~~~~~~~~~~~~~~~
 

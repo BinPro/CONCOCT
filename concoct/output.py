@@ -4,6 +4,7 @@ Created on Fri Jul 12 2013
 
 @author: Johannes Alneberg
 """
+from __future__ import print_function
 import os
 import sys
 import logging
@@ -22,7 +23,7 @@ class Output(object):
     PCA_COMPONENTS_FILE_BASE = None
     FLOAT_FORMAT = '%1.8e'
     INT_FORMAT = '%d'
-    
+
     @classmethod
     def __init__(self,basename,args):
         """
@@ -61,12 +62,15 @@ class Output(object):
         logging.info("Results created at {0}".format(
             os.path.abspath(self.CONCOCT_PATH)))
 
-        print >> sys.stderr, "Up and running. Check {0} for progress".format(
-            os.path.abspath(self.LOG_FILE_BASE))
+
+        print("Up and running. Check {0} for progress".format(
+                        os.path.abspath(self.LOG_FILE_BASE)
+                    ), file=sys.stderr)
+
         #Write header to bic.csv
         with open(self.ARGS_FILE,"w+") as fh:
-            print >> fh, args
-    
+            print(args, file=fh)
+
     @classmethod
     def write_pca(self, transform, threshold, index):
         transform_df = p.DataFrame(transform, index=index)
@@ -86,7 +90,7 @@ class Output(object):
             )
         logging.info('Wrote assign file.')
 
-    
+
     @classmethod
     def write_pca_components(self, components, threshold):
         np.savetxt(

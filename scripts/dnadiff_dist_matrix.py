@@ -102,7 +102,7 @@ def run_dnadiff_star(args):
     except CmdException as e:
         # Custom CmdException doesn't work well with multiprocessing so change
         # to regular Exception http://bugs.python.org/issue16558
-        raise(Exception(str(e)))
+        raise Exception
 
 
 def run_dnadiff_pairwise(fasta_files, fasta_names, output_folder):
@@ -174,7 +174,7 @@ def plot_dist_matrix(matrix, fasta_names, heatmap_out, dendrogram_out, cluster_t
     link = linkage(pdm, metric='euclidean', method='average')
     flat_clusters = fcluster(link, cluster_threshold, criterion='distance')
 
-    clustering = pd.Series(dict(zip(fasta_names, flat_clusters)))
+    clustering = pd.Series(dict(list(zip(fasta_names, flat_clusters))))
     clustering.to_csv(clustering_out, sep='\t')
 
     # Plot heatmap
@@ -260,7 +260,7 @@ def verbose_check_dependencies(progs):
         if path:
             logging.info("Using {}".format(path))
         else:
-            raise(Exception("{} not installed".format(p)))
+            raise Exception
 
 
 def main(output_folder, fasta_files, fasta_names, min_coverage,

@@ -25,7 +25,7 @@ class TestInput(object):
     def test_generate_feature_mapping(self):
         feature_mapping, counter = generate_feature_mapping(2)
         assert_equal(counter, 10)
-        assert_equal(len(feature_mapping.keys()), 16)
+        assert_equal(len(list(feature_mapping.keys())), 16)
         assert_true(('A', 'A') in feature_mapping)
 
     def test_load_composition(self):
@@ -65,14 +65,14 @@ class TestInput(object):
         # Make sure the count is correct for one specific kmer 
         kmer_s = ('A', 'C', 'G', 'T')
 
-        for seq_id, s in seq_strings.iteritems():
+        for seq_id, s in seq_strings.items():
             c = count_substrings(s, "".join(kmer_s))
             assert_equal(composition.ix[seq_id, feature_mapping[kmer_s]], c+1)
 
         # Check that non palindromic kmers works as well:
         kmer_s = ('A', 'G', 'G', 'G')
         reverse_kmer_s = ('C', 'C', 'C', 'T')
-        for seq_id, s in seq_strings.iteritems():
+        for seq_id, s in seq_strings.items():
             c_1 = count_substrings(s, "".join(kmer_s))
             c_2 = count_substrings(s, "".join(reverse_kmer_s))
             assert_equal(composition.ix[seq_id, feature_mapping[kmer_s]], c_1 + c_2 + 1)

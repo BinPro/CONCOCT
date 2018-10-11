@@ -21,7 +21,7 @@ def main(args):
     for i, row in df.iterrows():
         cluster_to_contigs[row['cluster_id']].append(row['contig_id'])
     
-    for cluster_id, contig_ids in cluster_to_contigs.iteritems():
+    for cluster_id, contig_ids in cluster_to_contigs.items():
         output_file = os.path.join(args.output_path, "{0}.fa".format(cluster_id))
         seqs = [all_seqs[contig_id] for contig_id in contig_ids] 
         with open(output_file, 'w') as ofh:
