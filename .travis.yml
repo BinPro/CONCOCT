@@ -1,9 +1,10 @@
 language: python
 python:
   - "2.7"
-  - "3.6"
-  # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
-  # maintainers to fix their pypy-dev package.
+  - "3.4"
+  # Since we are using system_site_packages, we are only able to use
+  # the default python versions, see:
+  # https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs
 # command to install dependencies
 virtualenv:
   system_site_packages: true
