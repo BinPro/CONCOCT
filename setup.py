@@ -7,7 +7,7 @@ import numpy as np
 try:
     from Cython.Distutils import build_ext
 except ImportError:
-    print "You need to have Cython installed on your system to run setup.py. Sorry!"
+    print("You need to have Cython installed on your system to run setup.py. Sorry!")
     sys.exit()
 
 version = '0.5.0'

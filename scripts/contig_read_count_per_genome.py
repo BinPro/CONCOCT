@@ -80,11 +80,11 @@ def count_contigs_per_genome(bamfile, count_dict, multi_align_tag='XS'):
         
     
 def print_count_dict(count_dict, column_header):
-    print ("contig" + "\t%s" * len(column_header)) % tuple(column_header)
+    print(("contig" + "\t%s" * len(column_header)) % tuple(column_header))
 
     for contig in count_dict:
-        print ("%s" + "\t%i" * len(column_header)) % tuple([contig] + \
-            [count_dict[contig][ch] for ch in column_header])
+        print(("%s" + "\t%i" * len(column_header)) % tuple([contig] + \
+            [count_dict[contig][ch] for ch in column_header]))
 
  
 def parallel_count_contigs_per_genome(args):
@@ -131,7 +131,6 @@ if __name__ == "__main__":
 
     for bf in args.bamfiles:
         if not os.path.isfile(bf + ".bai"):
-            raise(Exception("No index for %s file found, run samtools index "
-            "first on bam file." % bf))
+            raise Exception
 
     main(args.contigfa, args.reffa, args.bamfiles, args.max_n_processors)
