@@ -7,7 +7,6 @@ import vbgmm
 
 from concoct.output import Output
 from concoct.parser import arguments
-from concoct.cluster import cluster
 from concoct.input import load_data
 from concoct.transform import perform_pca
 
