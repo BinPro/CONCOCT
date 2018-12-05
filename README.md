@@ -35,8 +35,8 @@ merge_cutup_clustering.py concoct_output/clustering_gt1000.csv > concoct_output/
 
 Extract bins as individual FASTA
 ```bash
-mkdir concoct_output/fata_bins
-extract_fasta_bins.py original_contigs.fa concoct_output/clustering_merge.csv --output_path concoct_output/fasta_bins
+mkdir concoct_output/fasta_bins
+extract_fasta_bins.py original_contigs.fa concoct_output/clustering_merged.csv --output_path concoct_output/fasta_bins
 ```
 
 ## Support ##
