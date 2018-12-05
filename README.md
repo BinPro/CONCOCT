@@ -17,8 +17,8 @@ Cut contigs into smaller parts
 cut_up_fasta.py original_contigs.fa -c 10000 -o 0 --merge_last -b contigs_10K.bed > contigs_10K.fa
 ```
 
-Generate table with coverage depth information per sample and subcontig.  
-This step assumes the directory 'mapping' contains sorted and indexed bam files where each sample has been mapped against the original contigs. 
+Generate table with coverage depth information per sample and subcontig.
+This step assumes the directory 'mapping' contains sorted and indexed bam files where each sample has been mapped against the original contigs.
 ```bash
 concoct_coverage_table.py contigs_10K.bed mapping/Sample*.sorted.bam > coverage_table.tsv
 ```
