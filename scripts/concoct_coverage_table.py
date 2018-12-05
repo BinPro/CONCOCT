@@ -49,7 +49,7 @@ def generate_input_table(bedfile, bamfiles, samplenames=None):
         avg_coverage_depth = df[df.columns[4:]].divide((df[2]-df[1]), axis=0)
         avg_coverage_depth.index = df[3]
         avg_coverage_depth.columns = header 
-        avg_coverage_depth.to_csv(sys.stdout, index_label='contig', sep='\t')
+        avg_coverage_depth.to_csv(sys.stdout, index_label='contig', sep='\t', float_format='%.3f')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
