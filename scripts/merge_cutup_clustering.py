@@ -14,46 +14,50 @@ import argparse
 from collections import defaultdict, Counter
 
 def original_contig_name_special(s):
-    """Transform s to the original contig name according to the special Baltic Mag paper"""
-    n = s.split(".")[-1].split('_')[0]
+    n = s.split(".")[-1]
     try:
         int(n)
     except:
-        return s, 0, None
+        return s, 0
     # Only small integers are likely to be 
     # indicating a cutup part.
     if int(n) < 1000:
 
-        return ".".join(s.split(".")[:-1]), int(n), "_".join(s.split(".")[-1].split('_')[1:])
+        return ".".join(s.split(".")[:-1]), int(n)
     else:
         # A large n indicates that the integer
         # was part of the original contig
-        return s, 0, None
+        return s, 0
 
 def main(args):
     all_seqs = {}
     all_originals = defaultdict(dict)
+    first = True
     with open(args.cutup_clustering_result, 'r') as ifh:
         for line in ifh:
+            if first:
+                first=False
+                continue
             line = line.strip()
             contig_id, cluster_id = line.split(',')
-            original_contig_name, part_id, left_over = original_contig_name_special(contig_id)
+            original_contig_name, part_id = original_contig_name_special(contig_id)
         
             all_originals[original_contig_name][part_id] = cluster_id
 
     merged_contigs_stack = []
     
-    for original_contig_id, part_ids_d in all_originals.iteritems():
+    sys.stdout.write("contig_id,cluster_id\n")
+    for original_contig_id, part_ids_d in all_originals.items():
         if len(part_ids_d) > 1:
             c = Counter(part_ids_d.values())
             cluster_id = c.most_common(1)[0][0]
-            c_string = [(a,b) for a, b in c.iteritems()]
+            c_string = [(a,b) for a, b in c.items()]
             if len(c.values()) > 1:
                 sys.stderr.write("{}\t{}, chosen: {}\n".format(original_contig_id, c_string, cluster_id))
             else:
                 sys.stderr.write("{}\t{}\n".format(original_contig_id, c_string))
         else:
-            cluster_id = part_ids_d.values()[0]     
+            cluster_id = list(part_ids_d.values())[0]
 
         sys.stdout.write("{},{}\n".format(original_contig_id, cluster_id))
 

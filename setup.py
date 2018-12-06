@@ -10,7 +10,7 @@ except ImportError:
     print("You need to have Cython installed on your system to run setup.py. Sorry!")
     sys.exit()
 
-version = '0.5.0'
+version = '1.0.0'
 
 include_dirs_for_concoct = [np.get_include(), '/opt/local/include/']     
 
@@ -30,7 +30,8 @@ setup(name='concoct',
       url='https://github.com/BinPro/CONCOCT',
       license='FreeBSD',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-      scripts=["bin/concoct","bin/concoct_refine"],
+      scripts=["bin/concoct","bin/concoct_refine", "scripts/cut_up_fasta.py", "scripts/concoct_coverage_table.py",
+               "scripts/merge_cutup_clustering.py", "scripts/extract_fasta_bins.py"],
       include_package_data=True,
       zip_safe=False,
       cmdclass = {'build_ext': build_ext},
@@ -44,7 +45,7 @@ setup(name='concoct',
                         'pandas>=0.11.0',
                         'biopython>=1.62b',
                         'scikit-learn>=0.13.1',
-                        'nose==1.3.0'],
+                        'nose'],
       entry_points="""
       # -*- Entry points: -*-
       """,

@@ -84,6 +84,7 @@ class Output(object):
     @classmethod
     def write_assign(self, assign, threshold, index):
         transform_df = p.DataFrame(assign, index=index)
+        transform_df.columns=['cluster_id']
         transform_df.to_csv(
             self.ASSIGN_FILE_BASE.format(threshold),
             index_label="contig_id"
