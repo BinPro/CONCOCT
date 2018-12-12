@@ -21,6 +21,7 @@ This results in the following output files in the folder ``test_dnadiff_out/``:
 
     - ``dist_matrix.stv`` The distance matrix
     - ``fasta_names.tsv`` The names given to each bin (or fasta file)
+    - ``clustering.tsv`` This file will give a cluster assignment for each bin (or fasta file)
     - :download:`hcust_dendrogram.pdf <../_static/scripts/dna_diff_dist_matrix/hclust_dendrogram.pdf>`
       Dendrogram of the clustering (click for example)
     - :download:`hcust_heatmap.pdf <../_static/scripts/dna_diff_dist_matrix/hclust_heatmap.pdf>`

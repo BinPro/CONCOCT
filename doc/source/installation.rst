@@ -9,23 +9,42 @@ Fundamental dependencies
 
 ::
 
-    python v2.7.*
-    gcc
-    gsl
+    python version 2.7 or  version 3
+    gcc - C compiler
+    gsl - GNU Scientific Library
+    gslcblas - GNU Scientific Library BLAS library
+    gomp - GNU OpenMP implementation
+
 
 These items are prerequisities for the installation of concoct as
 described below. The installation procedure varies on different systems,
 and described in this README is only how to proceed with a linux
 (ubuntu) distribution.
 
-The first item, ``python v2.7.*``, should be installed on a modern
-Ubuntu distribution. A c-compiler, e.g. ``gcc``, is needed to compile
+We recommend using miniconda to install python.
+A c-compiler, e.g. ``gcc``, is needed to compile
 the c parts of concoct that uses the GNU Scientific Library ``gsl``. For
 linux (ubuntu) this is installed through:
 
 ::
 
-    apt-get install build-essential libgsl0-dev
+    apt-get install build-essential libgsl0-dev libgomp1
+
+Making it work on Mac OSX
+~~~~~~~~~~~~~~~~~~~~~~~~~
+A bit of a hack. You have been warned:
+
+::
+
+    conda install llvm gcc libgcc pip
+    export CC=/Users/johannes.alneberg/miniconda3/envs/concoct_py3/bin/gcc
+    export CXX=/Users/johannes.alneberg/miniconda3/envs/concoct_py3/bin/g++
+    conda install gsl
+    pip install -r requirements.txt
+    unset CC
+    unset CXX
+    pip install pysam
+
 
 Python packages
 ~~~~~~~~~~~~~~~

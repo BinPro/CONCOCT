@@ -161,7 +161,10 @@ def main(args):
         seq_cov_above_threshold =  percent_seq_covered >= RPSBLAST_SCOVS_THRESHOLD
         
         if pident_above_threshold and seq_cov_above_threshold:
-            cog_accession = cogrecords[record_d['sseqid'].split('|')[2]]['Accession']
+            thisacc = record_d['sseqid'].split('|')[2]
+            cog_accession = 'unknown'
+            if thisacc in cogrecords:
+                cog_accession = cogrecords[thisacc]['Accession']
             if args.gfffile:
                 contig = featureid_locations[record_d['qseqid']]
             else:
@@ -177,7 +180,7 @@ def main(args):
     markers.sort()
 
     # print header
-    print "\t".join(["Cluster", "Contigs", "Num_contigs"] + markers)
+    print("\t".join(["Cluster", "Contigs", "Num_contigs"] + markers))
 
     # Per cluster, count the number of features
     for cluster in clusters:
@@ -192,7 +195,7 @@ def main(args):
                     if feature == marker:
                         count += 1
             counts.append(str(count))
-        print "\t".join(counts)
+        print("\t".join(counts))
 
 if __name__ == "__main__":
    parser = argparse.ArgumentParser(usage=usage())

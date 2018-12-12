@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import pandas as p
 
-from itertools import product, tee, izip
+from itertools import product, tee
 from collections import Counter, OrderedDict
 
 from Bio import SeqIO
@@ -141,6 +141,6 @@ def generate_feature_mapping(kmer_len):
 def window(seq,n):
     els = tee(seq,n)
     for i,el in enumerate(els):
-        for _ in xrange(i):
+        for _ in range(i):
             next(el, None)
-    return izip(*els)
+    return zip(*els)

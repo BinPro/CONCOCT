@@ -1,4 +1,4 @@
-Complete Example V0.4
+Complete Example V1.0
 =====================
 
 We'd like to here give you a complete example walk through. However, the

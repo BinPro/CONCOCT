@@ -9,8 +9,8 @@ dist/*
 build/*
 c-concoct/build/*
 *.egg*
-c-concoct/build/*
 c-concoct/dist/*
+c-concoct/vbgmm.c
 #ignore screen file
 .screenrc
 #ignore test folder
