@@ -90,10 +90,10 @@ class TestCMD(object):
         
         new_output =  os.path.join(tmp_dir_path, 'inputtable.tsv')
         df = pd.read_csv(new_output, sep='\t', index_col=0)
-        assert_almost_equal(df['cov_mean_sample_ten_reads'].ix['contig-75000034'], 10*100.0/1615, 5)
-        assert_almost_equal(df['cov_mean_sample_ten_reads'].ix['contig-21000001'], 10*100.0/9998, 5)
-        assert_almost_equal(df['cov_mean_sample_twenty_reads'].ix['contig-75000034'], 20*100.0/1615, 5)
-        assert_almost_equal(df['cov_mean_sample_twenty_reads'].ix['contig-21000001'], 20*100.0/9998, 5)
+        assert_almost_equal(df['cov_mean_sample_ten_reads'].loc['contig-75000034'], 10*100.0/1615, 5)
+        assert_almost_equal(df['cov_mean_sample_ten_reads'].loc['contig-21000001'], 10*100.0/9998, 5)
+        assert_almost_equal(df['cov_mean_sample_twenty_reads'].loc['contig-75000034'], 20*100.0/1615, 5)
+        assert_almost_equal(df['cov_mean_sample_twenty_reads'].loc['contig-21000001'], 20*100.0/9998, 5)
 
             
         #assert_equal(new_output, old_output,
@@ -111,8 +111,8 @@ class TestCMD(object):
         
         new_output =  os.path.join(tmp_dir_path, 'inputtable.tsv')
         df = pd.read_csv(new_output, sep='\t', index_col=0)
-        assert_almost_equal(df['cov_mean_sample_ten_reads'].ix['contig-75000034'], 10*100.0/1615, 5)
-        assert_almost_equal(df['cov_mean_sample_ten_reads'].ix['contig-21000001'], 10*100.0/9998, 5)
-        assert_almost_equal(df['cov_mean_sample_twenty_reads'].ix['contig-75000034'], 20*100.0/1615, 5)
-        assert_almost_equal(df['cov_mean_sample_twenty_reads'].ix['contig-21000001'], 20*100.0/9998, 5)
+        assert_almost_equal(df['cov_mean_sample_ten_reads'].loc['contig-75000034'], 10*100.0/1615, 5)
+        assert_almost_equal(df['cov_mean_sample_ten_reads'].loc['contig-21000001'], 10*100.0/9998, 5)
+        assert_almost_equal(df['cov_mean_sample_twenty_reads'].loc['contig-75000034'], 20*100.0/1615, 5)
+        assert_almost_equal(df['cov_mean_sample_twenty_reads'].loc['contig-21000001'], 20*100.0/9998, 5)
 
