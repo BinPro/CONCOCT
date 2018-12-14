@@ -25,7 +25,7 @@ def main(args):
         sys.exit(-1)
 
     if cov is not None:
-        joined = composition.join(cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
+        joined = composition.join(cov.loc[:,cov_range[0]:cov_range[1]],how="inner")
     else:
         joined = composition
 
