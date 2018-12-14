@@ -17,7 +17,6 @@ include_dirs_for_concoct = [np.get_include(), '/opt/local/include/']
 
 extra_compile_args = ['-O3','-std=c99']
 # System clang on MacOS does not recognize the -fopenmp argument
-# But seems to supports it out of the box
 if platform != 'darwin':
     extra_compile_args = ['-fopenmp'] + extra_compile_args
 
