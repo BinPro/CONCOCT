@@ -46,7 +46,7 @@ class TestInput(object):
         assert_equal(len(c_len), len(contig_lengths))
         # All equal
         for ix in ids:
-            assert_equal(c_len.ix[ix], contig_lengths.ix[ix])
+            assert_equal(c_len.loc[ix], contig_lengths.loc[ix])
         
 
     def test__calculate_composition(self):
@@ -67,7 +67,7 @@ class TestInput(object):
 
         for seq_id, s in seq_strings.items():
             c = count_substrings(s, "".join(kmer_s))
-            assert_equal(composition.ix[seq_id, feature_mapping[kmer_s]], c+1)
+            assert_equal(composition.loc[seq_id, feature_mapping[kmer_s]], c+1)
 
         # Check that non palindromic kmers works as well:
         kmer_s = ('A', 'G', 'G', 'G')
@@ -75,7 +75,7 @@ class TestInput(object):
         for seq_id, s in seq_strings.items():
             c_1 = count_substrings(s, "".join(kmer_s))
             c_2 = count_substrings(s, "".join(reverse_kmer_s))
-            assert_equal(composition.ix[seq_id, feature_mapping[kmer_s]], c_1 + c_2 + 1)
+            assert_equal(composition.loc[seq_id, feature_mapping[kmer_s]], c_1 + c_2 + 1)
         
 
 def count_substrings(s, subs):
