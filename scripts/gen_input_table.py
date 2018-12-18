@@ -8,7 +8,7 @@ import argparse
 import subprocess
 import errno
 from signal import signal, SIGPIPE, SIG_DFL
-
+import gzip
 from Bio import SeqIO
 
 def get_gc_and_len_dict(fastafile):
@@ -16,17 +16,23 @@ def get_gc_and_len_dict(fastafile):
     for the inner dictionary."""
     out_dict = {}
 
-    for rec in SeqIO.parse(fastafile, "fasta"):
-        out_dict[rec.id] = {}
-        out_dict[rec.id]["length"] = len(rec.seq)
-
+    if fastafile.endswith('.gz'):
+        with gzip.open(fastafile) as fhandle:
+            for rec in SeqIO.parse(fhandle, "fasta"):
+                out_dict[rec.id] = {}
+                out_dict[rec.id]["length"] = len(rec.seq)
+    else:
+        with open(fastafile) as fhandle:
+            for rec in SeqIO.parse(fhandle, "fasta"):
+                out_dict[rec.id] = {}
+                out_dict[rec.id]["length"] = len(rec.seq)
     return out_dict
 
 
 def get_bedcov_dict(bedcoverage):
     """Uses the BEDTools genomeCoverageBed histogram output to determine mean
     coverage and percentage covered for each contig.
-    
+
     Returns dict with fasta id as key and percentage covered and cov_mean as
     keys for the inner dictionary."""
     out_dict = {}
@@ -36,10 +42,11 @@ def get_bedcov_dict(bedcoverage):
     if os.path.isfile(bedcoverage):
         fh = open(bedcoverage)
     else:
+        bedcoverage = bedcoverage.decode('utf-8')
         fh = bedcoverage.split('\n')[:-1]
 
     for line in fh:
-        cols = line.split()
+        cols = line.split('\t')
 
         try:
             d = out_dict[cols[0]]
@@ -99,7 +106,7 @@ def generate_input_table(fastafile, bamfiles, samplenames=None, isbedfiles=False
     """Reads input files into dictionaries then prints everything in the table
     format required for running ProBin."""
     bedcovdicts = []
-    
+
     # Determine coverage information from bam file using BEDTools
     for i, bf in enumerate(bamfiles):
         if isbedfiles == False:
@@ -112,7 +119,7 @@ def generate_input_table(fastafile, bamfiles, samplenames=None, isbedfiles=False
                 bedcovdicts.append(get_bedcov_dict(out))
         else:
             bedcovdicts.append(get_bedcov_dict(bf))
-                
+
     print_input_table(get_gc_and_len_dict(fastafile), bedcovdicts, samplenames=samplenames)
 
 
@@ -132,7 +139,7 @@ if __name__ == "__main__":
             raise Exception("Nr of names in samplenames should be equal to nr of given bamfiles")
     else:
         samplenames=None
-    
+
     # ignore broken pipe error when piping output
     # http://newbebweb.blogspot.pt/2012/02/python-head-ioerror-errno-32-broken.html
     signal(SIGPIPE,SIG_DFL)

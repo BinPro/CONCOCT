@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 from random import randint
@@ -39,6 +40,10 @@ def arguments():
     #Kmer length, kmer count threshold and read length
     parser.add_argument('-k','--kmer_length', type=int, default=4,
         help='specify kmer length, default 4.')
+
+    parser.add_argument('-t','--threads', type=int, default=1,
+                    help='Number of threads to use')
+
     parser.add_argument('-l','--length_threshold', type=int, default=1000,
         help=("specify the sequence length threshold, contigs shorter than this "
               "value will not be included. Defaults to 1000."))
@@ -90,10 +95,10 @@ def arguments():
     args  = parser.parse_args()
 
     if args.debug:
-        print >> sys.stderr, args
+        print(args, file=sys.stderr)
         sys.exit(0)
     # This can be changed to an or case when input of either case is supported individually
-    if not (args.coverage_file or args.composition_file): 
+    if not (args.coverage_file or args.composition_file):
         parser.error("No input data supplied, add file(s) using --coverage_file <cov_file> and/or "
                      "--composition_file <comp_file>")
 

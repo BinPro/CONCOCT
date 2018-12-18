@@ -9,23 +9,42 @@ Fundamental dependencies
 
 ::
 
-    python v2.7.*
-    gcc
-    gsl
+    python version 2.7 or  version 3
+    gcc - C compiler
+    gsl - GNU Scientific Library
+    gslcblas - GNU Scientific Library BLAS library
+    gomp - GNU OpenMP implementation
+
 
 These items are prerequisities for the installation of concoct as
 described below. The installation procedure varies on different systems,
 and described in this README is only how to proceed with a linux
 (ubuntu) distribution.
 
-The first item, ``python v2.7.*``, should be installed on a modern
-Ubuntu distribution. A c-compiler, e.g. ``gcc``, is needed to compile
+We recommend using miniconda to install python.
+A c-compiler, e.g. ``gcc``, is needed to compile
 the c parts of concoct that uses the GNU Scientific Library ``gsl``. For
 linux (ubuntu) this is installed through:
 
 ::
 
-    apt-get install build-essential libgsl0-dev
+    apt-get install build-essential libgsl0-dev libgomp1
+
+Making it work on Mac OSX
+~~~~~~~~~~~~~~~~~~~~~~~~~
+A bit of a hack. You have been warned:
+
+::
+
+    conda install llvm gcc libgcc pip
+    export CC=/Users/johannes.alneberg/miniconda3/envs/concoct_py3/bin/gcc
+    export CXX=/Users/johannes.alneberg/miniconda3/envs/concoct_py3/bin/g++
+    conda install gsl
+    pip install -r requirements.txt
+    unset CC
+    unset CXX
+    pip install pysam
+
 
 Python packages
 ~~~~~~~~~~~~~~~
@@ -48,11 +67,8 @@ Optional dependencies
 
 -  For assembly, use your favorite, here is one
 
-   -  `Velvet <http://www.ebi.ac.uk/~zerbino/velvet/>`__
+   -  `Megahit <https://github.com/voutcn/megahit>`__
 
-      -  In velvet installation directory Makefile, set
-         'MAXKMERLENGTH=128', if this value is smaller in the default
-         installation.
 
 -  To create the input table (containing average coverage per sample and
    contig)
@@ -68,13 +84,9 @@ Optional dependencies
       >= 20130422
    -  Python packages: ``pysam>=0.6``
 
--  For validation of clustering using single-copy core genes
+-  For validation of clustering using single-copy core genes we recommend using:
 
-   -  `Prodigal <http://prodigal.ornl.gov/>`__ >= 2.60
-   -  Python packages: ``bcbio-gff>=0.4``
-   -  R packages: ``gplots, reshape, ggplot2, ellipse, getopt`` and
-      ``grid``
-   -  `BLAST <ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/>`__ >= 2.2.28+
+   -  `CheckM <https://github.com/Ecogenomics/CheckM>`__
 
 If you want to install these dependencies on your own server, you can
 take a look at `doc/Dockerfile.all\_dep <doc/Dockerfile.all_dep>`__ for
@@ -111,7 +123,7 @@ the concoct installation:
 
 ::
 
-    conda create -n concoct_env python=2.7.6
+    conda create -n concoct_env python=2.7
 
 After choosing to proceed, run the suggested command:
 
