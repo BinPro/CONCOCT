@@ -23,9 +23,9 @@ def cut_up_fasta(fastfiles, chunk_size, overlap, merge_last, bedoutfile):
                               file=bedoutfile_fh)
                     i = i + 1
             else:
-                print(">%s\n%s" % (record.id, record.seq))
+                print(">%s.0\n%s" % (record.id, record.seq))
                 if bedoutfile:
-                    print("{0}\t0\t{1}\t{0}".format(record.id, len(record.seq)),
+                    print("{0}\t0\t{1}\t{0}.0".format(record.id, len(record.seq)),
                           file=bedoutfile_fh)
 
     if bedoutfile:
