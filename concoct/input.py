@@ -87,32 +87,32 @@ def load_coverage(cov_file, contig_lengths, no_cov_normalization, add_total_cove
     cov_range = (cov.columns[0],cov.columns[-1])
 
     # Adding pseudo count
-    cov.ix[:,cov_range[0]:cov_range[1]] = cov.ix[:,cov_range[0]:cov_range[1]].add(
+    cov.loc[:,cov_range[0]:cov_range[1]] = cov.loc[:,cov_range[0]:cov_range[1]].add(
             (read_length/contig_lengths),
             axis='index')
 
     if not no_cov_normalization:
         #Normalize per sample first
-        cov.ix[:,cov_range[0]:cov_range[1]] = \
-            _normalize_per_sample(cov.ix[:,cov_range[0]:cov_range[1]])
+        cov.loc[:,cov_range[0]:cov_range[1]] = \
+            _normalize_per_sample(cov.loc[:,cov_range[0]:cov_range[1]])
 
     temp_cov_range = None
     # Total coverage should be calculated after per sample normalization
     if add_total_coverage:
-        cov['total_coverage'] = cov.ix[:,cov_range[0]:cov_range[1]].sum(axis=1)
+        cov['total_coverage'] = cov.loc[:,cov_range[0]:cov_range[1]].sum(axis=1)
         temp_cov_range = (cov_range[0],'total_coverage')
     
     if not no_cov_normalization:
         # Normalize contigs next
-        cov.ix[:,cov_range[0]:cov_range[1]] = \
-            _normalize_per_contig(cov.ix[:,cov_range[0]:cov_range[1]])
+        cov.loc[:,cov_range[0]:cov_range[1]] = \
+            _normalize_per_contig(cov.loc[:,cov_range[0]:cov_range[1]])
 
     if temp_cov_range:
         cov_range = temp_cov_range
 
     # Log transform
-    cov.ix[:,cov_range[0]:cov_range[1]] = np.log(
-        cov.ix[:,cov_range[0]:cov_range[1]])
+    cov.loc[:,cov_range[0]:cov_range[1]] = np.log(
+        cov.loc[:,cov_range[0]:cov_range[1]])
 
     logging.info('Successfully loaded coverage data.')
     return cov, cov_range
