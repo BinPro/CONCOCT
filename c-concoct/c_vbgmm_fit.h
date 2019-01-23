@@ -121,7 +121,7 @@ typedef struct s_Cluster
 
 /*user defines*/
 
-void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int seed, int* anAssign, int nThreads);
+void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int seed, int* anAssign, int nThreads, int nIter);
 
 int driverMP(double *adX, int nN, int nD, int *anAssign, int nKStart, unsigned long lSeed, 
                                         int nMaxIter, double dEpsilon, int debug, int bAssign, int nThreads);

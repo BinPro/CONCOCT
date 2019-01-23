@@ -61,12 +61,12 @@ def main(args):
 
     logging.info('PCA transformed data.')
 
-    logging.info('Will call vbgmm with parameters: %s, %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold, args.threads))
+    logging.info('Will call vbgmm with parameters: %s, %s, %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold, args.threads,args.iterations))
 
     N_contigs = transform_filter.shape[0]
     assign = np.zeros(N_contigs, dtype=np.int32)
 
-    assign = vbgmm.fit(np.copy(transform_filter,order='C'), int(args.clusters), int(args.seed), int(args.threads))
+    assign = vbgmm.fit(np.copy(transform_filter,order='C'), int(args.clusters), int(args.seed), int(args.threads),int(args.iterations))
 
 
     Output.write_assign(

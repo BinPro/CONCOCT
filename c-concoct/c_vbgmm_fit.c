@@ -34,11 +34,16 @@
 /*User includes*/
 #include "c_vbgmm_fit.h"
 
-void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int seed, int* anAssign, int nThreads)
+void c_vbgmm_fit (double* adX, int nN, int nD, int nK, int seed, int* anAssign, int nThreads, int nIter)
 {
     int debug = 0;
     int bAssign = 0;
-    driverMP(adX, nN, nD, anAssign, nK, seed, DEF_MAX_ITER, DEF_EPSILON, debug, bAssign, nThreads);
+
+    if (nIter < 1){
+        nIter = DEF_MAX_ITER;
+    }
+
+    driverMP(adX, nN, nD, anAssign, nK, seed, nIter, DEF_EPSILON, debug, bAssign, nThreads);
 
     return;
 }
