@@ -4,8 +4,6 @@ DESC="""A script that iterates over concoct results and reruns the concoct algor
 for clusters where the median SCG presence is at least 2."""
 
 
-import sys
-import logging
 import vbgmm
 import numpy as np 
 import argparse
@@ -13,30 +11,12 @@ import pandas as p
 
 from sklearn.decomposition import PCA
 
-from concoct.transform import perform_pca
-
-def main(argv):
-    parser = argparse.ArgumentParser(description=DESC)
-
-    parser.add_argument("cluster_file", help="string specifying cluster file")
-
-    parser.add_argument("original_data", help="string original but transformed data file")
-
-    parser.add_argument("scg_file", help="string specifying scg frequency file")
-
-    parser.add_argument('-e','--expansion_factor',default=2, type=int,
-                                        help=("number of clusters to expand by"))
-
-    parser.add_argument('-t','--threads',default=1, type=int, 
-                        help=("number of threads to use defaults to one"))
-
-    args = parser.parse_args()
-
-    clusters    = p.read_csv(args.cluster_file, header=None, index_col=0)
+def main(args):
+    clusters = p.read_csv(args.cluster_file, header=None, index_col=0)
     
     original_data = p.read_csv(args.original_data, header=0, index_col=0)
     
-    original_data_matrix = original_data.as_matrix()
+    original_data_matrix = original_data.values()
     
     scg_freq = p.read_csv(args.scg_file, header=0, index_col=0)
     
@@ -64,8 +44,8 @@ def main(argv):
             transform_k = pca_object.transform(slice_k)
             
             NK = med_scgs[k]*args.expansion_factor
-            print "Run CONCOCT for " + str(k) + "with " + str(NK) + "clusters" + " using " + str(args.threads) + "threads"
-            assigns = vbgmm.fit(np.copy(transform_k,order='C'),int(NK),int(args.threads))
+            print("Run CONCOCT for " + str(k) + "with " + str(NK) + "clusters" + " using " + str(args.threads) + "threads")
+            assigns = vbgmm.fit(np.copy(transform_k,order='C'), int(NK), args.seed, args.threads)
             kK = np.max(assigns) + 1
             
             
@@ -77,6 +57,26 @@ def main(argv):
     
     new_assign_df = p.DataFrame(new_clusters_matrix,index=original_data.index)
     new_assign_df.to_csv("clustering_refine.csv")
+
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    parser = argparse.ArgumentParser(description=DESC)
+
+    parser.add_argument("cluster_file", help="string specifying cluster file")
+
+    parser.add_argument("original_data", help="string original but transformed data file")
+
+    parser.add_argument("scg_file", help="string specifying scg frequency file")
+
+    parser.add_argument('-e','--expansion_factor',default=2, type=int,
+                                        help=("number of clusters to expand by"))
+
+    parser.add_argument('-s', '--seed' , default=11, type=int,
+                        help=("The seed used for algorithm result reproducibility."))
+
+    parser.add_argument('-t','--threads',default=1, type=int,
+                        help=("number of threads to use defaults to one"))
+
+    args = parser.parse_args()
+
+    main(args)
 
