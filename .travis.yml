@@ -1,7 +1,7 @@
 language: python
 python:
   - "2.7"
-  - "3.4"
+  - "3.6"
   # Since we are using system_site_packages, we are only able to use
   # the default python versions, see:
   # https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs
