@@ -8,7 +8,6 @@ import subprocess
 import pandas as p
 
 file_path = os.path.realpath(__file__)
-data_path = os.path.abspath(os.path.join(file_path,"..","..","data/"))
 test_dir_path = os.path.dirname(file_path)
 tmp_dir_path = test_dir_path + '/nose_tmp_output'
 tmp_basename_dir = tmp_dir_path + '/1'
