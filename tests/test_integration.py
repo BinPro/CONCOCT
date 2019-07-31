@@ -186,7 +186,6 @@ class TestCMD(object):
                 pca_dimensions = last_dim + 1
             assert_equal(pca_dimensions, pca_dimensions_log)
 
-    @nottest
     def test_seed(self):
         #Test default behaviour, seed = 11
         self.run_command()
@@ -203,8 +202,8 @@ class TestCMD(object):
         assert_true(first_file == second_file,
                     msg='Clustering outcomes were not the same with same seeds')
 
-        #Should be equal to both above since default seed is 11
-        self.run_command(tags=["-f","11"])
+        #Should be equal to both above since default seed is 1
+        self.run_command(tags=["--seed","1"])
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering_gt1000.csv')
         with open(tmp_basename_dir+'/clustering_gt1000.csv','r') as clustering:
             first_file=clustering.read()
@@ -213,15 +212,15 @@ class TestCMD(object):
         assert_true(first_file == second_file,
                     msg='Clustering outcomes were not the same with same seeds')
 
-        #Test that 0 gives random seed
-        self.run_command(tags=['-f','0'])
+        #Test that 0 gives different seed
+        self.run_command(tags=['--seed','0'])
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering_gt1000.csv')
         with open(tmp_basename_dir+'/clustering_gt1000.csv','r') as clustering:
             first_file=clustering.read()
 
 
-        #Should give random clustering
-        self.run_command(tags=['-f','0'])
+        #Should give different clustering
+        self.run_command(tags=['--seed','0'])
         second_time = os.path.getmtime(tmp_basename_dir+'/clustering_gt1000.csv')
         with open(tmp_basename_dir+'/clustering_gt1000.csv','r') as clustering:
             second_file=clustering.read()
@@ -233,13 +232,13 @@ class TestCMD(object):
 
         #Test that two differnet seeds give different clustering
         #Should give clustering 2
-        self.run_command(tags=['-f','2'])
+        self.run_command(tags=['--seed','2'])
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering_gt1000.csv')
         with open(tmp_basename_dir+'/clustering_gt1000.csv','r') as clustering:
             first_file=clustering.read()
 
         #Should give clustering 3
-        self.run_command(tags=['-f','3'])
+        self.run_command(tags=['--seed','3'])
         second_time = os.path.getmtime(tmp_basename_dir+'/clustering_gt1000.csv')
         with open(tmp_basename_dir+'/clustering_gt1000.csv','r') as clustering:
             second_file=clustering.read()
