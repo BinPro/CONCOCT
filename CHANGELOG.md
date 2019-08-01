@@ -11,12 +11,14 @@ When changing something in the develop branch, it should be added here.
  - [#254](https://github.com/BinPro/CONCOCT/pull/254) - Slight cleanup of concoct refine
  - [#258](https://github.com/BinPro/CONCOCT/pull/258) - New suffices (.concoct_part_XX) are now used for contig parts 
  - [#261](https://github.com/BinPro/CONCOCT/pull/261) - Epsilon argument removed as it was not working and is not very useful
+ - [#262](https://github.com/BinPro/CONCOCT/pull/262) - Rewrote documentation, including installation instructions
 
 ### `Added`
 
  - [#253](https://github.com/BinPro/CONCOCT/pull/253) - A dockerfile useful to test the conda installation
  - [#258](https://github.com/BinPro/CONCOCT/pull/258) - Tests for all fundamental scripts, including a new integration test data repository
  - [#259](https://github.com/BinPro/CONCOCT/pull/259) - This changelog
+ - [#262](https://github.com/BinPro/CONCOCT/pull/262) - Added documentation for the core scripts used with concoct
 
 ### `Fixed`
 
