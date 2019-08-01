@@ -15,5 +15,6 @@ c-concoct/vbgmm.c
 .screenrc
 #ignore test folder
 tests/nose_tmp_output
+tests/test_data/integration_test_data
 #ignore doc builds
 doc/build/*

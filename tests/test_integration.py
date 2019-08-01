@@ -8,7 +8,6 @@ import subprocess
 import pandas as p
 
 file_path = os.path.realpath(__file__)
-data_path = os.path.abspath(os.path.join(file_path,"..","..","data/"))
 test_dir_path = os.path.dirname(file_path)
 tmp_dir_path = test_dir_path + '/nose_tmp_output'
 tmp_basename_dir = tmp_dir_path + '/1'
@@ -186,7 +185,6 @@ class TestCMD(object):
                 pca_dimensions = last_dim + 1
             assert_equal(pca_dimensions, pca_dimensions_log)
 
-    @nottest
     def test_seed(self):
         #Test default behaviour, seed = 11
         self.run_command()
@@ -203,8 +201,8 @@ class TestCMD(object):
         assert_true(first_file == second_file,
                     msg='Clustering outcomes were not the same with same seeds')
 
-        #Should be equal to both above since default seed is 11
-        self.run_command(tags=["-f","11"])
+        #Should be equal to both above since default seed is 1
+        self.run_command(tags=["--seed","1"])
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering_gt1000.csv')
         with open(tmp_basename_dir+'/clustering_gt1000.csv','r') as clustering:
             first_file=clustering.read()
@@ -213,15 +211,15 @@ class TestCMD(object):
         assert_true(first_file == second_file,
                     msg='Clustering outcomes were not the same with same seeds')
 
-        #Test that 0 gives random seed
-        self.run_command(tags=['-f','0'])
+        #Test that 0 gives different seed
+        self.run_command(tags=['--seed','0'])
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering_gt1000.csv')
         with open(tmp_basename_dir+'/clustering_gt1000.csv','r') as clustering:
             first_file=clustering.read()
 
 
-        #Should give random clustering
-        self.run_command(tags=['-f','0'])
+        #Should give different clustering
+        self.run_command(tags=['--seed','0'])
         second_time = os.path.getmtime(tmp_basename_dir+'/clustering_gt1000.csv')
         with open(tmp_basename_dir+'/clustering_gt1000.csv','r') as clustering:
             second_file=clustering.read()
@@ -233,13 +231,13 @@ class TestCMD(object):
 
         #Test that two differnet seeds give different clustering
         #Should give clustering 2
-        self.run_command(tags=['-f','2'])
+        self.run_command(tags=['--seed','2'])
         first_time = os.path.getmtime(tmp_basename_dir+'/clustering_gt1000.csv')
         with open(tmp_basename_dir+'/clustering_gt1000.csv','r') as clustering:
             first_file=clustering.read()
 
         #Should give clustering 3
-        self.run_command(tags=['-f','3'])
+        self.run_command(tags=['--seed','3'])
         second_time = os.path.getmtime(tmp_basename_dir+'/clustering_gt1000.csv')
         with open(tmp_basename_dir+'/clustering_gt1000.csv','r') as clustering:
             second_file=clustering.read()
@@ -251,7 +249,7 @@ class TestCMD(object):
     def test_log_coverage(self):
         self.run_command()
         original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
-        df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
+        df = p.io.parsers.read_csv(original_coverage_data_path,index_col=0,sep=',')
 
         true_pseudo_cov = -1.3143
         calc_pseudo_cov = df.sample_1[0]
@@ -260,7 +258,7 @@ class TestCMD(object):
     def test_log_coverage_no_cov_normalization(self):
         self.run_command(tags=["--no_cov_normalization"])
         original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
-        df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
+        df = p.io.parsers.read_csv(original_coverage_data_path,index_col=0,sep=',')
 
         true_pseudo_cov = -1.8107
         calc_pseudo_cov = df.sample_1[0]
