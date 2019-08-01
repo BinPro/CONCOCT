@@ -32,6 +32,10 @@ def main(args):
         for line in ifh:
             if first:
                 first=False
+                if 'contig_id' not in line:
+                    sys.stderr.write(("ERROR! The term 'contig_id' was not found on the first row. Please make sure that there "
+                    "is a header line before continuing. Exiting\n"))
+                    sys.exit(-1)
                 continue
             line = line.strip()
             contig_id, cluster_id = line.split(',')

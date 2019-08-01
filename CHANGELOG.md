@@ -12,6 +12,8 @@ When changing something in the develop branch, it should be added here.
  - [#258](https://github.com/BinPro/CONCOCT/pull/258) - New suffices (.concoct_part_XX) are now used for contig parts 
  - [#261](https://github.com/BinPro/CONCOCT/pull/261) - Epsilon argument removed as it was not working and is not very useful
  - [#262](https://github.com/BinPro/CONCOCT/pull/262) - Rewrote documentation, including installation instructions
+ - [#264](https://github.com/BinPro/CONCOCT/pull/264) - `concoct_part_` suffix is enforced in subcontig for coverage script 
+ - [#264](https://github.com/BinPro/CONCOCT/pull/264) - Header line is enforced for input for `merge_cutup_clustering.py` and `extract_fasta_bins.py`
 
 ### `Added`
 
