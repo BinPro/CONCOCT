@@ -15,6 +15,7 @@ When changing something in the develop branch, it should be added here.
 
  - [#253](https://github.com/BinPro/CONCOCT/pull/253) - A dockerfile useful to test the conda installation
  - [#258](https://github.com/BinPro/CONCOCT/pull/258) - Tests for all fundamental scripts, including a new integration test data repository
+ - [#259](https://github.com/BinPro/CONCOCT/pull/259) - This changelog
 
 ### `Fixed`
 
