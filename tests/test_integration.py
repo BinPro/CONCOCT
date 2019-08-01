@@ -249,7 +249,7 @@ class TestCMD(object):
     def test_log_coverage(self):
         self.run_command()
         original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
-        df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
+        df = p.io.parsers.read_csv(original_coverage_data_path,index_col=0,sep=',')
 
         true_pseudo_cov = -1.3143
         calc_pseudo_cov = df.sample_1[0]
@@ -258,7 +258,7 @@ class TestCMD(object):
     def test_log_coverage_no_cov_normalization(self):
         self.run_command(tags=["--no_cov_normalization"])
         original_coverage_data_path = os.path.join(tmp_basename_dir,'original_data_gt1000.csv')
-        df = p.io.parsers.read_table(original_coverage_data_path,index_col=0,sep=',')
+        df = p.io.parsers.read_csv(original_coverage_data_path,index_col=0,sep=',')
 
         true_pseudo_cov = -1.8107
         calc_pseudo_cov = df.sample_1[0]
