@@ -16,7 +16,12 @@ def main(args):
     for i, seq in enumerate(SeqIO.parse(args.fasta_file, "fasta")):
         all_seqs[seq.id] = seq
     df = pd.read_csv(args.cluster_file)
-    df.columns = ['contig_id', 'cluster_id']
+    try:
+        assert df.columns[0] == 'contig_id'
+        assert df.columns[1] == 'cluster_id'
+    except AssertionError:
+        sys.stderr.write("ERROR! Header line was not 'contig_id, cluster_id', please adjust your input file. Exiting!\n")
+        sys.exit(-1)
 
     cluster_to_contigs = defaultdict(list)
     for i, row in df.iterrows():
