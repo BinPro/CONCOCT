@@ -7,7 +7,7 @@ Usage
 The usage and help documentation of ``extract_fasta_bins.py`` can be seen by
 running ``extract_fasta_bins.py -h``:
 
-.. program-output:: python ../../scripts/extract_fasta_bins.py -h
+.. program-output:: cat ../../scripts/extract_fasta_bins.py | sed 's/import argparse/import argparse, conf/' | python - --help
    :shell:
 
 Example

@@ -1,13 +1,13 @@
-======================
+=========================
 merge_cutup_clustering.py
-======================
+=========================
 
 Usage
 =====
 The usage and help documentation of ``merge_cutup_clustering.py`` can be seen by
 running ``merge_cutup_clustering.py -h``:
 
-.. program-output:: python ../../scripts/merge_cutup_clustering.py -h
+.. program-output:: cat ../../scripts/merge_cutup_clustering.py | sed 's/import argparse/import argparse, conf/' | python - --help
    :shell:
 
 Example
