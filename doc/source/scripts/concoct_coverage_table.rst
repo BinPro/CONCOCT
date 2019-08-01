@@ -1,13 +1,13 @@
-======================
+=========================
 concoct_coverage_table.py
-======================
+=========================
 
 Usage
 =====
 The usage and help documentation of ``concoct_coverage_table.py`` can be seen by
 running ``concoct_coverage_table.py -h``:
 
-.. program-output:: python ../../scripts/concoct_coverage_table.py -h
+.. program-output:: cat ../../scripts/concoct_coverage_table.py | sed 's/import argparse/import argparse, conf/' | python - --help
    :shell:
 
 Example
