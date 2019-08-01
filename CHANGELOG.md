@@ -10,6 +10,7 @@ When changing something in the develop branch, it should be added here.
  - [#236](https://github.com/BinPro/CONCOCT/pull/236) - Always add suffix to contigs at cutup, even when they are not cut.
  - [#254](https://github.com/BinPro/CONCOCT/pull/254) - Slight cleanup of concoct refine
  - [#258](https://github.com/BinPro/CONCOCT/pull/258) - New suffices (.concoct_part_XX) are now used for contig parts 
+ - [#261](https://github.com/BinPro/CONCOCT/pull/261) - Epsilon argument removed as it was not working and is not very useful
 
 ### `Added`
 
