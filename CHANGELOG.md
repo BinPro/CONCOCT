@@ -24,3 +24,4 @@ When changing something in the develop branch, it should be added here.
  - [#246](https://github.com/BinPro/CONCOCT/pull/246) - Limit some dependency version numbers for python 2
  - [#254](https://github.com/BinPro/CONCOCT/pull/254) - Concoct refine now works with python 3
  - [#258](https://github.com/BinPro/CONCOCT/pull/258) - Seed tests now working again
+ - [#260](https://github.com/BinPro/CONCOCT/pull/260) - Fix the dockerfile build by adding integration test data
