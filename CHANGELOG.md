@@ -21,6 +21,7 @@ When changing something in the develop branch, it should be added here.
  - [#258](https://github.com/BinPro/CONCOCT/pull/258) - Tests for all fundamental scripts, including a new integration test data repository
  - [#259](https://github.com/BinPro/CONCOCT/pull/259) - This changelog
  - [#262](https://github.com/BinPro/CONCOCT/pull/262) - Added documentation for the core scripts used with concoct
+ - [#265](https://github.com/BinPro/CONCOCT/pull/265) - A warning is now printed when concoct runs in single threaded mode
 
 ### `Fixed`
 
