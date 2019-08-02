@@ -7,9 +7,6 @@ CONCOCT's documentation
 =======================
 CONCOCT "bins" metagenomic contigs. Metagenomic binning is the process of clustering sequences into clusters corresponding to operational taxonomic units of some level.
 
-For any known issues with CONCOCT check the issue tracker:
-https://github.com/BinPro/CONCOCT/issues
-
 Features
 --------
 CONCOCT does unsupervised binning of metagenomic contigs by using nucleotide composition - kmer frequencies - and coverage data for multiple samples.
@@ -38,6 +35,15 @@ We have a discussion thread on gitter:
     :alt: Join the chat at gitter.im/BinPro/CONCOCT
     :target: https://gitter.im/BinPro/CONCOCT
 
+Known Issues
+------------
+
+ - Contig names consisting of digits only are not allowed. Please rename your contigs in both the fasta and the coverage table before proceeding.
+ - Contig sequences can only contain letters A,C,G or T. For example Ns are currently not allowed.
+ - Contigs need to be cut up prior to binning. This is covered in the :doc:`usage` page.
+
+For a more up to date list of reported issues, check the issue tracker:
+https://github.com/BinPro/CONCOCT/issues
 
 Licence
 -------
@@ -53,7 +59,6 @@ Contents:
    installation
    usage
    cmd_options
-   complete_example
    scripts/index
 
 Indices and tables
