@@ -116,7 +116,7 @@ fi
 bowtie2 ${BOWTIE2_OPT} -p $THREADS -x $REF -1 $Q1 -2 $Q2 -S $OUTDIR/${RNAME}_${QNAME}.sam
 samtools faidx $REF
 samtools view -bt $REF.fai $OUTDIR/${RNAME}_${QNAME}.sam > $OUTDIR/${RNAME}_${QNAME}.bam
-samtools sort $OUTDIR/${RNAME}_${QNAME}.bam $OUTDIR/${RNAME}_${QNAME}-s
+samtools sort -T $OUTDIR/${RNAME}_${QNAME}.sorted -o $OUTDIR/${RNAME}_${QNAME}-s.bam $OUTDIR/${RNAME}_${QNAME}.bam
 samtools index $OUTDIR/${RNAME}_${QNAME}-s.bam
 
 # Mark duplicates and sort
@@ -129,7 +129,7 @@ java -Xms1g -Xmx24g -XX:ParallelGCThreads=$THREADS -XX:MaxPermSize=1g -XX:+CMSCl
     VALIDATION_STRINGENCY=LENIENT \
     MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=1000 \
     REMOVE_DUPLICATES=TRUE
-samtools sort $OUTDIR/${RNAME}_${QNAME}-smd.bam $OUTDIR/${RNAME}_${QNAME}-smds
+samtools sort -T $OUTDIR/${RNAME}_${QNAME}-smd.sorted -o $OUTDIR/${RNAME}_${QNAME}-smds.bam $OUTDIR/${RNAME}_${QNAME}-smd.bam
 samtools index $OUTDIR/${RNAME}_${QNAME}-smds.bam
 
 # Determine Genome Coverage and mean coverage per contig

@@ -13,7 +13,7 @@ running ``pyhton dnadiff_dist_matrix -h``:
 Example
 =======
 An example of how to run ``dnadiff_dist_matrix`` on the test data::
-    
+
     cd CONCOCT/scripts
     python dnadiff_dist_matrix.py test_dnadiff_out tests/test_data/bins/sample*.fa
 

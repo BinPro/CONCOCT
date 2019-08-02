@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
 import sys, os
+from sys import platform
 from distutils.core import Extension
 import numpy as np
 
@@ -10,9 +11,14 @@ except ImportError:
     print("You need to have Cython installed on your system to run setup.py. Sorry!")
     sys.exit()
 
-version = '1.0.0'
+version = '1.1.0'
 
 include_dirs_for_concoct = [np.get_include(), '/opt/local/include/']     
+
+extra_compile_args = ['-O3','-std=c99']
+# System clang on MacOS does not recognize the -fopenmp argument
+if platform != 'darwin':
+    extra_compile_args = ['-fopenmp'] + extra_compile_args
 
 setup(name='concoct',
       version=version,
@@ -37,7 +43,8 @@ setup(name='concoct',
       cmdclass = {'build_ext': build_ext},
       ext_modules = [
                     Extension("vbgmm", sources=["./c-concoct/vbgmm.pyx", "./c-concoct/c_vbgmm_fit.c"],
-                                libraries =['gsl',  'gslcblas','gomp'], include_dirs=include_dirs_for_concoct, extra_compile_args = ['-fopenmp','-O3','-std=c99']) 
+                                libraries =['gsl', 'gslcblas', 'gomp'], include_dirs=include_dirs_for_concoct,
+                                extra_compile_args = extra_compile_args)
                     ],
       install_requires=['cython>=0.19.1',
                         'numpy>=1.7.1',

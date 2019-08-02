@@ -12,21 +12,16 @@ import sys
 import os
 import argparse
 from collections import defaultdict, Counter
+import re
+
+CONTIG_PART_EXPR = re.compile("(.*)\.concoct_part_([0-9]*)")
 
 def original_contig_name_special(s):
     n = s.split(".")[-1]
     try:
-        int(n)
-    except:
-        return s, 0
-    # Only small integers are likely to be 
-    # indicating a cutup part.
-    if int(n) < 1000:
-
-        return ".".join(s.split(".")[:-1]), int(n)
-    else:
-        # A large n indicates that the integer
-        # was part of the original contig
+        original_id, part_nr = CONTIG_PART_EXPR.match(s).group(1,2)
+        return original_id, part_nr
+    except AttributeError: # No matches for concoct_part regex
         return s, 0
 
 def main(args):
@@ -37,15 +32,19 @@ def main(args):
         for line in ifh:
             if first:
                 first=False
+                if 'contig_id' not in line:
+                    sys.stderr.write(("ERROR! The term 'contig_id' was not found on the first row. Please make sure that there "
+                    "is a header line before continuing. Exiting\n"))
+                    sys.exit(-1)
                 continue
             line = line.strip()
             contig_id, cluster_id = line.split(',')
             original_contig_name, part_id = original_contig_name_special(contig_id)
-        
+
             all_originals[original_contig_name][part_id] = cluster_id
 
     merged_contigs_stack = []
-    
+
     sys.stdout.write("contig_id,cluster_id\n")
     for original_contig_id, part_ids_d in all_originals.items():
         if len(part_ids_d) > 1:
@@ -53,9 +52,7 @@ def main(args):
             cluster_id = c.most_common(1)[0][0]
             c_string = [(a,b) for a, b in c.items()]
             if len(c.values()) > 1:
-                sys.stderr.write("{}\t{}, chosen: {}\n".format(original_contig_id, c_string, cluster_id))
-            else:
-                sys.stderr.write("{}\t{}\n".format(original_contig_id, c_string))
+                sys.stderr.write("No consensus cluster for contig {}: {}\t Chosen cluster: {}\n".format(original_contig_id, c_string, cluster_id))
         else:
             cluster_id = list(part_ids_d.values())[0]
 

@@ -1,6 +1,6 @@
-======================
-extract_scg_bins.py
-======================
+================================
+[Deprecated] extract_scg_bins.py
+================================
 
 Usage
 =====
@@ -13,7 +13,7 @@ running ``pyhton extract_scg_bins -h``:
 Example
 =======
 An example of how to run ``extract_scg_bins`` on the test data::
-    
+
     cd CONCOCT/scripts/tests/test_data
     python extract_scg_bins.py \
         --output_folder test_extract_scg_bins_out \
@@ -26,7 +26,7 @@ An example of how to run ``extract_scg_bins`` on the test data::
         --groups gt300 gt500
 
 This results in the following output files in the folder ``test_extraxt_scg_bins_out/``::
-    
+
     $ ls test_extract_scg_bins_out/
     sample0_gt300_bin2.fa  sample0_gt500_bin2.fa
 

@@ -25,7 +25,7 @@ def main(args):
         sys.exit(-1)
 
     if cov is not None:
-        joined = composition.join(cov.ix[:,cov_range[0]:cov_range[1]],how="inner")
+        joined = composition.join(cov.loc[:,cov_range[0]:cov_range[1]],how="inner")
     else:
         joined = composition
 
@@ -61,12 +61,12 @@ def main(args):
 
     logging.info('PCA transformed data.')
 
-    logging.info('Will call vbgmm with parameters: %s, %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold, args.threads))
+    logging.info('Will call vbgmm with parameters: %s, %s, %s, %s, %s' % (Output.CONCOCT_PATH, args.clusters, args.length_threshold, args.threads,args.iterations))
 
     N_contigs = transform_filter.shape[0]
     assign = np.zeros(N_contigs, dtype=np.int32)
 
-    assign = vbgmm.fit(np.copy(transform_filter,order='C'), int(args.clusters), int(args.seed), int(args.threads))
+    assign = vbgmm.fit(np.copy(transform_filter,order='C'), int(args.clusters), int(args.seed), int(args.threads),int(args.iterations))
 
 
     Output.write_assign(
@@ -85,6 +85,8 @@ if __name__=="__main__":
     else:
         args.pca_components = args.total_percentage_pca/100.0
 
+    if args.threads == 1:
+        logging.warning("CONCOCT is running in single threaded mode. Please, consider adjusting the --threads parameter.")
     results = main(args)
 
-    print("CONCOCT Finished, the log shows how it went.", file=sys.stderr)
+    logging.info("CONCOCT Finished, the log shows how it went.")

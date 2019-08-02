@@ -68,9 +68,6 @@ def arguments():
     parser.add_argument('-i','--iterations',type=int, default=500,
       help=('Specify maximum number of iterations for the VBGMM. '
             'Default value is 500'))
-    parser.add_argument('-e','--epsilon',type=float, default=1.0e-6,
-      help=('Specify the epsilon for VBGMM. '
-            'Default value is 1.0e-6'))
     parser.add_argument('--no_cov_normalization', default=False, action="store_true",
       help=("By default the coverage is normalized with regards to samples, "
             "then normalized with regards of contigs and finally log transformed. "

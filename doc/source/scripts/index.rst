@@ -1,24 +1,28 @@
 CONCOCT Scripts
-=================================================
-The scripts in the ``CONCOCT/scripts`` directory are not fully maintained. They
-implement methods that we apply after binning with CONCOCT. Eventually some of
-these methods might make it to a package of their own.
+===============
+CONCOCT ships with some additional scripts which are very useful to e.g. create input files and to extract output fastas for concoct.
+These scripts are:
 
-To test all scripts that have tests one could do::
+    - ``cut_up_fasta.py``
+    - ``concoct_coverage_table.py``
+    - ``merge_cutup_clustering.py``
+    - ``extract_fasta_bins.py``
 
-    cd CONCOCT/scripts/tests
-    nosetests
+The repository CONCOCT contains additional scripts in the ``CONCOCT/scripts`` directory which are not fully maintained.
+They implement methods that we apply after binning with CONCOCT and it might be useful as a starting point or inspiration when creating your own scripts for downstream processing of the output files.
+Out of these scripts, the ones documented here are:
 
-Before using a script it would be good to check if its test (in case it has
-one) is working for you::
-
-    cd CONCOCT/scripts/tests
-    nosetests -s test_script_name
+    - ``dnadiff_dist_matrix.py``
+    - ``extract_scg_bins.py`` [Deprecated]
 
 Contents:
 
 .. toctree::
     :maxdepth: 2
 
+    cut_up_fasta
+    concoct_coverage_table
+    merge_cutup_clustering
+    extract_fasta_bins
     dnadiff_dist_matrix
     extract_scg_bins
