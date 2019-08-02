@@ -85,6 +85,8 @@ if __name__=="__main__":
     else:
         args.pca_components = args.total_percentage_pca/100.0
 
+    if args.threads == 1:
+        logging.warning("CONCOCT is running in single threaded mode. Please, consider adjusting the --threads parameter.")
     results = main(args)
 
-    print("CONCOCT Finished, the log shows how it went.", file=sys.stderr)
+    logging.info("CONCOCT Finished, the log shows how it went.")
