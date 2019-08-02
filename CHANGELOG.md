@@ -3,7 +3,7 @@
 A list of changes per version.
 When changing something in the develop branch, it should be added here.
 
-## [Unreleased]
+## [v1.1.0] 2019-08-02
 
 ### `Changed`
 
