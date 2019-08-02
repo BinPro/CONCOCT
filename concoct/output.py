@@ -52,6 +52,11 @@ class Output(object):
             "PCA_components_data_gt{0}.csv"
         self.LOG_FILE_BASE = self.CONCOCT_PATH + 'log.txt'
 
+        # Reset any previous logging handlers, see:
+        # https://stackoverflow.com/a/49202811
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
+
         logging.basicConfig(
             filename=self.LOG_FILE_BASE,
             level=logging.INFO,
