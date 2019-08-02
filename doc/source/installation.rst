@@ -57,7 +57,7 @@ Which should execute all tests without errors.
 Other Programs Needed
 ---------------------
 
--  For assembly, use your favorite, here is a good one
+-  For assembly, use your favourite. Here is a good one:
 
    -  `Megahit <https://github.com/voutcn/megahit>`__
 
