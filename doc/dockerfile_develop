@@ -1,4 +1,4 @@
-# Docker for CONCOCT (http://github.com/BinPro/CONCOCT) v1.0.0
+# Dockerfile to test conda install of CONCOCT (http://github.com/BinPro/CONCOCT)
 #
 # This docker creates and sets up an Ubuntu environment to test
 # the conda installation process
@@ -23,7 +23,7 @@ RUN conda config --add channels defaults
 RUN conda config --add channels bioconda
 RUN conda config --add channels conda-forge
 
-# Install python dependencies and fetch and install CONCOCT 1.0.0
+# Install python dependencies and fetch and install CONCOCT
 RUN conda create -n concoct_env python=3 concoct
 
 RUN cd /opt/CONCOCT;\
