@@ -58,7 +58,7 @@ def generate_input_table(bedfile, bamfiles, samplenames=None):
             from io import StringIO
 
         fh = StringIO(out.decode('utf-8'))
-        df = pd.read_table(fh, header=None)
+        df = pd.read_csv(fh, header=None, sep='\t')
         avg_coverage_depth = df[df.columns[4:]].divide((df[2]-df[1]), axis=0)
         avg_coverage_depth.index = df[3]
         avg_coverage_depth.columns = header 
