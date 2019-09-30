@@ -16,15 +16,15 @@ def main(args):
     
     original_data = p.read_csv(args.original_data, header=0, index_col=0)
     
-    original_data_matrix = original_data.values()
+    original_data_matrix = original_data.to_numpy()
     
     scg_freq = p.read_csv(args.scg_file, header=0, index_col=0)
     
-    scg_freq_matrix = scg_freq.as_matrix()
+    scg_freq_matrix = scg_freq.to_numpy()
     
     med_scgs = np.median(scg_freq_matrix, axis=1) 
     
-    clusters_matrix = clusters.as_matrix()
+    clusters_matrix = clusters.to_numpy()
     
     cluster_freq = np.bincount(clusters_matrix[:,0]) 
     
