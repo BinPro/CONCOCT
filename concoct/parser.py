@@ -53,7 +53,7 @@ def arguments():
     parser.add_argument('--total_percentage_pca', default=90, type=int,
                         help=('The percentage of variance explained'
                               ' by the principal components for the'
-                              ' combined data.'))
+                              ' combined data, default 90.'))
     #Output
     parser.add_argument('-b', '--basename', default=os.curdir,
       help=("Specify the basename for files or directory where output"
