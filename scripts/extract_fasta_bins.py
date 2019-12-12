@@ -15,7 +15,7 @@ def main(args):
     all_seqs = {}
     for i, seq in enumerate(SeqIO.parse(args.fasta_file, "fasta")):
         all_seqs[seq.id] = seq
-    df = pd.read_csv(args.cluster_file)
+    df = pd.read_csv(args.cluster_file, dtype=str)
     try:
         assert df.columns[0] == 'contig_id'
         assert df.columns[1] == 'cluster_id'
