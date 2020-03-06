@@ -37,7 +37,13 @@ def generate_features_from_fasta(fasta_file,nr_datapoints,kmer_len,outfile):
     for i,seq in enumerate(seqs):
         contigs_id.append(seq.id)
         for kmer_tuple in window(str(seq.seq).upper(),kmer_len):
-            contigs[i,kmer_dict["".join(kmer_tuple)]] += 1
+            try:
+                contigs[i,kmer_dict["".join(kmer_tuple)]] += 1
+            except KeyError:
+                # in case the kmer is not in the prepared
+                # dictionary, we skip it. This can be caused by
+                # ambigious bases such as N
+                continue
     df = pd.DataFrame(contigs,index=contigs_id)
     df.to_csv(outfile)
 #    print contigs_id
